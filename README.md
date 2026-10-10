@@ -1,8 +1,41 @@
 # SR Base
 
-Interactive driving-scene backgrounds for cockpit interface design. Includes a vehicle model, 2/4/6 lanes, low/high cameras, junctions, ramps and indoor/outdoor parking. Available scene elements can be toggled independently. PNG export uses a 1920 × 1080 canvas.
+Configurable 3D driving and parking backgrounds for automotive cockpit interface design. Choose a scenario, adjust its appearance and camera, and export a 1920 × 1080 PNG to use in your layout.
 
-[Open SR Base](https://paxton0209.github.io/sr-base/) · Created by Peixin. Mobile navigation expands in the page and stays open while comparing scenes.
+[Open the live tool](https://paxton0209.github.io/sr-base/) · Created by Peixin
+
+## Why this project exists
+
+A driver's view is shaped by the vehicle around them. A-, B- and C-pillars, and D-pillars where present, can obscure parts of the surroundings when turning, changing lanes or manoeuvring. Exterior cameras and other sensors observe the environment from different positions. When their inputs are combined, a vehicle can build an environmental model that supplements the driver's direct view. Surrounding-reality (SR) visualizations bring selected parts of that model into the cockpit interface, showing the road layout and detected objects around the vehicle. What they can show depends on sensor coverage and detection quality; a visualization cannot guarantee a complete view of every hazard.
+
+For an interface designer, building an SR concept often means working with a 3D designer on road geometry, vehicle placement, camera framing, materials and lighting. Each new scenario or layout can require another round of modelling and colour adjustment. At the same time, the SR scene shares attention with speed, navigation, alerts and controls. Detailed scenery, strong colours and dense geometry can make those UI elements harder to distinguish.
+
+This project provides a reusable starting point for that work: simplified environments with restrained colours and adjustable scene elements. Designers can compare common driving and parking contexts, choose the amount of environmental detail they need, and bring a consistent background into a cockpit layout without rebuilding the scene for every iteration. It supports early exploration of composition and visual hierarchy; it does not evaluate driving safety or connect to a vehicle's perception system.
+
+## From background to cockpit interface
+
+![Cockpit interface concept combining an SR junction background, a speed display, navigation and controls](cockpit-example-r33.png)
+
+This example comes from the project's Figma design workspace. The SR scene sits alongside navigation, with speed and other UI information layered over a quiet environment. Its geometry remains readable while the interface retains its hierarchy. The complete cockpit screen illustrates how an exported background can be used in interface design; the website exports the scene itself, without speed labels, navigation or app controls.
+
+Start with the closest driving or parking scenario, adjust the camera and visual density, then download the PNG and place it in Figma or another design tool. Add your interface elements and check how they read over the scene. When the layout changes, return to the tool to compare another viewpoint or reduce environmental detail.
+
+## What you can configure
+
+| Control | Available choices |
+| --- | --- |
+| Driving scenario | Road, elevated road, junction and ramp |
+| Parking scenario | Indoor and outdoor parking |
+| Appearance | Light and dark modes for day/night interface exploration |
+| Road layout | Straight or curved roads; 2, 4 or 6 lanes |
+| Junction and ramp | Crossroads or T-junction; exit or merge |
+| Camera | Low/high road views and scenario-specific parking viewpoints, including bird's-eye views |
+| Scene elements | Vehicle, buildings, trees, waterfront and roadworks, where supported by the selected scenario |
+| Export | 1920 × 1080 PNG |
+
+Options follow the selected scenario. Light and dark modes provide visual themes for design exploration, rather than a physical simulation of changing daylight. On mobile, the navigation expands within the page and stays open while comparing scenes.
+
+## Scene preview
 
 ![SR Base — driving scene preview](preview-r32.jpg)
 
@@ -20,9 +53,13 @@ Deploy this folder to a static HTTPS host. All runtime assets are relative to th
 
 ## Contents and attribution
 
-This repository contains only the SR Base website and its runtime assets. Figma design files, internal review pages, feedback and comparison screenshots are excluded. See CREDITS.md and THREE-LICENSE.txt. The vehicle declares CC BY 4.0 in embedded metadata; keep its attribution. The Visual key reference section and its reference images are excluded from this website package.
+This repository contains the SR Base website, its runtime assets and a rendered cockpit example used in this README. Editable Figma files, internal review pages, feedback and comparison screenshots are excluded. The cockpit example is an illustrative UI composition; its third-party app icons and other third-party elements are not relicensed as original project assets. See CREDITS.md and THREE-LICENSE.txt for runtime attribution. The vehicle declares CC BY 4.0 in embedded metadata; keep its attribution. The Visual key reference section and its reference images are excluded from this website package.
 
 
 ## License
 
 Original application code is licensed under [MIT](LICENSE), copyright (c) 2026 Peixin. Original environments and rendered backgrounds are [CC BY 4.0](ASSET-LICENSE.md). The bundled vehicle and third-party code retain their own notices in [CREDITS.md](CREDITS.md) and [THREE-LICENSE.txt](THREE-LICENSE.txt). The Meshopt decoder license is in [MESHOPT-LICENSE.txt](MESHOPT-LICENSE.txt). Include both environment and vehicle attribution when sharing an exported image that contains the vehicle.
+
+## Background reading
+
+[Tesla's driving visualization documentation](https://www.tesla.com/ownersmanual/model3/en_us/GUID-2CB60804-9CEA-4F4B-8B04-09B991368DC5.html) illustrates how detected roads and objects can be represented on a cockpit display. [Volvo's camera limitations documentation](https://www.volvocars.com/en-sa/support/car/v90/16w46/article/dcc0393b8976b065c0a80151160585ff/) describes gaps in camera coverage. These references provide context for SR interface exploration and do not indicate an affiliation with either manufacturer.
