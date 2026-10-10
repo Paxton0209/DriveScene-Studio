@@ -4,7 +4,7 @@ Interactive driving-scene backgrounds for cockpit interface design. Includes a v
 
 [Open SR Base](https://paxton0209.github.io/sr-base/) · Created by Peixin. Mobile navigation expands in the page and stays open while comparing scenes.
 
-![SR Base — driving scene preview](preview.jpg)
+![SR Base — driving scene preview](preview-r32.jpg)
 
 ## Run
 

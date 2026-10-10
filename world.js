@@ -407,7 +407,11 @@ export class World {
   this.vehicleDetail.setVehicleFrame(this.framing.vehicleFrame,vehicle);this.composer.render();
   this.state={id,mode,trees:vegetated,vehicle,buildings,waterfront,roadworks,laneCount,cameraView};return this.audit();
  }
- setVehicle(car){this.car.removeFromParent();this.egoContact.removeFromParent();this.car.traverse(o=>{o.geometry?.dispose();o.material?.dispose?.();});this.car=car;this.scene.add(car);this.egoContact=createContactShadows(car);this.scene.add(this.egoContact);}
+ setVehicle(car){this.car.removeFromParent();this.egoContact.removeFromParent();this.car.traverse(o=>{o.geometry?.dispose();o.material?.dispose?.();});this.car=car;this.scene.add(car);this.egoContact=createContactShadows(car);this.scene.add(this.egoContact);
+  // The scene may already have been built with the loading proxy. Rebuild on
+  // the next update so the real mesh receives its lane position and framing.
+  this.current=null;
+ }
  setResolution(width,height){
   if(this.width===width&&this.height===height)return;
   this.width=width;this.height=height;const shadowSize=width<1920?2048:4096;if(this.sun.shadow.mapSize.x!==shadowSize){this.sun.shadow.map?.dispose();this.sun.shadow.mapPass?.dispose();this.sun.shadow.map=null;this.sun.shadow.mapPass=null;this.sun.shadow.mapSize.set(shadowSize,shadowSize);this.renderer.shadowMap.needsUpdate=true;}this.renderer.setSize(width,height,false);this.composer.setSize(width,height);this.mirror.getRenderTarget().setSize(width,height);this.blurTargets.forEach(t=>t.setSize(width,height));this.waterReflectionTarget.setSize(width,height);this.vehicleDetail.uniforms.texel.value.set(1/width,1/height);
