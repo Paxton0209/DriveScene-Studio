@@ -137,7 +137,7 @@ export class World {
  building(x,z,w,d,h,variantIndex){
   if(!this.options.buildings)return;
   const before=new Set(this.root.children);
-  const variant=variantIndex??this.buildingPlacements.length%3;
+  const variant=(variantIndex??this.buildingPlacements.length)%3;
   this.buildingPlacements.push({x,z,width:w,depth:d,variant:['solid-cap','solid-wing','solid-terrace'][variant]});
   // Three restrained silhouettes share the same footprint and material family.
   if(variant===0){

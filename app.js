@@ -34,6 +34,13 @@ for(const [key,title]of [['open','Driving scenes'],['closed','Parking scenes']])
  }
  section.append(heading,items);$('scenes').append(section);
 }
+const scenePicker=$('scene-picker'),sceneMenu=$('mobile-scene-menu'),sceneNav=$('scenes'),desktopAside=document.querySelector('aside'),mobileNav=$('mobile-scene-nav'),mobileMedia=matchMedia('(max-width:760px)'),creditsLink=document.querySelector('.credits'),appearanceControl=document.querySelector('.appearance-control');
+function closeSceneSheet(){if(sceneMenu.contains(document.activeElement)&&mobileMedia.matches)scenePicker.focus({preventScroll:true});sceneMenu.classList.remove('is-open');sceneMenu.inert=true;sceneMenu.setAttribute('aria-hidden','true');scenePicker.setAttribute('aria-expanded','false');}
+function placeSceneNav(){closeSceneSheet();(mobileMedia.matches?mobileNav:desktopAside).append(sceneNav);if(mobileMedia.matches)$('mobile-menu-footer').append(creditsLink);else appearanceControl.prepend(creditsLink);requestAnimationFrame(moveSelection);}
+scenePicker.addEventListener('click',()=>{const open=scenePicker.getAttribute('aria-expanded')!=='true';sceneMenu.classList.toggle('is-open',open);sceneMenu.inert=!open;sceneMenu.setAttribute('aria-hidden',String(!open));scenePicker.setAttribute('aria-expanded',String(open));});
+sceneMenu.addEventListener('keydown',e=>{if(e.key==='Escape'){closeSceneSheet();scenePicker.focus({preventScroll:true});}});
+scenePicker.addEventListener('keydown',e=>{if(e.key==='Escape')closeSceneSheet();});
+mobileMedia.addEventListener('change',placeSceneNav);placeSceneNav();
 let transitionFrame=0,activeCover=null,pendingRender=0;
 function moveSelection(){
  const button=sceneButtons.get(selected);if(!button||!button.getClientRects().length){navPill.hidden=true;return;}
@@ -55,6 +62,7 @@ document.querySelector('.wordmark').addEventListener('click',event=>{
  event.preventDefault();selected='road';window.scrollTo({top:0,behavior:'instant'});requestRender();
 });
 function requestRender(){
+ if($('current-scene-name'))$('current-scene-name').textContent=active().name;
  cancelAnimationFrame(pendingRender);revealActiveGroup();
  for(const [key,b]of sceneButtons)b.setAttribute('aria-current',key===selected);
  moveSelection();syncSelectedControls();
@@ -62,6 +70,7 @@ function requestRender(){
 }
 
 function render(animate=false,themeWipe=false){
+ if($('current-scene-name'))$('current-scene-name').textContent=active().name;
  cancelAnimationFrame(transitionFrame);
  let cover,previous;
  if(animate&&!matchMedia('(prefers-reduced-motion: reduce)').matches){
@@ -145,8 +154,8 @@ function changeTheme(theme){
 $('theme-toggle').addEventListener('click',()=>changeTheme(requestedTheme==='dark'?'light':'dark'));
 const scenePage=document.querySelector('main'),creditsPage=$('credits-view');let sceneScroll=0;
 function showCredits(open,push=false){
- if(open)sceneScroll=scrollY;
- scenePage.hidden=open;creditsPage.hidden=!open;
+ if(open){sceneScroll=scrollY;closeSceneSheet();}
+ scenePage.hidden=open;creditsPage.hidden=!open;scenePicker.hidden=open;
  document.title=open?'Credits · SR Scenes':'Intelligent Driving Scenes';
  const target=open?creditsPage:scenePage;
  if(!matchMedia('(prefers-reduced-motion: reduce)').matches)target.animate([{opacity:0,transform:'translateY(4px)'},{opacity:1,transform:'translateY(0)'}],{duration:180,easing:'cubic-bezier(.22,1,.36,1)'});
