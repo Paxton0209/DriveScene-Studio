@@ -296,3 +296,5 @@ header:after{display:none}
 :root[data-nav-design="1"] .structure-heading{color:var(--text-secondary)}
 :root[data-nav-design="1"] .structure-items .scene{color:var(--text)}
 .dimensions,.preview[data-mode=light] .dimensions{color:rgb(255 255 255/.60)}
+
+.preview[data-mode=light] .download{color:var(--text-secondary)}
