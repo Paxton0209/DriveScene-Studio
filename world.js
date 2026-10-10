@@ -134,10 +134,10 @@ export class World {
   const n=Math.round(w/lane);for(let i=1;i<n;i++){const x=-w/2+i*lane;if(twoWay&&i===n/2){this.line(x-.105,z0,z1,y,'yellow',.095);this.line(x+.105,z0,z1,y,'yellow',.095);}else this.dashed(x,z0,Math.max(z1,-650),y);}
  }
  curbs(w,z0,z1,y=0){for(const s of [-1,1]){this.box(1.6,.18,z0-z1,s*(w/2+.8),y-.02,(z0+z1)/2,'pavement');this.box(.20,.20,z0-z1,s*(w/2+.1),y,(z0+z1)/2,'curb');}}
- building(x,z,w,d,h){
+ building(x,z,w,d,h,variantIndex){
   if(!this.options.buildings)return;
   const before=new Set(this.root.children);
-  const variant=this.buildingPlacements.length%3;
+  const variant=variantIndex??this.buildingPlacements.length%3;
   this.buildingPlacements.push({x,z,width:w,depth:d,variant:['solid-cap','solid-wing','solid-terrace'][variant]});
   // Three restrained silhouettes share the same footprint and material family.
   if(variant===0){
@@ -166,7 +166,8 @@ export class World {
  tree(x,z,scale=1){const g=new THREE.Group();const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.10,.17,1.6,7),this.mat.trunk);trunk.position.y=.8;g.add(trunk);for(const [px,py,pz,r,m]of [[0,2.7,0,1.05,'leaf'],[-.65,2.03,.05,.74,'leaf2'],[.60,2.25,.02,.83,'leaf'],[.13,2.18,.60,.71,'leaf2']]){const o=new THREE.Mesh(new THREE.IcosahedronGeometry(r,1),this.mat[m]);o.position.set(px,py,pz);o.scale.y=1.16;o.castShadow=true;g.add(o);}g.position.set(x,0,z);g.scale.setScalar(scale);g.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});this.vegetation.add(g);}
  environment(w,{small=false,cross=false,tee=false,elevated=false,residential=false}={}){
   const sites=[[-1,6,9,13,small?5:23],[1,-9,13,11,small?4.5:12],[-1,-31,13,17,small?6:14],[1,-54,8,12,small?5.3:21],[-1,-83,11,13,small?4:10],[1,-107,14,15,small?6:13],[-1,-144,9,14,small?5:16],[1,-180,11,14,small?4:9]];
-  for(const [s,z,bw,bd,bh]of sites.map(v=>residential?[v[0],v[1]-8,v[2]*.82,v[3]*.8,3.8]:v)){if(elevated&&s===-1&&z>0)continue;if(this.options.waterfront&&s===1)continue;if(cross&&Math.abs(z+40)<24)continue;if(tee&&z< -35)continue;const x=s*(w/2+(residential?5.8:8)+bw/2);this.building(x,z,bw,bd,bh);const lawnX=s*(w/2+(residential?3.8:4.5)),lawnDepth=bd+5;const p=this.plane(residential?3.6:5.0,lawnDepth,lawnX,z,.025,'grass');this.lawns.push(p);this.tree(lawnX,z+lawnDepth*.22,small?.8:1.05);if(z>-90)this.tree(lawnX,z-lawnDepth*.24,small?.73:.83);}
+  let siteVariant=0;
+  for(const [s,z,bw,bd,bh]of sites.map(v=>residential?[v[0],v[1]-8,v[2]*.82,v[3]*.8,3.8]:v)){if(elevated&&s===-1&&z>0)continue;if(this.options.waterfront&&s===1)continue;if(cross&&Math.abs(z+40)<24)continue;if(tee&&z< -35)continue;const x=s*(w/2+(residential?5.8:8)+bw/2);const variant=siteVariant++;if(!(s===-1&&z>0&&['02','09'].includes(this.current)))this.building(x,z,bw,bd,bh,variant);const lawnX=s*(w/2+(residential?3.8:4.5)),lawnDepth=bd+5;const p=this.plane(residential?3.6:5.0,lawnDepth,lawnX,z,.025,'grass');this.lawns.push(p);this.tree(lawnX,z+lawnDepth*.22,small?.8:1.05);if(z>-90)this.tree(lawnX,z-lawnDepth*.24,small?.73:.83);}
   if(tee){for(const x of [-21,16,33]){this.building(x,-66,10,11,6);const p=this.plane(13,7,x,-57,.025,'grass');this.lawns.push(p);this.tree(x,-57,.95);}}
  }
  curveStrip(points,width,y,mat='road'){
@@ -209,27 +210,27 @@ export class World {
   this.junctionDimensions={crosswalkCount,crosswalkSpacing,crosswalkLength,crosswalkStripeWidth,stripeOffsets,camera:'high-angle',roadSurface:'disjoint shared boundaries',cornerRadius:r,corners:crossroad?4:2,edgePaint:'continuous shared curve endpoints',nearCrosswalk:-27,markingEnd:-22.55,stopLineVisible:false,stopLineCount:0};
  }
  ramp(id,w){
-  const exit=id==='06',half=w/2,branchHalf=3.7;
-  const sample=z=>{const t=Math.max(0,exit?-z-8:z+60),q=Math.min(t,60),x=1.85+.009*q*q+Math.max(0,t-60)*1.08,dx=.018*q;const h=branchHalf*Math.sqrt(1+dx*dx);const gap=Math.max(0,x-h-half),l=half+gap*(1-Math.exp(-Math.pow(gap/1.5,2)));return {x,l,r:x+h};};
-  const pos=[],indices=[];
-  const quad=(l0,r0,z0,l1,r1,z1)=>{const k=pos.length/3;pos.push(l0,.015,z0,r0,.015,z0,l1,.015,z1,r1,.015,z1);indices.push(k,k+1,k+2,k+1,k+3,k+2);};
-  const ribbon=(fn,condition=()=>true,dashed=false)=>{const p=[],ix=[];let dist=0;for(let z=70;z>-260;z-=.25){const a=fn(z),b=fn(z-.25);dist+=Math.hypot(b-a,.25);if(!condition(z)||(dashed&&dist%9>3.8))continue;const k=p.length/3;p.push(a-.065,.033,z,a+.065,.033,z,b-.065,.033,z-.25,b+.065,.033,z-.25);ix.push(k,k+1,k+2,k+1,k+3,k+2);}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(p,3));g.setIndex(ix);g.computeVertexNormals();this.root.add(new THREE.Mesh(g,this.mat.white));};
-  for(let z=70;z>-260;z-=.25){const a=sample(z),b=sample(z-.25);quad(-half,half,z,-half,half,z-.25);quad(a.l<=half+.65?half:a.l,Math.max(half,a.r),z,b.l<=half+.65?half:b.l,Math.max(half,b.r),z-.25);}
-  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setIndex(indices);g.computeVertexNormals();const m=new THREE.Mesh(g,this.mat.road);m.receiveShadow=true;this.root.add(m);
+  const exit=id==='06',half=w/2,branchHalf=3.7,sign=exit?1:-1;
+  const toU=z=>exit?-z-8:z+60,toZ=u=>exit?-u-8:u-60;
+  const sample=u=>{const t=Math.max(0,u),q=Math.min(t,60),x=1.85+.009*q*q+Math.max(0,t-60)*1.08,dx=.018*q,h=branchHalf*Math.sqrt(1+dx*dx);return{x,l:x-h,r:x+h};};
+  const near=Math.min(toU(70),toU(-260)),far=Math.max(toU(70),toU(-260));
+  // A single rounded nose joins the straight and curved edges with shared tangents.
+  let join=0;while(sample(join).l<half+2.4)join+=.01;
+  const end=join+2.5,handle=4.5,epsilon=.001,slope=(sample(end+epsilon).l-sample(end-epsilon).l)/(2*epsilon);
+  const nose=new THREE.CubicBezierCurve3(new THREE.Vector3(half,0,toZ(join)),new THREE.Vector3(half,0,toZ(join-handle)),new THREE.Vector3(sample(end).l-slope*handle,0,toZ(end-handle)),new THREE.Vector3(sample(end).l,0,toZ(end)));
+  const inner=[];for(let u=far;u>join;u-=.1)inner.push([half,toZ(u)]);
+  for(let i=0;i<=96;i++){const p=nose.getPoint(i/96);inner.push([p.x,p.z]);}
+  for(let u=end+.1;u<far;u+=.1)inner.push([sample(u).l,toZ(u)]);inner.push([sample(far).l,toZ(far)]);
+  const outer=[];for(let u=far;u>near;u-=.1)outer.push([Math.max(half,sample(u).r),toZ(u)]);outer.push([half,toZ(near)]);
+  // Surface and paint use the same perimeter, so the nose has no masked seam.
+  const outline=[[-half,toZ(near)],[-half,toZ(far)],...inner,...outer],shape=new THREE.Shape();
+  outline.forEach(([x,z],i)=>i?shape.lineTo(x,z):shape.moveTo(x,z));shape.closePath();this.flatShape(shape,.015,'road');
+  const inset=(points,amount)=>points.map(([x,z],i)=>{const a=points[Math.max(0,i-1)],b=points[Math.min(points.length-1,i+1)],dx=b[0]-a[0],dz=b[1]-a[1],len=Math.hypot(dx,dz);return[x-dz/len*amount*sign,z+dx/len*amount*sign];});
+  this.pathRibbon(inset(inner,.25),.13,.033,'white');this.pathRibbon(inset(outer,.25),.13,.033,'white');
   this.line(-half+.25,70,-260);this.dashed(-1.85,70,-260);this.dashed(1.85,70,-260);
-  const outer=[];for(let z=70;z>=-260;z-=.1)outer.push([Math.max(half,sample(z).r)-.25,z]);this.pathRibbon(outer,.13,.033,'white');
-  // One continuous, constant-width boundary around the splitter nose.
-  let splitZ=null;for(let z=70;z>-260;z-=.01)if(sample(z).l>half+.65){splitZ=z;break;}
-  if(!exit){for(let z=-260;z<70;z+=.01)if(sample(z).l>half+.65){splitZ=z;break;}}
-  if(splitZ!==null){
-   const q=sample(splitZ),middle=(half+q.l)/2,radius=(q.l-half)/2+.25,far=exit?-260:70,dir=exit?1:-1,pts=[];
-   for(let z=far;exit?z<splitZ:z>splitZ;z+=dir*.1)pts.push([half-.25,z]);
-   for(let i=0;i<=48;i++){const t=Math.PI-Math.PI*i/48;pts.push([middle+radius*Math.cos(t),splitZ+dir*radius*Math.sin(t)]);}
-   for(let z=splitZ-dir*.1;exit?z>=far:z<=far;z-=dir*.1)pts.push([sample(z).l+.25,z]);
-   this.pathRibbon(pts,.13,.034,'white');
-  }
-  ribbon(z=>sample(z).x,z=>sample(z).x>half+.3,true);
-  this.rampDimensions={lanes:2,laneWidth:3.7,width:7.4,surface:'disjoint coplanar union'};
+  let dist=0,previous=null;const dash=[];for(let u=near;u<=far;u+=.1){const x=sample(u).x,z=toZ(u);if(previous)dist+=Math.hypot(x-previous[0],z-previous[1]);if(x>half+.3&&dist%9<3.8){dash.push([x,z]);}else if(dash.length){if(dash.length>1)this.pathRibbon(dash,.13,.033,'white');dash.length=0;}previous=[x,z];}if(dash.length>1)this.pathRibbon(dash,.13,.033,'white');
+  const startTangent=nose.getTangent(0),endTangent=nose.getTangent(1),branchTangent=new THREE.Vector3(slope,0,exit?-1:1).normalize();
+  this.rampDimensions={lanes:2,laneWidth:3.7,width:7.4,surface:'single triangulated perimeter',nose:'tangent-continuous cubic',paintInset:.25,startTangentDot:startTangent.dot(new THREE.Vector3(0,0,sign)),endTangentDot:endTangent.dot(branchTangent)};
  }
  parking(id){if(['17','18','19'].includes(id))buildOutdoorParking(this);else buildParkingReference(this,id);}
  roadworks(w){
