@@ -1,0 +1,11 @@
+# Credits
+
+Vehicle source: **BMW X6M Competition Assetto | www.vecarz.com**, by **vecarz (heynic)**. The downloaded glTF asset declares **CC BY 4.0** in its embedded metadata.
+
+Original source: https://sketchfab.com/3d-models/bmw-x6m-competition-assetto-wwwvecarzcom-3979a908081948e0971f5a5380b60a0f
+Author: https://sketchfab.com/heynic
+License: https://creativecommons.org/licenses/by/4.0/
+
+Changes: silver paint and glass material adjustments, emissive red rear lamps and restrained ground reflections, removal of an isolated out-of-body trim artifact, normalized dimensions and orientation, integration into new driving environments. Preserve this attribution when sharing the model or its rendered derivatives. The live source page could not be fetched during this run; the license record above comes from the asset's embedded metadata.
+
+Rendering: Three.js 0.180.0, MIT License. See THREE-LICENSE.txt. All road layouts, environments, user interface and scene code were created for this task. The vehicle is a visual design asset, not a calibrated model of a production sensing system.
