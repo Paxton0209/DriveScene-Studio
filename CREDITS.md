@@ -12,3 +12,8 @@ Rendering: Three.js 0.180.0, MIT License. See THREE-LICENSE.txt. All road layout
 
 
 Created by Peixin. Original application code: MIT (LICENSE). Original environments and rendered backgrounds: CC BY 4.0 (ASSET-LICENSE.md). Third-party assets retain the separate notices above.
+
+
+## Meshopt decoder
+
+Meshoptimizer decoder is used for lossless vehicle geometry compression. MIT License, copyright Arseny Kapoulkine. See MESHOPT-LICENSE.txt.

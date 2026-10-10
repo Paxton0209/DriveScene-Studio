@@ -1,11 +1,12 @@
 import * as THREE from 'three';
+import {MeshoptDecoder} from 'three/addons/libs/meshopt_decoder.module.js';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {RoundedBoxGeometry} from './RoundedBoxGeometry.js';
 export async function createVehicle(){
- const response=await fetch(new URL('./ego-suv.glb.gz',import.meta.url));
+ const response=await fetch(new URL('./ego-suv.meshopt.glb.gz',import.meta.url));
  if(!response.ok)throw Error('Vehicle asset failed to load');
  const bytes=await new Response(response.body.pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
- const gltf=await new GLTFLoader().parseAsync(bytes,'');
+ const gltf=await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).parseAsync(bytes,'');
  const model=gltf.scene;
  // Rear-only exhaust assembly in the source model; remove for the electric vehicle.
  const exhaust=model.getObjectByName('Object_39');exhaust?.removeFromParent();
@@ -86,4 +87,9 @@ export async function createVehicle(){
  const valance=new THREE.Mesh(valanceGeometry,new THREE.MeshStandardMaterial({color:'#626970',roughness:.64,metalness:.10}));
  valance.name='Continuous rear valance';valance.position.set(0,.505,2.30);valance.castShadow=true;valance.receiveShadow=true;root.add(valance);
  root.userData.vehicleSpec={wheelCount:wheelAudit.length,wheels:wheelAudit,continuousRearValance:true,opaqueGlass:true,exhaustRemoved:!!exhaust&&!model.getObjectByName('Object_39'),sourceExhaustNode:'Object_39',tireMaterial:{opaque:!tires.material.transparent,depthWrite:tires.material.depthWrite,depthTest:tires.material.depthTest}};return root;
+}
+
+// Invisible framing proxy lets the environment render before the model arrives.
+export function createVehicleProxy(){
+ const root=new THREE.Group(),mesh=new THREE.Mesh(new THREE.BoxGeometry(2,1.7,4.85),new THREE.MeshBasicMaterial());mesh.position.y=.85;mesh.visible=false;root.add(mesh);root.userData.vehicleSpec={wheels:[]};return root;
 }

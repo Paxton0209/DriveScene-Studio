@@ -25,10 +25,10 @@ export const catalog=[
 const parkingIds=['10','14','15','16','17','18','19'];
 
 export class World {
- constructor(canvas,car,{palette='balanced',alpha=false}={}){
-  this.palette=palette;
+ constructor(canvas,car,{palette='balanced',alpha=false,width=1920,height=1080}={}){
+  this.palette=palette;this.width=width;this.height=height;
   this.renderer=new THREE.WebGLRenderer({canvas,antialias:true,preserveDrawingBuffer:true,alpha});
-  this.renderer.setPixelRatio(1);this.renderer.setSize(1920,1080,false);
+  this.renderer.setPixelRatio(1);this.renderer.setSize(width,height,false);
   this.renderer.shadowMap.enabled=true;this.renderer.shadowMap.type=THREE.VSMShadowMap;
   this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1;
   this.scene=new THREE.Scene();this.camera=new THREE.PerspectiveCamera(38,16/9,.2,12000);
@@ -63,7 +63,7 @@ export class World {
   this.hemi=new THREE.HemisphereLight('#d9eaff','#8b959d',2.15);this.scene.add(this.hemi);
   this.sun=new THREE.DirectionalLight('#fff5e8',3.2);this.sun.position.set(-38,55,48);this.sun.castShadow=true;
   Object.assign(this.sun.shadow.camera,{left:-48,right:48,top:48,bottom:-48,near:1,far:180});
-  this.sun.shadow.mapSize.set(4096,4096);this.sun.shadow.bias=.00004;this.sun.shadow.normalBias=.015;this.sun.shadow.radius=3;this.sun.shadow.intensity=.42;this.sun.shadow.blurSamples=16;this.sun.target.position.set(0,0,-14);this.scene.add(this.sun,this.sun.target);
+  this.sun.shadow.mapSize.set(width<1920?2048:4096,width<1920?2048:4096);this.sun.shadow.bias=.00004;this.sun.shadow.normalBias=.015;this.sun.shadow.radius=3;this.sun.shadow.intensity=.42;this.sun.shadow.blurSamples=16;this.sun.target.position.set(0,0,-14);this.scene.add(this.sun,this.sun.target);
   this.fill=new THREE.DirectionalLight('#aacded',.7);this.fill.position.set(24,16,-12);this.scene.add(this.fill);
   // Soft environment panels provide coherent highlights to the same 3D body.
   const studio=new THREE.Scene();studio.background=new THREE.Color('#8297aa');
@@ -81,17 +81,17 @@ export class World {
   this.sky=new THREE.Mesh(new THREE.SphereGeometry(10000,32,16),new THREE.ShaderMaterial({side:THREE.BackSide,depthWrite:false,uniforms:{range:{value:.12},top:{value:new THREE.Color('#72afe0')},bottom:{value:new THREE.Color('#c4ddec')}},vertexShader:'varying vec3 v;void main(){v=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',fragmentShader:'varying vec3 v;uniform vec3 top;uniform vec3 bottom;uniform float range;void main(){float t=smoothstep(0.,range,normalize(v).y);gl_FragColor=vec4(mix(bottom,top,t),1.0);#include <colorspace_fragment> }'.replace(';#include',';\n#include').replace('fragment> }','fragment>\n}') }));
   this.tailReflection=createTailLight();this.scene.add(this.tailReflection);
   this.scene.add(this.sky);this.scene.fog=new THREE.Fog('#c9dbea',85,280);this.car=car;this.scene.add(this.car);this.egoContact=createContactShadows(this.car);this.scene.add(this.egoContact);this.current=null;
-  const target=new THREE.WebGLRenderTarget(1920,1080,{type:THREE.HalfFloatType,samples:4});
+  const target=new THREE.WebGLRenderTarget(width,height,{type:THREE.HalfFloatType,samples:4});
   this.composer=new EffectComposer(this.renderer,target);this.composer.addPass(new RenderPass(this.scene,this.camera));
-  this.ao=new GTAOPass(this.scene,this.camera,1920,1080,{}, {radius:1.2,thickness:1.5,distanceExponent:1,scale:.85,samples:16,screenSpaceRadius:false},{radius:5,lumaPhi:8,depthPhi:2,normalPhi:3});
+  this.ao=new GTAOPass(this.scene,this.camera,width,height,{}, {radius:1.2,thickness:1.5,distanceExponent:1,scale:.85,samples:16,screenSpaceRadius:false},{radius:5,lumaPhi:8,depthPhi:2,normalPhi:3});
   this.ao.blendIntensity=.8;this.composer.addPass(this.ao);this.composer.addPass(new OutputPass());
-  this.vehicleDetail=createVehicleDetail();this.composer.addPass(this.vehicleDetail);
-  this.mirror=new Reflector(new THREE.PlaneGeometry(1,1),{textureWidth:1920,textureHeight:1080,multisample:2});this.mirror.rotation.x=-Math.PI/2;
+  this.vehicleDetail=createVehicleDetail();this.vehicleDetail.uniforms.texel.value.set(1/width,1/height);this.composer.addPass(this.vehicleDetail);
+  this.mirror=new Reflector(new THREE.PlaneGeometry(1,1),{textureWidth:width,textureHeight:height,multisample:2});this.mirror.rotation.x=-Math.PI/2;
   this.reflectionSharp={value:this.mirror.getRenderTarget().texture};this.reflectionMatrix={value:new THREE.Matrix4()};this.waterReflectionMatrix={value:new THREE.Matrix4()};this.buildingFootprints={value:Array.from({length:32},()=>new THREE.Vector4())};this.buildingCount={value:0};
-  this.blurTargets=[0,1].map(()=>new THREE.WebGLRenderTarget(1920,1080,{type:THREE.HalfFloatType}));
+  this.blurTargets=[0,1].map(()=>new THREE.WebGLRenderTarget(width,height,{type:THREE.HalfFloatType}));
   this.blurMaterial=new THREE.ShaderMaterial({depthTest:false,depthWrite:false,uniforms:{source:{value:null},direction:{value:new THREE.Vector2()}},vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}',fragmentShader:'uniform sampler2D source;uniform vec2 direction;varying vec2 vUv;void main(){vec4 c=texture2D(source,vUv)*.227027; c+=(texture2D(source,vUv+direction*1.384615)+texture2D(source,vUv-direction*1.384615))*.316216;c+=(texture2D(source,vUv+direction*3.230769)+texture2D(source,vUv-direction*3.230769))*.070270;gl_FragColor=c;}'});
   this.blurQuad=new FullScreenQuad(this.blurMaterial);this.reflectionTexture={value:this.blurTargets[1].texture};
-  this.waterReflectionTarget=new THREE.WebGLRenderTarget(1920,1080,{type:THREE.HalfFloatType});this.waterReflectionTexture={value:this.waterReflectionTarget.texture};
+  this.waterReflectionTarget=new THREE.WebGLRenderTarget(width,height,{type:THREE.HalfFloatType});this.waterReflectionTexture={value:this.waterReflectionTarget.texture};
   for(const kind of ['water']){const material=this.mat[kind],strength=kind==='water'?.43:.025;
    const previousCompile=material.onBeforeCompile;
    material.onBeforeCompile=shader=>{previousCompile.call(material,shader);shader.uniforms.reflectionMatrix=this.waterReflectionMatrix;shader.uniforms.reflectionTexture=this.waterReflectionTexture;
@@ -384,7 +384,7 @@ export class World {
    const excluded=[];this.root.traverse(o=>{if(o.userData.buildingOwned){excluded.push([o,o.visible]);o.visible=false;}});
    this.mirror.onBeforeRender(this.renderer,this.scene,this.camera);
    this.waterReflectionMatrix.value.copy(this.mirror.material.uniforms.textureMatrix.value).multiply(new THREE.Matrix4().copy(this.mirror.matrixWorld).invert());
-   const prevTarget=this.renderer.getRenderTarget();this.blurMaterial.uniforms.source.value=this.mirror.getRenderTarget().texture;this.blurMaterial.uniforms.direction.value.set(7/1920,7/1080);this.renderer.setRenderTarget(this.waterReflectionTarget);this.blurQuad.render(this.renderer);this.renderer.setRenderTarget(prevTarget);
+   const prevTarget=this.renderer.getRenderTarget();this.blurMaterial.uniforms.source.value=this.mirror.getRenderTarget().texture;this.blurMaterial.uniforms.direction.value.set(7/this.width,7/this.height);this.renderer.setRenderTarget(this.waterReflectionTarget);this.blurQuad.render(this.renderer);this.renderer.setRenderTarget(prevTarget);
    for(const [o,visible]of excluded)o.visible=visible;
   }
   // Building reflection contains no sky; clear areas must not tint the ground.
@@ -397,8 +397,8 @@ export class World {
   for(const [o,visible]of reflectionExcluded)o.visible=visible;
   this.scene.background=priorBackground;this.sky.visible=priorSky;this.renderer.setClearColor(priorClear,priorAlpha);
   const rt=this.renderer.getRenderTarget();
-  this.blurMaterial.uniforms.source.value=this.mirror.getRenderTarget().texture;this.blurMaterial.uniforms.direction.value.set(4/1920,0);this.renderer.setRenderTarget(this.blurTargets[0]);this.blurQuad.render(this.renderer);
-  this.blurMaterial.uniforms.source.value=this.blurTargets[0].texture;this.blurMaterial.uniforms.direction.value.set(0,4/1080);this.renderer.setRenderTarget(this.blurTargets[1]);this.blurQuad.render(this.renderer);this.renderer.setRenderTarget(rt);
+  this.blurMaterial.uniforms.source.value=this.mirror.getRenderTarget().texture;this.blurMaterial.uniforms.direction.value.set(4/this.width,0);this.renderer.setRenderTarget(this.blurTargets[0]);this.blurQuad.render(this.renderer);
+  this.blurMaterial.uniforms.source.value=this.blurTargets[0].texture;this.blurMaterial.uniforms.direction.value.set(0,4/this.height);this.renderer.setRenderTarget(this.blurTargets[1]);this.blurQuad.render(this.renderer);this.renderer.setRenderTarget(rt);
   this.reflectionMatrix.value.copy(this.mirror.material.uniforms.textureMatrix.value).multiply(new THREE.Matrix4().copy(this.mirror.matrixWorld).invert());
   for(const [o,visible]of reflective)o.visible=visible;
   for(const column of this.parkingColumns){if(column.userData.glow)column.userData.glow.visible=true;}
@@ -406,6 +406,11 @@ export class World {
   this.egoContact.visible=vehicle;this.egoContact.position.set(this.car.position.x,this.car.position.y-.02,this.car.position.z);
   this.vehicleDetail.setVehicleFrame(this.framing.vehicleFrame,vehicle);this.composer.render();
   this.state={id,mode,trees:vegetated,vehicle,buildings,waterfront,roadworks,laneCount,cameraView};return this.audit();
+ }
+ setVehicle(car){this.car.removeFromParent();this.egoContact.removeFromParent();this.car.traverse(o=>{o.geometry?.dispose();o.material?.dispose?.();});this.car=car;this.scene.add(car);this.egoContact=createContactShadows(car);this.scene.add(this.egoContact);}
+ setResolution(width,height){
+  if(this.width===width&&this.height===height)return;
+  this.width=width;this.height=height;const shadowSize=width<1920?2048:4096;if(this.sun.shadow.mapSize.x!==shadowSize){this.sun.shadow.map?.dispose();this.sun.shadow.mapPass?.dispose();this.sun.shadow.map=null;this.sun.shadow.mapPass=null;this.sun.shadow.mapSize.set(shadowSize,shadowSize);this.renderer.shadowMap.needsUpdate=true;}this.renderer.setSize(width,height,false);this.composer.setSize(width,height);this.mirror.getRenderTarget().setSize(width,height);this.blurTargets.forEach(t=>t.setSize(width,height));this.waterReflectionTarget.setSize(width,height);this.vehicleDetail.uniforms.texel.value.set(1/width,1/height);
  }
  audit(){
   const center=this.car.position.clone().add(new THREE.Vector3(0,.9,0)).project(this.camera);
