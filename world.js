@@ -33,7 +33,7 @@ export class World {
   this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1;
   this.scene=new THREE.Scene();this.camera=new THREE.PerspectiveCamera(38,16/9,.2,12000);
   this.mat={};this.colors={
-   road:['#545e6d','#303031'],ground:['#b4c3d6','#45484d'],pavement:['#d1dbee','#575b62'],
+   road:['#545e6d','#303031'],ground:['#b4c3d6','#373a3e'],pavement:['#d1dbee','#575b62'],
    curb:['#d6e1ef','#7b8088'],building:['#d3d7dd','#817d7d'],glass:['#a6bed0','#606a72'],
    white:['#d6e0e9','#a7adb2'],yellow:['#bbaa6f','#99864e'],grass:['#809c68','#3e4d3d'],
    leaf:['#6f914f','#4a593e'],leaf2:['#84a25c','#526047'],trunk:['#776956','#4b463e'],cone:['#ff5109','#ff590c'],water:['#7695ae','#304146'],parkingFloor:['#7c8b9e','#17181b'],parkingBay:['#aebdce','#393c41'],parkingEdge:['#98a9bc','#34383e']
@@ -103,6 +103,7 @@ export class World {
   }
 
   this.environmentTone={value:0};
+  this.darkAerialPerspective={value:0};
   this.mat.ground.onBeforeCompile=shader=>{
    shader.uniforms.environmentTone=this.environmentTone;
    shader.vertexShader='varying vec3 ambientGroundPosition;\n'+shader.vertexShader;
@@ -115,8 +116,10 @@ export class World {
   // reach the same horizon color before the geometry ends.
   for(const material of Object.values(this.mat)){
    const compile=material.onBeforeCompile;
-   material.onBeforeCompile=shader=>{compile.call(material,shader);shader.fragmentShader=shader.fragmentShader.replace('#include <fog_fragment>',`#ifdef USE_FOG
+   material.onBeforeCompile=shader=>{compile.call(material,shader);shader.uniforms.darkAerialPerspective=this.darkAerialPerspective;shader.fragmentShader='uniform float darkAerialPerspective;\n'+shader.fragmentShader;shader.fragmentShader=shader.fragmentShader.replace('#include <fog_fragment>',`#ifdef USE_FOG
     float t=clamp((vFogDepth-${material===this.mat.ground?'45.':material===this.mat.water?'65.':'105.'})/${material===this.mat.ground?'180.':material===this.mat.water?'125.':'140.'},0.,1.);
+    // In dark scenes a shared distance curve joins sky and ground gradually.
+    if(darkAerialPerspective>.5)t=clamp((vFogDepth-65.)/235.,0.,1.);
     float aerial=t*t*t*(t*(t*6.-15.)+10.);
     float fogFactor=fogNear>10000.?0.:aerial;
     gl_FragColor.rgb=mix(gl_FragColor.rgb,fogColor,fogFactor);
@@ -363,12 +366,13 @@ export class World {
   if(isParking){this.hemi.color.set(dark?'#e5e5e5':'#d9e2eb');this.hemi.groundColor.set(dark?'#717171':'#91969e');this.hemi.intensity=dark?.65:.85;this.sun.color.set(dark?'#eeeeee':'#fff5e8');this.sun.intensity=dark?1.4:2.6;this.fill.color.set(dark?'#cccccc':'#d7e2eb');this.fill.intensity=.35;}
   this.sun.position.set(-38,55+(id==='03'?6:0),48);
   const bodyContact=this.egoContact.children[0];bodyContact.scale.y=1;bodyContact.position.z=0;bodyContact.material.uniforms.opacity.value=dark?.42:.52;
-  this.environmentTone.value=dark?1:0;
+  this.environmentTone.value=dark?1:0;this.darkAerialPerspective.value=dark?1:0;
   this.sky.material.uniforms.range.value=dark?.32:.20;this.sky.material.uniforms.top.value.set(dark?'#2d2e30':'#96bde0');this.sky.material.uniforms.bottom.value.set(dark?'#48494b':'#dce5ee');
   this.scene.fog.color.set(dark?'#48494b':'#dce5ee');this.scene.fog.near=isIndoor?100000:55;this.scene.fog.far=isIndoor?120000:210;this.sky.visible=!isIndoor;this.scene.background=isIndoor?new THREE.Color().setRGB(dark?.022:.66,dark?.022:.94,dark?.022:1.45):null;
   if(dark){
-   this.sky.material.uniforms.top.value.setRGB(.038*.94,.038,.038*1.09);
-   this.sky.material.uniforms.bottom.value.setRGB(.063*.94,.063,.063*1.09);
+   this.sky.material.uniforms.range.value=.20;
+   this.sky.material.uniforms.top.value.set('#202225');
+   this.sky.material.uniforms.bottom.value.set('#373a3e');
    this.scene.fog.color.copy(this.sky.material.uniforms.bottom.value);
   }
   if(!dark&&this.palette!=='current'){
@@ -423,6 +427,6 @@ export class World {
   const minX=Math.min(...pts.map(p=>p.x)),maxX=Math.max(...pts.map(p=>p.x)),minY=Math.min(...pts.map(p=>p.y)),maxY=Math.max(...pts.map(p=>p.y));
   const glass=[];let exhaustCount=0;this.car.traverse(o=>{if(!o.isMesh)return;if(o.name==='Object_39')exhaustCount++;for(const m of (Array.isArray(o.material)?o.material:[o.material]))if(m.name==='glass')glass.push({opacity:m.opacity,transparent:m.transparent,transmission:m.transmission||0,roughness:m.roughness,envMapIntensity:m.envMapIntensity});});
   const junctionFrame=['05','08'].includes(this.current)?[-1,1].flatMap(x=>[-28.9,-51.1].map(z=>{const p=new THREE.Vector3(x*11.1,0,z).project(this.camera);return {x:(p.x+1)/2,y:(1-p.y)/2};})):null;
-  return {...this.state,groundReflection:this.groundReflectionAudit,palette:this.palette,roadColor:this.mat.road.color.getHexString(),groundColor:this.mat.ground.color.getHexString(),lightIntensity:[this.hemi.intensity,this.sun.intensity,this.fill.intensity],framing:this.framing,environmentSignature:this.environmentSignature,glass,exhaustCount,contactPatches:this.egoContact.children.length,junctionFrame,vehicleSpec:this.car.userData.vehicleSpec,junctionDimensions:this.junctionDimensions,parkingReplica:this.parkingReplica,parkedVehicles:this.parkedVehicles||[],buildingOwnedCount:this.root.children.filter(o=>o.userData.buildingOwned).length,buildingShadowCasters:this.root.children.filter(o=>o.userData.buildingOwned&&o.castShadow).length,buildingVSMParticipants:this.root.children.filter(o=>o.userData.buildingOwned&&(o.castShadow||o.receiveShadow)).length,roadworkZone:this.roadworkZone,pedestrianPassages:this.pedestrianPassages,rampDimensions:this.rampDimensions,vehicleDimensions:box.getSize(new THREE.Vector3()).toArray(),vehicleBounds:{left:(minX+1)/2,top:(1-maxY)/2,width:(maxX-minX)/2,height:(maxY-minY)/2,bottom:(1-minY)/2},center:{x:(center.x+1)/2,y:(1-center.y)/2},roadElevation:this.car.position.y-.02,roadSlope:0,horizon:'far-only smootherstep from 105m to 245m',treePlacements,buildingsPlaced:this.buildingPlacements,waterBounds:this.waterBounds,parkingBays:this.parkingBays,parkingColumns:this.parkingColumns.map(c=>c.position.toArray()),vehiclePhysicalLength:4.85,geometry:this.current,geometrySignature:this.geometrySignature,camera:this.camera.position.toArray(),car:this.car.position.toArray()};
+  return {...this.state,groundReflection:this.groundReflectionAudit,palette:this.palette,roadColor:this.mat.road.color.getHexString(),groundColor:this.mat.ground.color.getHexString(),lightIntensity:[this.hemi.intensity,this.sun.intensity,this.fill.intensity],framing:this.framing,environmentSignature:this.environmentSignature,glass,exhaustCount,contactPatches:this.egoContact.children.length,junctionFrame,vehicleSpec:this.car.userData.vehicleSpec,junctionDimensions:this.junctionDimensions,parkingReplica:this.parkingReplica,parkedVehicles:this.parkedVehicles||[],buildingOwnedCount:this.root.children.filter(o=>o.userData.buildingOwned).length,buildingShadowCasters:this.root.children.filter(o=>o.userData.buildingOwned&&o.castShadow).length,buildingVSMParticipants:this.root.children.filter(o=>o.userData.buildingOwned&&(o.castShadow||o.receiveShadow)).length,roadworkZone:this.roadworkZone,pedestrianPassages:this.pedestrianPassages,rampDimensions:this.rampDimensions,vehicleDimensions:box.getSize(new THREE.Vector3()).toArray(),vehicleBounds:{left:(minX+1)/2,top:(1-maxY)/2,width:(maxX-minX)/2,height:(maxY-minY)/2,bottom:(1-minY)/2},center:{x:(center.x+1)/2,y:(1-center.y)/2},roadElevation:this.car.position.y-.02,roadSlope:0,horizon:this.environmentTone.value?'shared smootherstep from 65m to 300m':'original material-specific smootherstep',treePlacements,buildingsPlaced:this.buildingPlacements,waterBounds:this.waterBounds,parkingBays:this.parkingBays,parkingColumns:this.parkingColumns.map(c=>c.position.toArray()),vehiclePhysicalLength:4.85,geometry:this.current,geometrySignature:this.geometrySignature,camera:this.camera.position.toArray(),car:this.car.position.toArray()};
  }
 }

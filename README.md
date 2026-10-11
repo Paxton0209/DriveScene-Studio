@@ -4,9 +4,9 @@
 
 An open-source base for designing intelligent-driving SR visualizations and automotive cockpit interfaces, with configurable 3D driving and parking scene backgrounds. Choose a scenario, adjust its appearance and camera, and export a 1920 × 1080 PNG to use in your layout.
 
-[Open the live tool](https://paxton0209.github.io/drivescene-studio/) · Created by Peixin
+[Open the live tool](https://paxton0209.github.io/DriveScene-Studio/) · Created by Peixin
 
-![SR background used in a cockpit interface concept, shown inside a vehicle](cockpit-in-context-r34.png)
+![SR background used in a cockpit interface concept, shown inside a vehicle](cockpit-in-context-r39.png)
 
 ## Why this project exists
 
@@ -18,7 +18,7 @@ This project provides a reusable starting point for that work: simplified enviro
 
 ## From background to cockpit interface
 
-![Cockpit interface concept combining an SR junction background, a speed display, navigation and controls](cockpit-example-r33.png)
+![Cockpit interface concept combining an SR junction background, a speed display, navigation and controls](cockpit-example-r39.png)
 
 This example comes from the project's Figma design workspace. The SR scene sits alongside navigation, with speed and other UI information layered over a quiet environment. Its geometry remains readable while the interface retains its hierarchy. The complete cockpit screen illustrates how an exported background can be used in interface design; the website exports the scene itself, without speed labels, navigation or app controls.
 
