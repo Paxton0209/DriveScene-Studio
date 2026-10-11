@@ -3,6 +3,10 @@ import {World} from './world.js';
 import {structures,legacyScenes} from './structures.js';
 import {createVehicle,createVehicleProxy} from './vehicle.js';
 const $=id=>document.getElementById(id),preview=$('preview');
+const siteHeader=document.querySelector('header');
+siteHeader.classList.toggle('is-scrolled',scrollY>1);
+const headerObserver=new IntersectionObserver(([entry])=>siteHeader.classList.toggle('is-scrolled',!entry.isIntersecting));
+headerObserver.observe($('header-sentinel'));
 const query=new URLSearchParams(location.search),requested=query.get('scene'),initial=legacyScenes[requested]||requested;
 const first=structures.find(s=>s.layouts.some(([id])=>id===initial))||structures[0];
 const preferences=new Map(structures.map(s=>[s.key,{id:s.layouts[0][0],buildings:!!s.buildings,waterfront:s.key==='road'&&initial==='13',trees:false,vehicle:true,roadworks:false}]));
@@ -77,7 +81,7 @@ syncNavigation();
 const scenePicker=$('scene-picker'),sceneMenu=$('mobile-scene-menu'),sceneNav=$('scenes'),desktopAside=document.querySelector('aside'),mobileNav=$('mobile-scene-nav'),mobileMedia=matchMedia('(max-width:760px)'),creditsLink=document.querySelector('.credits'),appearanceControl=document.querySelector('.appearance-control');
 function closeSceneSheet(){if(sceneMenu.contains(document.activeElement)&&mobileMedia.matches)scenePicker.focus({preventScroll:true});sceneMenu.classList.remove('is-open');sceneMenu.inert=true;sceneMenu.setAttribute('aria-hidden','true');scenePicker.setAttribute('aria-expanded','false');scenePicker.setAttribute('aria-label','Choose a scene');}
 function placeSceneNav(){closeSceneSheet();(mobileMedia.matches?mobileNav:desktopAside).append(sceneNav);if(mobileMedia.matches)$('mobile-menu-footer').append(creditsLink);else appearanceControl.prepend(creditsLink);requestAnimationFrame(moveSelection);}
-scenePicker.addEventListener('click',()=>{const open=scenePicker.getAttribute('aria-expanded')!=='true';sceneMenu.classList.toggle('is-open',open);sceneMenu.inert=!open;sceneMenu.setAttribute('aria-hidden',String(!open));scenePicker.setAttribute('aria-expanded',String(open));scenePicker.setAttribute('aria-label',open?'Close scene menu':'Choose a scene');if(open)requestAnimationFrame(moveSelection);});
+scenePicker.addEventListener('click',()=>{const open=scenePicker.getAttribute('aria-expanded')!=='true';sceneMenu.classList.toggle('is-open',open);sceneMenu.inert=!open;sceneMenu.setAttribute('aria-hidden',String(!open));scenePicker.setAttribute('aria-expanded',String(open));scenePicker.setAttribute('aria-label',open?'Close scene menu':'Choose a scene');if(open)requestAnimationFrame(()=>{moveSelection();if(sceneMenu.getBoundingClientRect().top<siteHeader.getBoundingClientRect().bottom)window.scrollTo({top:0,behavior:'instant'});});});
 sceneMenu.addEventListener('keydown',e=>{if(e.key==='Escape'){closeSceneSheet();scenePicker.focus({preventScroll:true});}});
 scenePicker.addEventListener('keydown',e=>{if(e.key==='Escape')closeSceneSheet();});
 mobileMedia.addEventListener('change',placeSceneNav);placeSceneNav();

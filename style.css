@@ -312,3 +312,25 @@ header .wordmark{flex:none;max-width:none;padding:0;font-size:16px;line-height:2
 @media(min-width:761px) and (max-width:1000px){.site-signature{padding-inline:24px}}
 @media(max-width:760px){header .brand{flex:1;gap:7px}header .wordmark{font-size:14px;line-height:20px;letter-spacing:-.35px}.site-version{font-size:11px;line-height:16px}.site-signature{margin-top:20px;padding:0 var(--mobile-gutter,16px) 20px}.footer-inner{align-items:flex-start;flex-direction:column;gap:8px;padding-top:20px}.social-links{gap:24px}}
 @media(max-width:359px){header .brand{gap:6px}header .wordmark{font-size:13px;letter-spacing:-.4px}.site-version{font-size:10px}}
+
+/* R41: keep the menu and wordmark together without reducing the touch target. */
+@media(max-width:760px){header{gap:0}#scene-picker{margin-inline-start:-16px;justify-content:center}#scene-picker svg{margin-left:0}header .brand{flex:1;margin:0}.appearance-control{margin-inline-start:auto}}
+
+/* R41: a persistent header with a soft, masked backdrop after scrolling. */
+:root{--header-rgb:250 250 250;--header-height:80px}
+:root[data-theme=dark]{--header-rgb:25 26 28}
+#header-sentinel{position:absolute;top:0;left:0;width:1px;height:1px;pointer-events:none}
+header{position:sticky;top:0;z-index:20;isolation:isolate}
+/* Tint and blur both dissolve across the full edge, with no opaque shelf. */
+.header-backdrop{position:absolute;inset:0 0 -48px;z-index:-1;pointer-events:none;opacity:0;transition:opacity 180ms cubic-bezier(.22,1,.36,1)}
+.header-backdrop:after{content:"";position:absolute;inset:0;background:linear-gradient(to bottom,rgb(var(--header-rgb)/.98) 0%,rgb(var(--header-rgb)/.94) 25%,rgb(var(--header-rgb)/.72) 45%,rgb(var(--header-rgb)/.38) 65%,rgb(var(--header-rgb)/.10) 82%,rgb(var(--header-rgb)/0) 100%)}
+.header-backdrop>span{position:absolute;inset:0;-webkit-mask-image:var(--blur-mask);mask-image:var(--blur-mask);-webkit-backdrop-filter:blur(var(--blur));backdrop-filter:blur(var(--blur))}
+.header-backdrop>span:nth-child(1){--blur:2px;--blur-mask:linear-gradient(to bottom,#000 0%,#000 60%,transparent 100%)}
+.header-backdrop>span:nth-child(2){--blur:4px;--blur-mask:linear-gradient(to bottom,#000 0%,#000 35%,transparent 85%)}
+.header-backdrop>span:nth-child(3){--blur:8px;--blur-mask:linear-gradient(to bottom,#000 0%,#000 10%,transparent 70%)}
+.header-backdrop>span:nth-child(4){--blur:16px;--blur-mask:linear-gradient(to bottom,#000 0%,transparent 50%)}
+header.is-scrolled .header-backdrop{opacity:1}
+html{scroll-padding-top:calc(var(--header-height) + 24px)}
+@media(min-width:761px){aside{top:calc(var(--header-height) + 24px)}}
+@media(max-width:760px){:root{--header-height:64px}#mobile-scene-menu{scroll-margin-top:76px}}
+
