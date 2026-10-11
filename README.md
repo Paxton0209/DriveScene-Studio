@@ -1,10 +1,10 @@
-# SR Base
+# DriveScene Studio
 
-### 3D Scene Backgrounds for Intelligent-Driving Visualization & Cockpit UI Design
+### 3D Backgrounds for Cockpit UI Design
 
 An open-source base for designing intelligent-driving SR visualizations and automotive cockpit interfaces, with configurable 3D driving and parking scene backgrounds. Choose a scenario, adjust its appearance and camera, and export a 1920 × 1080 PNG to use in your layout.
 
-[Open the live tool](https://paxton0209.github.io/sr-base/) · Created by Peixin
+[Open the live tool](https://paxton0209.github.io/drivescene-studio/) · Created by Peixin
 
 ![SR background used in a cockpit interface concept, shown inside a vehicle](cockpit-in-context-r34.png)
 
@@ -41,7 +41,7 @@ Options follow the selected scenario. Light and dark modes provide visual themes
 
 ## Scene preview
 
-![SR Base — driving scene preview](preview-r32.jpg)
+![DriveScene Studio — driving scene preview](preview-r32.jpg)
 
 ## Run
 
@@ -57,7 +57,7 @@ Deploy this folder to a static HTTPS host. All runtime assets are relative to th
 
 ## Contents and attribution
 
-This repository contains the SR Base website, its runtime assets and rendered cockpit examples used in this README. Editable Figma files, internal review pages, feedback and comparison screenshots are excluded. The cockpit examples are illustrative UI compositions; their third-party app icons, vehicle-interior photography and other third-party elements are not relicensed as original project assets. See CREDITS.md and THREE-LICENSE.txt for runtime attribution. The vehicle declares CC BY 4.0 in embedded metadata; keep its attribution. The Visual key reference section and its reference images are excluded from this website package.
+This repository contains the DriveScene Studio website, its runtime assets and rendered cockpit examples used in this README. Editable Figma files, internal review pages, feedback and comparison screenshots are excluded. The cockpit examples are illustrative UI compositions; their third-party app icons, vehicle-interior photography and other third-party elements are not relicensed as original project assets. See CREDITS.md and THREE-LICENSE.txt for runtime attribution. The vehicle declares CC BY 4.0 in embedded metadata; keep its attribution. The Visual key reference section and its reference images are excluded from this website package.
 
 
 ## License

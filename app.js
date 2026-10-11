@@ -206,7 +206,7 @@ const scenePage=document.querySelector('main'),creditsPage=$('credits-view');let
 function showCredits(open,push=false){
  if(open){sceneScroll=scrollY;closeSceneSheet();}
  scenePage.hidden=open;creditsPage.hidden=!open;scenePicker.hidden=open;
- document.title=open?'Credits · SR Scenes':'Intelligent Driving Scenes';
+ document.title=open?'Credits · DriveScene Studio':'DriveScene Studio';
  const target=open?creditsPage:scenePage;
  if(!matchMedia('(prefers-reduced-motion: reduce)').matches)target.animate([{opacity:0,transform:'translateY(4px)'},{opacity:1,transform:'translateY(0)'}],{duration:180,easing:'cubic-bezier(.22,1,.36,1)'});
  if(push){const q=new URLSearchParams(location.search);q.set('page','credits');history.pushState({srCredits:true},'',`?${q}`);}
