@@ -122,8 +122,7 @@ aside{min-height:0}nav{gap:20px}.structure-heading{padding:10px 16px 8px;color:v
 @media(max-width:359px){:root{--mobile-gutter:12px}}
 
 /* Attribution follows the image column rather than the full page. */
-.workspace>.site-signature{width:100%;max-width:none;margin:0;padding:28px 0 0}
-@media(max-width:760px){.workspace>.site-signature{padding:24px 0 16px}}
+
 
 /* R21: three interactive navigation studies, with a quiet filled folder glyph. */
 :root{--nav-surface:#fff;--nav-selected:#e9eaec;--nav-hover:#f0f1f3;--nav-folder:#369ed2}
@@ -298,3 +297,18 @@ header:after{display:none}
 .dimensions,.preview[data-mode=light] .dimensions{color:rgb(255 255 255/.60)}
 
 .preview[data-mode=light] .download{color:var(--text-secondary)}
+
+/* R40: compact wordmark and release number, with a shared page footer. */
+header .brand{display:flex;align-items:baseline;gap:9px;min-width:0}
+header .wordmark{flex:none;max-width:none;padding:0;font-size:16px;line-height:24px;font-weight:500;letter-spacing:-.25px;white-space:nowrap;color:var(--text)}
+.site-version{font-size:12px;line-height:18px;font-weight:400;letter-spacing:0;color:var(--text-secondary);white-space:nowrap;font-variant-numeric:tabular-nums}
+.site-signature{max-width:1760px;margin:12px auto 0;padding:0 40px 24px;display:block;color:var(--text-secondary);font-size:12px;line-height:20px}
+.footer-inner{display:flex;align-items:center;justify-content:space-between;gap:24px;border-top:1px solid var(--line);padding-top:20px}
+.footer-credit{margin:0}.site-signature a{color:inherit;text-decoration:none}.footer-credit a:last-child{color:rgb(var(--ink)/.76)}
+.site-signature a:hover{color:var(--text);text-decoration:underline;text-underline-offset:3px}
+.social-links{display:flex;align-items:center;gap:24px}.social-links a{display:inline-flex;align-items:center;min-height:44px;color:var(--text-secondary)}
+@media(min-width:761px){header{min-height:80px}}
+@media(min-width:1001px) and (max-width:1250px){.site-signature{padding-inline:30px}}
+@media(min-width:761px) and (max-width:1000px){.site-signature{padding-inline:24px}}
+@media(max-width:760px){header .brand{flex:1;gap:7px}header .wordmark{font-size:14px;line-height:20px;letter-spacing:-.35px}.site-version{font-size:11px;line-height:16px}.site-signature{margin-top:20px;padding:0 var(--mobile-gutter,16px) 20px}.footer-inner{align-items:flex-start;flex-direction:column;gap:8px;padding-top:20px}.social-links{gap:24px}}
+@media(max-width:359px){header .brand{gap:6px}header .wordmark{font-size:13px;letter-spacing:-.4px}.site-version{font-size:10px}}

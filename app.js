@@ -205,7 +205,7 @@ $('theme-toggle').addEventListener('click',()=>changeTheme(requestedTheme==='dar
 const scenePage=document.querySelector('main'),creditsPage=$('credits-view');let sceneScroll=0;
 function showCredits(open,push=false){
  if(open){sceneScroll=scrollY;closeSceneSheet();}
- scenePage.hidden=open;creditsPage.hidden=!open;scenePicker.hidden=open;
+ scenePage.hidden=open;creditsPage.hidden=!open;scenePicker.hidden=open;document.querySelector('.site-signature').hidden=open;
  document.title=open?'Credits · DriveScene Studio':'DriveScene Studio';
  const target=open?creditsPage:scenePage;
  if(!matchMedia('(prefers-reduced-motion: reduce)').matches)target.animate([{opacity:0,transform:'translateY(4px)'},{opacity:1,transform:'translateY(0)'}],{duration:180,easing:'cubic-bezier(.22,1,.36,1)'});
