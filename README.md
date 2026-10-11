@@ -1,10 +1,12 @@
 # SR Base
 
-Configurable 3D driving and parking backgrounds for automotive cockpit interface design. Choose a scenario, adjust its appearance and camera, and export a 1920 × 1080 PNG to use in your layout.
+### 3D Scene Backgrounds for Intelligent-Driving Visualization & Cockpit UI Design
+
+An open-source base for designing intelligent-driving SR visualizations and automotive cockpit interfaces, with configurable 3D driving and parking scene backgrounds. Choose a scenario, adjust its appearance and camera, and export a 1920 × 1080 PNG to use in your layout.
 
 [Open the live tool](https://paxton0209.github.io/sr-base/) · Created by Peixin
 
-![SR background used in a cockpit interface concept, shown inside a vehicle](cockpit-in-context-r33.png)
+![SR background used in a cockpit interface concept, shown inside a vehicle](cockpit-in-context-r34.png)
 
 ## Why this project exists
 
