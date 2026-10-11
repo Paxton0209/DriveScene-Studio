@@ -7,6 +7,18 @@ const siteHeader=document.querySelector('header');
 siteHeader.classList.toggle('is-scrolled',scrollY>1);
 const headerObserver=new IntersectionObserver(([entry])=>siteHeader.classList.toggle('is-scrolled',!entry.isIntersecting));
 headerObserver.observe($('header-sentinel'));
+// Keep the scrolling workspace fade outside the stationary desktop navigation.
+const sceneLayout=document.querySelector('main');
+function syncHeaderLayout(){
+ if(sceneLayout.hidden)return;
+ const headerBox=siteHeader.getBoundingClientRect();
+ const workspaceBox=document.querySelector('.workspace').getBoundingClientRect();
+ siteHeader.style.setProperty('--workspace-left',`${Math.max(0,workspaceBox.left-headerBox.left)}px`);
+ sceneLayout.style.setProperty('--sidebar-top',`${headerBox.height+parseFloat(getComputedStyle(sceneLayout).paddingTop)}px`);
+}
+const headerLayoutObserver=new ResizeObserver(syncHeaderLayout);
+headerLayoutObserver.observe(sceneLayout);headerLayoutObserver.observe(siteHeader);
+syncHeaderLayout();
 const query=new URLSearchParams(location.search),requested=query.get('scene'),initial=legacyScenes[requested]||requested;
 const first=structures.find(s=>s.layouts.some(([id])=>id===initial))||structures[0];
 const preferences=new Map(structures.map(s=>[s.key,{id:s.layouts[0][0],buildings:!!s.buildings,waterfront:s.key==='road'&&initial==='13',trees:false,vehicle:true,roadworks:false}]));
@@ -209,7 +221,7 @@ $('theme-toggle').addEventListener('click',()=>changeTheme(requestedTheme==='dar
 const scenePage=document.querySelector('main'),creditsPage=$('credits-view');let sceneScroll=0;
 function showCredits(open,push=false){
  if(open){sceneScroll=scrollY;closeSceneSheet();}
- scenePage.hidden=open;creditsPage.hidden=!open;scenePicker.hidden=open;document.querySelector('.site-signature').hidden=open;
+ scenePage.hidden=open;creditsPage.hidden=!open;siteHeader.classList.toggle('credits-open',open);scenePicker.hidden=open;document.querySelector('.site-signature').hidden=open;
  document.title=open?'Credits · DriveScene Studio':'DriveScene Studio';
  const target=open?creditsPage:scenePage;
  if(!matchMedia('(prefers-reduced-motion: reduce)').matches)target.animate([{opacity:0,transform:'translateY(4px)'},{opacity:1,transform:'translateY(0)'}],{duration:180,easing:'cubic-bezier(.22,1,.36,1)'});

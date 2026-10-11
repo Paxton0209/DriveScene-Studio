@@ -331,6 +331,7 @@ header{position:sticky;top:0;z-index:20;isolation:isolate}
 .header-backdrop>span:nth-child(4){--blur:10px;--blur-mask:linear-gradient(to bottom,#000 0%,rgb(0 0 0/0.93) 7.2%,rgb(0 0 0/0.76) 14.4%,rgb(0 0 0/0.5) 22.5%,rgb(0 0 0/0.24) 30.6%,rgb(0 0 0/0.07) 37.8%,transparent 45%)}
 header.is-scrolled .header-backdrop{opacity:1}
 html{scroll-padding-top:calc(var(--header-height) + 24px)}
-@media(min-width:761px){aside{top:calc(var(--header-height) + 24px)}}
+/* R43: navigation stays at its original position; only workspace content fades. */
+@media(min-width:761px){aside{top:var(--sidebar-top,112px)}.header-backdrop{left:var(--workspace-left,280px)}header.credits-open .header-backdrop{left:0}}
 @media(max-width:760px){:root{--header-height:64px}#mobile-scene-menu{scroll-margin-top:76px}}
 
