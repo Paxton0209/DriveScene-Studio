@@ -23,7 +23,8 @@ const query=new URLSearchParams(location.search),requested=query.get('scene'),in
 const first=structures.find(s=>s.layouts.some(([id])=>id===initial))||structures[0];
 const preferences=new Map(structures.map(s=>[s.key,{id:s.layouts[0][0],buildings:!!s.buildings,waterfront:s.key==='road'&&initial==='13',trees:false,vehicle:true,roadworks:false}]));
 preferences.get(first.key).id=initial&&first.layouts.some(([id])=>id===initial)?initial:first.layouts[0][0];
-Object.assign(preferences.get('road'),{shape:initial==='13'?'curved':'straight',laneCount:initial==='09'?2:6,cameraView:query.get('view')==='high'?'high':'low'});
+Object.assign(preferences.get('road'),{shape:initial==='13'?'curved':'straight',laneCount:initial==='09'?2:6,cameraView:first.key==='road'&&query.get('view')==='high'?'high':'low'});
+preferences.get('ramp').cameraView=first.key==='ramp'&&query.get('view')==='high'?'high':'low';
 if(['2','4','6'].includes(query.get('lanes')))preferences.get('road').laneCount=Number(query.get('lanes'));
 if(requested==='01')preferences.get(first.key).buildings=false;
 if(requested==='12')preferences.get(first.key).roadworks=true;
@@ -42,7 +43,7 @@ const referenceView=null;let referenceVehicle=true;
 function currentFrame(){return $('scene-canvas');}
 function active(){return structures.find(s=>s.key===selected);}
 function state(){const st={...preferences.get(selected),mode};for(const key of ['buildings','waterfront','trees','roadworks'])st[key]=!!active()[key]&&!!st[key];if(selected==='road')st.id=st.shape==='curved'?'13':st.laneCount===2?'09':'02';return st;}
-function updateURL(){const q=new URLSearchParams();q.set('scene',selected==='reference'?'reference':state().id);q.set('mode',mode);if(selected==='road'){q.set('lanes',state().laneCount);q.set('view',state().cameraView);}if(comparingNav){q.set('study','1');q.set('nav',navDesign);}if(query.has('motion'))q.set('motion',query.get('motion'));if(document.getElementById('credits-view')&&!document.getElementById('credits-view').hidden)q.set('page','credits');history.replaceState(null,'',`?${q}`);}
+function updateURL(){const q=new URLSearchParams();q.set('scene',selected==='reference'?'reference':state().id);q.set('mode',mode);if(selected==='road')q.set('lanes',state().laneCount);if(selected==='road'||selected==='ramp')q.set('view',state().cameraView);if(comparingNav){q.set('study','1');q.set('nav',navDesign);}if(query.has('motion'))q.set('motion',query.get('motion'));if(document.getElementById('credits-view')&&!document.getElementById('credits-view').hidden)q.set('page','credits');history.replaceState(null,'',`?${q}`);}
 const sceneButtons=new Map(),sceneGroups=new Map(),categoryButtons=new Map();
 const groupSelection=new Map([['open',first.group==='open'?selected:'road'],['closed',first.group==='closed'?selected:'parking']]);
 const folderSVG='<svg class="folder-icon" width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M2.5 6V4.75A1.5 1.5 0 0 1 4 3.25h3.1c.4 0 .78.16 1.06.44l1.62 1.62a.75.75 0 0 0 .53.22H16A1.5 1.5 0 0 1 17.5 7.03v8.22A1.5 1.5 0 0 1 16 16.75H4a1.5 1.5 0 0 1-1.5-1.5V6Z" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -166,6 +167,9 @@ function render(animate=false,themeWipe=false){
  }
 
  $('parking-views').hidden=!parking;$('parking-control').hidden=!parking;$('road-controls').hidden=isReference||s.key!=='road';
+ const ramp=!isReference&&s.key==='ramp';
+ $('ramp-camera-control').hidden=!ramp;
+ for(const button of $('ramp-views').querySelectorAll('button')){button.disabled=!ramp;button.setAttribute('aria-pressed',ramp&&button.dataset.rampView===st.cameraView);}
  for(const b of $('road-controls').querySelectorAll('button'))b.setAttribute('aria-pressed',!isReference&&String(st[b.dataset.road])===b.dataset.value);
  $('camera-control').hidden=!(parking||hasLayouts);document.querySelector('.toolbar').hidden=!(parking||hasLayouts);
  for(const button of $('parking-views').querySelectorAll('button'))button.setAttribute('aria-pressed',parking&&button.dataset.view===(s.key==='outdoor'?({'17':'10','18':'16','19':'14'}[st.id]):st.id));
@@ -189,6 +193,7 @@ function updateSegmentIndicators(){
 window.addEventListener('resize',()=>{updateSegmentIndicators();moveSelection();const [w,h]=previewResolution();if(world.width!==w||world.height!==h){world.setResolution(w,h);requestRender();}});
 new ResizeObserver(()=>{moveSelection();}).observe($('scenes'));
 for(const b of $('road-controls').querySelectorAll('button'))b.addEventListener('click',()=>{preferences.get('road')[b.dataset.road]=b.dataset.road==='laneCount'?Number(b.dataset.value):b.dataset.value;requestRender();});
+for(const button of $('ramp-views').querySelectorAll('button'))button.addEventListener('click',()=>{preferences.get('ramp').cameraView=button.dataset.rampView;requestRender();});
 
 let pageTransition=null,requestedTheme=mode,themeAnimation=null,transitionTo=null;
 function changeTheme(theme){
@@ -236,7 +241,7 @@ window.addEventListener('popstate',()=>showCredits(new URLSearchParams(location.
 for(const key of optionIds)$(key).addEventListener('change',()=>{if(selected==='reference')referenceVehicle=$('vehicle').checked;else preferences.get(selected)[key]=$(key).checked;requestRender();});
 for(const button of $('parking-views').querySelectorAll('button'))button.addEventListener('click',()=>{preferences.get(selected).id=selected==='outdoor'?({'10':'17','16':'18','14':'19'}[button.dataset.view]):button.dataset.view;requestRender();});
 $('layout').addEventListener('change',()=>{preferences.get(selected).id=$('layout').value;requestRender();});
-function frameName(){if(selected==='reference')return `waterfront-study-${mode}-1920x1080`;const st=state();return `${selected}-${st.id}${selected==='road'?'-'+st.laneCount+'lanes-'+st.cameraView:''}-${mode}-${optionIds.map(k=>`${k}-${st[k]?'on':'off'}`).join('-')}`;}
+function frameName(){if(selected==='reference')return `waterfront-study-${mode}-1920x1080`;const st=state();return `${selected}-${st.id}${selected==='road'?'-'+st.laneCount+'lanes-'+st.cameraView:selected==='ramp'?'-'+st.cameraView:''}-${mode}-${optionIds.map(k=>`${k}-${st[k]?'on':'off'}`).join('-')}`;}
 $('download').addEventListener('click',()=>{
  if(!vehicleReady)return;const name=frameName(),[w,h]=[world.width,world.height];$('download').disabled=true;
  try{world.setResolution(1920,1080);world.update(state());currentFrame().toBlob(blob=>{if(blob){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name+'.png';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),5000);}});}

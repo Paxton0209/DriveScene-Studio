@@ -33,7 +33,7 @@ Start with the closest driving or parking scenario, adjust the camera and visual
 | Appearance | Light and dark modes for day/night interface exploration |
 | Road layout | Straight or curved roads; 2, 4 or 6 lanes |
 | Junction and ramp | Crossroads or T-junction; exit or merge |
-| Camera | Low/high road views and scenario-specific parking viewpoints, including bird's-eye views |
+| Camera | Low/high road and ramp views, and scenario-specific parking viewpoints, including bird's-eye views |
 | Scene elements | Vehicle, buildings, trees, waterfront and roadworks, where supported by the selected scenario |
 | Export | 1920 × 1080 PNG |
 
@@ -41,7 +41,7 @@ Options follow the selected scenario. Light and dark modes provide visual themes
 
 ## Scene preview
 
-![DriveScene Studio — driving scene preview](preview-r32.jpg)
+![DriveScene Studio — current elevated road, dark mode](preview-v0.17.5.jpg)
 
 ## Run
 

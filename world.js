@@ -332,7 +332,7 @@ export class World {
    this.camera.position.set(carX,32,carZ+40);this.camera.lookAt(carX,0,carZ-24);
 
   }
-  if(['02','09','13'].includes(id)&&options.cameraView==='high'){this.camera.position.set(carX,26,32);this.camera.lookAt(carX,0,-16);}
+  if(['02','09','13','06','07'].includes(id)&&options.cameraView==='high'){this.camera.position.set(carX,26,32);this.camera.lookAt(carX,0,-16);}
   this.camera.updateMatrixWorld();this.camera.updateProjectionMatrix();
   this.framing=anchorVehicle(this.car,this.camera,(['05','08','14','16','18','19'].includes(id)||options.cameraView==='high')?'high':'low');
   // Omit a dash only when the viewport clips it to a tiny bottom-edge fragment.
