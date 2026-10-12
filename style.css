@@ -255,7 +255,8 @@ header:after{display:none}
 @media(min-width:761px){:root[data-nav-design="1"] .structure-items .scene{padding-left:38px}}
 @media(max-width:760px){
  #scene-picker svg{margin-left:-2.25px}
- :root[data-nav-design="1"] .structure-heading .folder-icon{margin-left:-2.25px;margin-right:2.25px}
+ /* Keep the glyph inside the collapsing menu; WebKit clips negative offsets. */
+ :root[data-nav-design="1"] .structure-heading .folder-icon{margin:0}
  :root[data-nav-design="1"] .structure-items .scene{margin-left:14px;max-width:calc(100% - 14px)}
 }
 
