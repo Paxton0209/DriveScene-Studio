@@ -2,7 +2,26 @@ import * as THREE from 'three';
 import {MeshoptDecoder} from 'three/addons/libs/meshopt_decoder.module.js';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {RoundedBoxGeometry} from './RoundedBoxGeometry.js';
+// Prepared exterior: fixed geometry/material edits are baked once for delivery.
+// Keep createSourceVehicle below as the reproducible source preparation step.
 export async function createVehicle(){
+ const response=await fetch(new URL('./ego-vehicle-ready.glb.gz',import.meta.url),{priority:'high'});
+ if(!response.ok)throw Error('Vehicle asset failed to load');
+ const bytes=await new Response(response.body.pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
+ const gltf=await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).parseAsync(bytes,'');
+ const root=gltf.scene.children[0];
+ root.name='Ego vehicle';
+ root.traverse(o=>{if(!o.isMesh)return;o.castShadow=true;o.receiveShadow=true;
+  for(const m of (Array.isArray(o.material)?o.material:[o.material]))if(m.name==='lights'){
+   // Vertex color encodes the original rear/front separation. Unlike source
+   // position thresholds, it remains valid after geometry quantization.
+   m.onBeforeCompile=shader=>{shader.vertexShader='varying float vTail;\n'+shader.vertexShader;shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvTail=step(color.g*2.0,color.r);');shader.fragmentShader='varying float vTail;\n'+shader.fragmentShader;shader.fragmentShader=shader.fragmentShader.replace('#include <emissivemap_fragment>','#include <emissivemap_fragment>\ntotalEmissiveRadiance*=vTail;');};
+   m.needsUpdate=true;
+  }
+ });return root;
+}
+
+export async function createSourceVehicle(){
  const response=await fetch(new URL('./ego-suv.meshopt.glb.gz',import.meta.url));
  if(!response.ok)throw Error('Vehicle asset failed to load');
  const bytes=await new Response(response.body.pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();

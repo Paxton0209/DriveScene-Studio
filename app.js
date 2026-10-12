@@ -37,8 +37,8 @@ const optionIds=['buildings','waterfront','trees','vehicle','roadworks'];
 $('status').textContent='Loading scene…';
 let vehicleReady=false;
 function previewResolution(){const width=matchMedia('(max-width:760px)').matches?Math.min(1280,Math.max(640,Math.ceil(preview.clientWidth*Math.min(devicePixelRatio||1,2)/16)*16)):1920;return [width,Math.round(width*9/16)];}
-const world=new World($('scene-canvas'),createVehicleProxy(),{width:previewResolution()[0],height:previewResolution()[1]});
 const vehiclePromise=createVehicle();
+const world=new World($('scene-canvas'),createVehicleProxy(),{width:previewResolution()[0],height:previewResolution()[1]});
 const referenceView=null;let referenceVehicle=true;
 function currentFrame(){return $('scene-canvas');}
 function active(){return structures.find(s=>s.key===selected);}
@@ -174,7 +174,7 @@ function render(animate=false,themeWipe=false){
  $('camera-control').hidden=!(parking||hasLayouts);document.querySelector('.toolbar').hidden=!(parking||hasLayouts);
  for(const button of $('parking-views').querySelectorAll('button'))button.setAttribute('aria-pressed',parking&&button.dataset.view===(s.key==='outdoor'?({'17':'10','18':'16','19':'14'}[st.id]):st.id));
  for(const [key,b]of sceneButtons)b.setAttribute('aria-current',key===selected);
- preview.dataset.mode=mode;preview.setAttribute('aria-busy','false');preview.dataset.audit=JSON.stringify(isReference?referenceView.audit():world.audit());$('download').disabled=!vehicleReady;updateURL();
+ preview.dataset.mode=mode;preview.setAttribute('aria-busy',String(!vehicleReady&&(isReference?referenceVehicle:st.vehicle)));preview.dataset.audit=JSON.stringify(isReference?referenceView.audit():world.audit());$('download').disabled=!vehicleReady;updateURL();
  document.querySelector('.wordmark').href=`./?scene=02&mode=${mode}&lanes=6&view=low`;revealActiveGroup();updateSegmentIndicators();moveSelection();
  if(cover){
   const finish=()=>{cover.remove();if(activeCover===cover)activeCover=null;};
@@ -250,6 +250,6 @@ $('download').addEventListener('click',()=>{
 try{render();}catch(e){$('status').textContent='This preview requires WebGL. Please reopen in a modern browser.';throw e;}
 if(query.get('page')==='credits'){showCredits(true);const q=new URLSearchParams(location.search);q.set('page','credits');history.replaceState(null,'',`?${q}`);}
 
-function installVehicle(car){world.setVehicle(car);vehicleReady=true;$('status').replaceChildren();render(false);preview.dataset.vehicleReady='true';}
-function failedVehicle(error){console.error(error);$('status').textContent='Vehicle could not load. ';const retry=document.createElement('button');retry.type='button';retry.textContent='Retry';retry.addEventListener('click',()=>{retry.disabled=true;createVehicle().then(installVehicle).catch(failedVehicle);});$('status').append(retry);}
+function installVehicle(car){delete preview.dataset.loadError;world.setVehicle(car);vehicleReady=true;$('status').replaceChildren();render(false);preview.dataset.vehicleReady='true';}
+function failedVehicle(error){preview.dataset.loadError='true';console.error(error);$('status').textContent='Vehicle could not load. ';const retry=document.createElement('button');retry.type='button';retry.textContent='Retry';retry.addEventListener('click',()=>{retry.disabled=true;delete preview.dataset.loadError;$('status').textContent='Loading scene…';createVehicle().then(installVehicle).catch(failedVehicle);});$('status').append(retry);}
 vehiclePromise.then(installVehicle).catch(failedVehicle);

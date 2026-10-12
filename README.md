@@ -49,7 +49,7 @@ The checked-in `app.bundle.js` is ready to use. Serve this folder with any stati
 
 ## Develop
 
-Install Node.js, run `npm install`, then `npm run build`. Source modules are included beside the prebuilt bundle. The vehicle uses lossless Meshopt compression and gzip. Navigation and the environment initialize before the vehicle finishes loading. Mobile previews use an adaptive canvas; PNG downloads always render at 1920 × 1080.
+Install Node.js, run `npm install`, then `npm run build`. Source modules are included beside the prebuilt bundle. The delivery vehicle bakes fixed geometry and material edits, removes cabin geometry hidden by opaque windows, and uses 16-bit position / 12-bit normal quantization, Meshopt and gzip. See [the preparation recipe](scripts/README.md) to regenerate it from the included source. Navigation initializes immediately; the first visible preview includes the vehicle. Mobile previews use an adaptive canvas; PNG downloads always render at 1920 × 1080.
 
 ## Hosting
 

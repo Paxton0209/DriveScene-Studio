@@ -6,7 +6,7 @@ Original source: https://sketchfab.com/3d-models/bmw-x6m-competition-assetto-www
 Author: https://sketchfab.com/heynic
 License: https://creativecommons.org/licenses/by/4.0/
 
-Changes: glossy white paint and glass material adjustments, emissive red rear lamps and restrained ground reflections, removal of an isolated out-of-body trim artifact, normalized dimensions and orientation, integration into new driving environments. Preserve this attribution when sharing the model or its rendered derivatives. The live source page could not be fetched during this run; the license record above comes from the asset's embedded metadata.
+Changes: glossy white paint and glass material adjustments, emissive red rear lamps and restrained ground reflections, removal of an isolated out-of-body trim artifact, normalized dimensions and orientation, integration into new driving environments. The delivery model additionally bakes these fixed edits, omits cabin components hidden behind opaque glazing, and quantizes position/normal data at 16/12 bits before Meshopt and gzip compression. Preserve this attribution when sharing the model or its rendered derivatives. The live source page could not be fetched during this run; the license record above comes from the asset's embedded metadata.
 
 Rendering: Three.js 0.180.0, MIT License. See THREE-LICENSE.txt. All road layouts, environments, user interface and scene code were created for this task. The vehicle is a visual design asset, not a calibrated model of a production sensing system.
 
@@ -16,4 +16,4 @@ Created by Peixin. Original application code: MIT (LICENSE). Original environmen
 
 ## Meshopt decoder
 
-Meshoptimizer decoder is used for lossless vehicle geometry compression. MIT License, copyright Arseny Kapoulkine. See MESHOPT-LICENSE.txt.
+Meshoptimizer decoder is used for vehicle geometry decompression. The original source is preserved; the delivery model uses high-precision quantization followed by lossless Meshopt and gzip encoding. MIT License, copyright Arseny Kapoulkine. See MESHOPT-LICENSE.txt.
