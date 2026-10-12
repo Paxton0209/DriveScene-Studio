@@ -8,7 +8,9 @@
     "start": "python3 -m http.server 8000",
     "prepare:vehicle": "node scripts/prepare-vehicle.mjs",
     "prepare:startup": "node scripts/prepare-startup-vehicle.mjs",
-    "prepare:posters": "node scripts/prepare-startup-posters.mjs"
+    "prepare:posters": "node scripts/prepare-startup-posters.mjs",
+    "prepare:lighting": "node scripts/prepare-environment.mjs",
+    "prepare:framing": "node scripts/prepare-framing.mjs"
   },
   "dependencies": {
     "three": "0.180.0"

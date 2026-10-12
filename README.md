@@ -31,7 +31,7 @@ Start with the closest driving or parking scenario, adjust the camera and visual
 | Driving scenario | Road, elevated road, junction and ramp |
 | Parking scenario | Indoor and outdoor parking |
 | Appearance | Light and dark modes for day/night interface exploration |
-| Road layout | Straight or curved roads; 2, 4 or 6 lanes |
+| Road layout | Straight roads; 2, 4 or 6 lanes |
 | Junction and ramp | Crossroads or T-junction; exit or merge |
 | Camera | Low/high road and ramp views, and scenario-specific parking viewpoints, including bird's-eye views |
 | Scene elements | Vehicle, buildings, trees, waterfront and roadworks, where supported by the selected scenario |
@@ -51,7 +51,7 @@ The checked-in `app.bundle.js` is ready to use. Serve this folder with any stati
 
 ## Develop
 
-Install Node.js, run `npm install`, then `npm run build`. Source modules are included beside the prebuilt bundle. The delivery vehicle bakes fixed geometry and material edits, removes cabin geometry hidden by opaque windows, and uses 16-bit position / 12-bit normal quantization, Meshopt and gzip. See [the preparation recipe](scripts/README.md) to regenerate it from the included source. A scene-matched WebP provides the first complete frame while a lightweight vehicle initializes the interactive preview; the full-quality model then upgrades in the background. PNG export waits for the full model. Previews adapt their resolution to the display size, reuse recently visited scene geometry, and compile new scene shaders asynchronously; PNG downloads always render at 1920 × 1080.
+Install Node.js, run `npm install`, then `npm run build`. Source modules are included beside the prebuilt bundle. The delivery vehicle bakes fixed geometry and material edits, removes cabin geometry hidden by opaque windows, and uses 16-bit position / 12-bit normal quantization, Meshopt and gzip. See [the preparation recipe](scripts/README.md) to regenerate it from the included source. A scene-matched WebP provides the first complete frame while the full vehicle and shaders initialize. The interactive preview and PNG export use the same model. Refresh preserves the selected environment and restores the previous frame while initialization finishes. Fixed studio lighting is pre-baked, and framing projects a cached convex hull to reduce startup work. Previews adapt their resolution to the display size, reuse recently visited scene geometry, and compile new scene shaders asynchronously; PNG downloads always render at 1920 × 1080.
 
 ## Hosting
 

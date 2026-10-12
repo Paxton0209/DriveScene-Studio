@@ -4,7 +4,7 @@ import {mkdir,writeFile} from 'node:fs/promises';
 const dir=new URL('../assets/startup/',import.meta.url).pathname;
 const base=(process.env.STARTUP_BASE_URL||'http://127.0.0.1:8000').replace(/\/$/,'');
 await mkdir(dir,{recursive:true});
-const browser=await (process.env.POSTER_ENGINE==='webkit'?webkit:chromium).launch(process.env.POSTER_ENGINE==='webkit'?{headless:true}:{...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{}),headless:true,args:['--enable-unsafe-swiftshader','--use-angle=swiftshader']});
+const browser=await (process.env.POSTER_ENGINE==='webkit'?webkit:chromium).launch(process.env.POSTER_ENGINE==='webkit'?{headless:true}:{...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{}),headless:true,args:process.env.POSTER_HARDWARE==='1'?[]:['--enable-unsafe-swiftshader','--use-angle=swiftshader']});
 try{
  const page=await browser.newPage();
  await page.route('**/__poster',r=>r.fulfill({contentType:'text/html',body:'<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script><canvas id="canvas"></canvas>'}));

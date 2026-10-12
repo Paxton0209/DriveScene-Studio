@@ -367,3 +367,9 @@ html{scroll-padding-top:calc(var(--header-height) + 24px)}
 .junction-play:active:not(:disabled){transform:scale(.98);background:color-mix(in srgb,var(--soft),rgb(var(--ink)) 5%)}
 @media(max-width:760px){.junction-play{min-width:104px}.junction-play-copy{font-size:12px}}
 @media(prefers-reduced-motion:reduce){.junction-play{transition:background-color 160ms ease,color 160ms ease}.junction-play:active:not(:disabled){transform:none}}
+
+/* Transport stays aligned with the adjacent segmented controls. */
+.junction-play{min-width:88px;min-height:38px;padding:8px 12px}
+.junction-play-copy{gap:6px;font-size:12px;line-height:20px}
+.junction-transport svg{width:16px;height:16px}
+@media(max-width:760px){.junction-play{min-width:88px;min-height:40px}}

@@ -6,8 +6,10 @@ To regenerate, run `npm install`, serve the repository, and open `scripts/prepar
 
 The source and prepared models retain the third-party attribution in `CREDITS.md`. Preparation tools are development dependencies; the static site has no added runtime dependency.
 
-## Progressive startup
+## Stable startup
 
-The first HTML paint uses a scene-matched 1280×720 WebP (about 19 KB on average). The header starts one request for `ego-vehicle-startup.glb.gz?v=17.9` alongside the application bundle. This 0.91 MB startup copy uses reduced geometry and 128-pixel textures. As soon as it is ready, the scene becomes interactive. The original 4.64 MB delivery model downloads in the background and replaces the startup mesh without changing the selected scene, theme, camera, or switches. PNG export stays disabled until the full model is installed.
+The first HTML paint uses a scene-matched 1280×720 WebP. The header fetches the full delivery vehicle and baked studio lighting alongside the application bundle. The matching poster remains visible until the full model, shaders and shadow map have produced complete frames. The preview then becomes interactive with the same mesh used by PNG export. The decimated startup asset remains a development tool and is not swapped into the live scene.
 
-Regenerate the startup copy with `npm run prepare:startup`. For posters, serve the repository on port 8000, install Chromium with `npx playwright install chromium`, then run `npm run prepare:posters`. Set `STARTUP_BASE_URL` to use another server or `CHROMIUM_PATH` to use an existing Chromium browser. Regenerate both assets after changing the vehicle or scene appearance, and bump the startup asset query version in both `index.html` and `vehicle.js`. Keep the model attribution from `CREDITS.md`.
+Refresh restores the exact last rendered PNG when the URL and release match. Environment switches are encoded in the URL. Source changes require rebuilding the bundle; appearance changes also require regenerating startup posters and bumping their cache version.
+
+Run `npm run prepare:lighting` to bake the fixed HDR studio environment. Run `npm run prepare:framing` after changing the delivery vehicle to regenerate per-mesh convex hull indices; these reduce framing projection work without changing the silhouette. Both scripts use a local server and Playwright. Set `STARTUP_BASE_URL` and optionally `CHROMIUM_PATH`. Run `npm run prepare:posters` after scene changes. Keep the attribution from `CREDITS.md`.
