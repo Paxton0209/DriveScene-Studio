@@ -337,5 +337,33 @@ html{scroll-padding-top:calc(var(--header-height) + 24px)}
 @media(max-width:760px){:root{--header-height:64px}#mobile-scene-menu{scroll-margin-top:76px}}
 /* First paint is a complete scene, with a stable frame while the car loads. */
 .preview[aria-busy=true] #scene-canvas{visibility:hidden}
-.preview[aria-busy=true]:after{content:'Loading scene…';position:absolute;inset:0;display:grid;place-items:center;color:var(--text-secondary);font-size:13px;line-height:20px;pointer-events:none}
-.preview[data-load-error=true]:after{content:'Preview could not load'}
+.preview{background-image:var(--startup-frame);background-size:100% 100%;background-repeat:no-repeat}
+
+/* Vehicle selection stays in the workspace, keeping the scene navigation quiet. */
+
+/* Shared press feedback covers every control; selected state remains immediately readable. */
+.view-segments button,.download,#scene-picker,.nav-category-switch button,#status button{transition:transform 130ms cubic-bezier(.22,1,.36,1),color 160ms ease,background-color 160ms ease,opacity 160ms ease}
+.view-segments button:active,.download:not(:disabled):active,#scene-picker:active,.nav-category-switch button:active,#status button:active{transform:scale(.96)}
+:root[data-nav-design="1"] .structure-items .scene{transition:transform 130ms cubic-bezier(.22,1,.36,1),color 160ms ease,background-color 130ms ease}
+:root[data-nav-design="1"] .structure-items .scene:active{transform:scale(.98)}
+.credits,.wordmark,.social-links a,.back-link{transition:opacity 140ms ease,color 160ms ease}
+.credits:active,.wordmark:active,.social-links a:active,.back-link:active{opacity:.65}
+:root{--selection-motion:280ms cubic-bezier(.22,1,.36,1)}
+.track:after{transition:transform 260ms cubic-bezier(.22,1,.36,1),width 130ms ease}
+@media(hover:hover) and (pointer:fine){.download:not(:disabled):hover svg{transform:translateY(1px)}.download svg{transition:transform 160ms cubic-bezier(.22,1,.36,1)}}
+:root[data-choice-input="keyboard"] .track,:root[data-choice-input="keyboard"] .track:after{transition:none!important}
+
+/* Initial selection is laid out synchronously; animate only subsequent input. */
+:root:not([data-ui-ready=true]) .preview-settings *, :root:not([data-ui-ready=true]) .preview-settings *::before, :root:not([data-ui-ready=true]) .preview-settings *::after{transition:none!important;animation:none!important}
+
+.junction-transport{display:flex;align-items:center;margin-left:auto;flex:0 0 auto}
+.junction-play{display:flex;align-items:center;justify-content:center;min-width:108px;min-height:44px;padding:10px 16px;border-radius:999px;background:var(--soft);color:var(--text-secondary);transition:background-color 160ms ease,color 160ms ease,box-shadow 160ms ease,transform 130ms cubic-bezier(.22,1,.36,1)}
+.junction-play-copy{display:flex;align-items:center;justify-content:center;gap:8px;font-size:12px;font-weight:500;line-height:20px}
+.junction-transport svg{width:var(--icon-size,18px);height:var(--icon-size,18px);stroke-width:1.45;color:inherit;flex-shrink:0}
+.junction-play[data-motion-state=replay]{background:var(--selected);color:var(--text);box-shadow:var(--shadow)}
+.junction-play[data-motion-state=playing]{background:var(--soft);color:var(--text);cursor:default}
+.junction-play:focus-visible{outline:2px solid var(--muted);outline-offset:3px}
+@media(hover:hover) and (pointer:fine){.junction-play:hover:not(:disabled){background:color-mix(in srgb,var(--soft),rgb(var(--ink)) 2%);color:var(--text)}.junction-play[data-motion-state=replay]:hover{background:color-mix(in srgb,var(--selected),rgb(var(--ink)) 4%)}}
+.junction-play:active:not(:disabled){transform:scale(.98);background:color-mix(in srgb,var(--soft),rgb(var(--ink)) 5%)}
+@media(max-width:760px){.junction-play{min-width:104px}.junction-play-copy{font-size:12px}}
+@media(prefers-reduced-motion:reduce){.junction-play{transition:background-color 160ms ease,color 160ms ease}.junction-play:active:not(:disabled){transform:none}}

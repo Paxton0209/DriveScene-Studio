@@ -1,12 +1,14 @@
 {
   "name": "drivescene-studio",
-  "version": "0.17.8",
+  "version": "0.17.9",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "node build.mjs",
     "start": "python3 -m http.server 8000",
-    "prepare:vehicle": "node scripts/prepare-vehicle.mjs"
+    "prepare:vehicle": "node scripts/prepare-vehicle.mjs",
+    "prepare:startup": "node scripts/prepare-startup-vehicle.mjs",
+    "prepare:posters": "node scripts/prepare-startup-posters.mjs"
   },
   "dependencies": {
     "three": "0.180.0"
@@ -16,7 +18,9 @@
     "@gltf-transform/core": "4.3.0",
     "@gltf-transform/extensions": "4.3.0",
     "@gltf-transform/functions": "4.3.0",
-    "meshoptimizer": "0.25.0"
+    "meshoptimizer": "0.25.0",
+    "sharp": "0.35.5",
+    "playwright": "1.62.1"
   },
   "license": "MIT"
 }

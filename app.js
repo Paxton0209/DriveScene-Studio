@@ -2,6 +2,7 @@ import {playThemeSound} from './theme-sound.js';
 import {World} from './world.js';
 import {structures,legacyScenes} from './structures.js';
 import {createVehicle,createVehicleProxy} from './vehicle.js';
+import {disposeVehicle} from './dispose-vehicle.js';
 const $=id=>document.getElementById(id),preview=$('preview');
 const siteHeader=document.querySelector('header');
 siteHeader.classList.toggle('is-scrolled',scrollY>1);
@@ -24,6 +25,10 @@ const first=structures.find(s=>s.layouts.some(([id])=>id===initial))||structures
 const preferences=new Map(structures.map(s=>[s.key,{id:s.layouts[0][0],buildings:!!s.buildings,waterfront:s.key==='road'&&initial==='13',trees:false,vehicle:true,roadworks:false}]));
 preferences.get(first.key).id=initial&&first.layouts.some(([id])=>id===initial)?initial:first.layouts[0][0];
 Object.assign(preferences.get('road'),{shape:initial==='13'?'curved':'straight',laneCount:initial==='09'?2:6,cameraView:first.key==='road'&&query.get('view')==='high'?'high':'low'});
+preferences.get('junction').cameraView=first.key==='junction'&&query.get('view')==='low'?'low':'high';
+preferences.get('junction').junctionPosition=query.get('position')==='approaching'||(first.key==='junction'&&query.get('view')==='low'&&!query.has('position'))?'approaching':'near';
+preferences.get('junction').cameraView=preferences.get('junction').junctionPosition==='near'?'high':'low';
+preferences.get('elevated').cameraView=first.key==='elevated'&&query.get('view')==='high'?'high':'low';
 preferences.get('ramp').cameraView=first.key==='ramp'&&query.get('view')==='high'?'high':'low';
 if(['2','4','6'].includes(query.get('lanes')))preferences.get('road').laneCount=Number(query.get('lanes'));
 if(requested==='01')preferences.get(first.key).buildings=false;
@@ -34,16 +39,21 @@ let selected=first.key,mode=initialTheme==='dark'?'dark':'light',displayedRefere
 const comparingNav=false; // Production uses the selected grouped navigation; studies remain in the local scene project.
 let navDesign=comparingNav&&['1','2','3'].includes(query.get('nav'))?query.get('nav'):'1';
 const optionIds=['buildings','waterfront','trees','vehicle','roadworks'];
-$('status').textContent='Loading scene…';
-let vehicleReady=false;
-function previewResolution(){const width=matchMedia('(max-width:760px)').matches?Math.min(1280,Math.max(640,Math.ceil(preview.clientWidth*Math.min(devicePixelRatio||1,2)/16)*16)):1920;return [width,Math.round(width*9/16)];}
+let vehicleReady=false,vehicleFullReady=false,junctionRequested=false;
+function previewResolution(){const mobile=matchMedia('(max-width:760px)').matches;const width=Math.min(mobile?1280:1920,Math.max(640,Math.ceil(preview.clientWidth*Math.min(devicePixelRatio||1,2)/16)*16));return [width,Math.round(width*9/16)];}
+requestAnimationFrame(()=>requestAnimationFrame(()=>{document.documentElement.dataset.uiReady='true';}));
 const vehiclePromise=createVehicle();
 const world=new World($('scene-canvas'),createVehicleProxy(),{width:previewResolution()[0],height:previewResolution()[1]});
+world.onCameraFrame=moving=>{if(selected==='junction'){if(moving)junctionRequested=false;syncJunctionTransport();}preview.dataset.cameraMoving=String(moving);preview.dataset.cameraPose=JSON.stringify({position:world.camera.position.toArray(),aim:world.cameraAim.toArray(),offset:world.camera.view.offsetY,car:world.car.position.toArray(),anchor:world.captureCamera().anchor.toArray()});if(!moving)preview.dataset.audit=JSON.stringify(world.audit());};
+world.onEnvironmentFrame=moving=>{preview.dataset.environmentMoving=String(moving);preview.dataset.audit=JSON.stringify(world.audit());};
+document.addEventListener('visibilitychange',()=>{if(document.hidden){world.finishCameraMotion();world.finishEnvironmentMotion();}});
+matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',event=>{if(event.matches){world.finishCameraMotion();world.finishEnvironmentMotion();}});
 const referenceView=null;let referenceVehicle=true;
+
 function currentFrame(){return $('scene-canvas');}
 function active(){return structures.find(s=>s.key===selected);}
 function state(){const st={...preferences.get(selected),mode};for(const key of ['buildings','waterfront','trees','roadworks'])st[key]=!!active()[key]&&!!st[key];if(selected==='road')st.id=st.shape==='curved'?'13':st.laneCount===2?'09':'02';return st;}
-function updateURL(){const q=new URLSearchParams();q.set('scene',selected==='reference'?'reference':state().id);q.set('mode',mode);if(selected==='road')q.set('lanes',state().laneCount);if(selected==='road'||selected==='ramp')q.set('view',state().cameraView);if(comparingNav){q.set('study','1');q.set('nav',navDesign);}if(query.has('motion'))q.set('motion',query.get('motion'));if(document.getElementById('credits-view')&&!document.getElementById('credits-view').hidden)q.set('page','credits');history.replaceState(null,'',`?${q}`);}
+function updateURL(){const q=new URLSearchParams();q.set('scene',selected==='reference'?'reference':state().id);q.set('mode',mode);if(selected==='road')q.set('lanes',state().laneCount);if(['road','ramp','junction','elevated'].includes(selected))q.set('view',state().cameraView);if(selected==='junction')q.set('position',state().junctionPosition);if(comparingNav){q.set('study','1');q.set('nav',navDesign);}if(query.has('motion'))q.set('motion',query.get('motion'));if(document.getElementById('credits-view')&&!document.getElementById('credits-view').hidden)q.set('page','credits');history.replaceState(null,'',`?${q}`);}
 const sceneButtons=new Map(),sceneGroups=new Map(),categoryButtons=new Map();
 const groupSelection=new Map([['open',first.group==='open'?selected:'road'],['closed',first.group==='closed'?selected:'parking']]);
 const folderSVG='<svg class="folder-icon" width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M2.5 6V4.75A1.5 1.5 0 0 1 4 3.25h3.1c.4 0 .78.16 1.06.44l1.62 1.62a.75.75 0 0 0 .53.22H16A1.5 1.5 0 0 1 17.5 7.03v8.22A1.5 1.5 0 0 1 16 16.75H4a1.5 1.5 0 0 1-1.5-1.5V6Z" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -61,7 +71,7 @@ for(const [key,title]of [['open','Driving scenes'],['closed','Parking scenes']])
   button.type='button';button.className='scene';button.dataset.structure=scene.key;
   image.className='scene-thumbnail';image.alt='';image.width=240;image.height=135;image.decoding='async';
   label.className='scene-label';label.textContent=scene.name;button.append(image,label);
-  button.addEventListener('click',()=>{selected=scene.key;requestRender();});items.append(button);sceneButtons.set(scene.key,button);
+  button.addEventListener('click',()=>{if(selected===scene.key)return;selected=scene.key;requestRender();});items.append(button);sceneButtons.set(scene.key,button);
  }
  section.append(heading,items);sceneGroups.set(key,section);$('scenes').append(section);
 }
@@ -98,7 +108,7 @@ scenePicker.addEventListener('click',()=>{const open=scenePicker.getAttribute('a
 sceneMenu.addEventListener('keydown',e=>{if(e.key==='Escape'){closeSceneSheet();scenePicker.focus({preventScroll:true});}});
 scenePicker.addEventListener('keydown',e=>{if(e.key==='Escape')closeSceneSheet();});
 mobileMedia.addEventListener('change',placeSceneNav);placeSceneNav();
-let transitionFrame=0,activeCover=null,pendingRender=0;
+let transitionFrame=0,activeCover=null,pendingRender=0,renderRevision=0;
 function moveSelection(){
  syncNavigation();
  const button=sceneButtons.get(selected),nav=$('scenes');
@@ -112,11 +122,19 @@ function moveSelection(){
 // Pointer and keyboard choices share selected colors; repeated keyboard actions snap immediately.
 document.addEventListener('pointerdown',()=>{document.documentElement.dataset.choiceInput='pointer';},true);
 document.addEventListener('keydown',event=>{if(['Enter',' ','ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key))document.documentElement.dataset.choiceInput='keyboard';},true);
+function syncJunctionTransport(){
+ const near=preferences.get('junction').junctionPosition==='near',moving=selected==='junction'&&!!world.cameraMotion,busy=moving||junctionRequested,progress=moving?(world.cameraMotion.progress||0):junctionRequested?0:near?1:0;
+ $('junction-play').dataset.motionState=busy?'playing':near?'replay':'ready';$('junction-play').disabled=busy;$('junction-play-label').textContent=busy?'Playing':near?'Replay':'Play';$('junction-play-icon').setAttribute('d',near&&!busy?'M3 8a7 7 0 1 1 1.5 7M3 3v5h5':'m7 4 8 6-8 6V4Z');$('junction-play').setAttribute('aria-label',busy?'Approach animation playing':near?'Replay approach animation':'Play approach animation');
+ const bar=$('junction-progress');bar.style.setProperty('--progress',String(progress));bar.setAttribute('aria-valuenow',String(Math.round(progress*100)));bar.setAttribute('aria-valuetext',busy?'Approaching junction':near?'Stopped at junction':'Ready to approach');
+}
 function syncSelectedControls(){
  const st=selected==='reference'?null:state();if(!st)return;
  for(const b of $('road-controls').querySelectorAll('button'))b.setAttribute('aria-pressed',String(st[b.dataset.road])===b.dataset.value);
  for(const b of $('parking-views').querySelectorAll('button'))b.setAttribute('aria-pressed',b.dataset.view===(selected==='outdoor'?({'17':'10','18':'16','19':'14'}[st.id]):st.id));
  for(const b of $('layout-options').querySelectorAll('button'))b.setAttribute('aria-pressed',b.dataset.layout===st.id);
+ for(const b of $('junction-views').querySelectorAll('button'))b.setAttribute('aria-pressed',selected==='junction'&&b.dataset.junctionView===st.cameraView);
+ for(const b of $('ramp-views').querySelectorAll('button'))b.setAttribute('aria-pressed',['ramp','elevated'].includes(selected)&&b.dataset.rampView===st.cameraView);
+ syncJunctionTransport();
  updateSegmentIndicators();
 }
 function revealActiveGroup(){
@@ -127,27 +145,34 @@ document.querySelector('.wordmark').addEventListener('click',event=>{
  if(event.metaKey||event.ctrlKey||event.shiftKey||event.altKey||event.button!==0)return;
  event.preventDefault();selected='road';window.scrollTo({top:0,behavior:'instant'});requestRender();
 });
-function requestRender(){
+function requestRender(motion='scene'){
+ ++renderRevision;
  if($('current-scene-name'))$('current-scene-name').textContent=active().name;
  cancelAnimationFrame(pendingRender);revealActiveGroup();
  for(const [key,b]of sceneButtons)b.setAttribute('aria-current',key===selected);
  moveSelection();syncSelectedControls();
- pendingRender=requestAnimationFrame(()=>{pendingRender=requestAnimationFrame(()=>{const begin=performance.now();render(true);preview.dataset.renderMs=(performance.now()-begin).toFixed(1);});});
+ pendingRender=requestAnimationFrame(()=>{pendingRender=requestAnimationFrame(()=>{const begin=performance.now();render(true,false,motion);preview.dataset.renderMs=(performance.now()-begin).toFixed(1);});});
 }
 
-function render(animate=false,themeWipe=false){
+function render(animate=false,themeWipe=false,motion='scene'){
+ const revision=++renderRevision;
  if($('current-scene-name'))$('current-scene-name').textContent=active().name;
  cancelAnimationFrame(transitionFrame);
  let cover,previous;
- if(animate&&!matchMedia('(prefers-reduced-motion: reduce)').matches){
-  previous=document.createElement('canvas');previous.width=1920;previous.height=1080;
-  const ctx=previous.getContext('2d');ctx.drawImage(currentFrame(),0,0,1920,1080);
-  if(activeCover){ctx.globalAlpha=Number(getComputedStyle(activeCover).opacity);ctx.drawImage(activeCover,0,0);ctx.globalAlpha=1;}
-  cover=document.createElement('canvas');cover.width=1920;cover.height=1080;cover.getContext('2d').drawImage(previous,0,0);cover.className='frame-cover';
+ const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+ const environmentMotion=animate&&motion==='growth'&&vehicleReady&&!reduced&&document.documentElement.dataset.choiceInput!=='keyboard';
+ const cameraMotion=animate&&motion==='camera'&&vehicleReady&&!reduced&&document.documentElement.dataset.choiceInput!=='keyboard';
+ if(animate&&vehicleReady&&!reduced&&!cameraMotion&&!environmentMotion&&document.documentElement.dataset.choiceInput!=='keyboard'){
+  const frame=currentFrame();cover=document.createElement('canvas');cover.width=frame.width;cover.height=frame.height;
+  const ctx=cover.getContext('2d');ctx.drawImage(frame,0,0);
+  if(activeCover){ctx.globalAlpha=Number(getComputedStyle(activeCover).opacity);ctx.drawImage(activeCover,0,0,cover.width,cover.height);ctx.globalAlpha=1;}
+  cover.className='frame-cover';
+  if(themeWipe){previous=document.createElement('canvas');previous.width=1920;previous.height=1080;previous.getContext('2d').drawImage(cover,0,0,1920,1080);cover.width=1920;cover.height=1080;ctx.drawImage(previous,0,0);}
  }
  document.querySelectorAll('.frame-cover').forEach(el=>el.remove());activeCover=cover||null;if(cover)preview.append(cover);
  const isReference=selected==='reference',s=active(),st=isReference?null:state();
- if(isReference)referenceView.render(mode,referenceVehicle);else world.update({...st,vehicle:vehicleReady&&st.vehicle});
+ const deferred=animate&&!cameraMotion&&!environmentMotion&&!isReference&&vehicleReady;preview.dataset.renderPending=String(deferred);
+ if(isReference)referenceView.render(mode,referenceVehicle);else if(vehicleReady||!st.vehicle)world.update({...st,vehicle:vehicleReady&&st.vehicle},{cameraMotion,environmentMotion,deferRender:deferred});
  $('scene-canvas').hidden=false;$('reference-image').hidden=true;displayedReference=isReference;
  $('reference').setAttribute('aria-current',isReference);
  $('scene-title').textContent=isReference?'Visual key':s.name;
@@ -162,20 +187,28 @@ function render(animate=false,themeWipe=false){
  if(hasLayouts){
   $('layout-label').textContent=s.key==='junction'?'Junction type':'Ramp type';
   $('layout').replaceChildren(...s.layouts.map(([id,name])=>new Option(name,id)));$('layout').value=st.id;
-  if($('layout-options').dataset.structure!==s.key){$('layout-options').replaceChildren(...s.layouts.map(([id,name])=>{const b=document.createElement('button');b.type='button';b.textContent=name.replace('High-angle ','').replace('crossroads','Crossroads');b.dataset.layout=id;b.addEventListener('click',()=>{preferences.get(selected).id=id;requestRender();});return b;}));$('layout-options').dataset.structure=s.key;}
+  if($('layout-options').dataset.structure!==s.key){$('layout-options').replaceChildren(...s.layouts.map(([id,name])=>{const b=document.createElement('button');b.type='button';b.textContent=name.replace('High-angle ','').replace('crossroads','Crossroads');b.dataset.layout=id;b.addEventListener('click',()=>{preferences.get(selected).id=id;requestRender('layout');});return b;}));$('layout-options').dataset.structure=s.key;}
   for(const b of $('layout-options').querySelectorAll('button'))b.setAttribute('aria-pressed',b.dataset.layout===st.id);
  }
 
  $('parking-views').hidden=!parking;$('parking-control').hidden=!parking;$('road-controls').hidden=isReference||s.key!=='road';
- const ramp=!isReference&&s.key==='ramp';
+ const junction=!isReference&&s.key==='junction';
+ $('junction-camera-control').hidden=true;
+ $('junction-position-control').hidden=!junction;
+ syncJunctionTransport();
+ for(const button of $('junction-views').querySelectorAll('button')){button.disabled=!junction;button.setAttribute('aria-pressed',junction&&button.dataset.junctionView===st.cameraView);}
+ const ramp=!isReference&&['ramp','elevated'].includes(s.key);
  $('ramp-camera-control').hidden=!ramp;
  for(const button of $('ramp-views').querySelectorAll('button')){button.disabled=!ramp;button.setAttribute('aria-pressed',ramp&&button.dataset.rampView===st.cameraView);}
  for(const b of $('road-controls').querySelectorAll('button'))b.setAttribute('aria-pressed',!isReference&&String(st[b.dataset.road])===b.dataset.value);
- $('camera-control').hidden=!(parking||hasLayouts);document.querySelector('.toolbar').hidden=!(parking||hasLayouts);
+ $('camera-control').hidden=!(parking||hasLayouts||ramp);document.querySelector('.toolbar').hidden=!(parking||hasLayouts||ramp);
  for(const button of $('parking-views').querySelectorAll('button'))button.setAttribute('aria-pressed',parking&&button.dataset.view===(s.key==='outdoor'?({'17':'10','18':'16','19':'14'}[st.id]):st.id));
  for(const [key,b]of sceneButtons)b.setAttribute('aria-current',key===selected);
- preview.dataset.mode=mode;preview.setAttribute('aria-busy',String(!vehicleReady&&(isReference?referenceVehicle:st.vehicle)));preview.dataset.audit=JSON.stringify(isReference?referenceView.audit():world.audit());$('download').disabled=!vehicleReady;updateURL();
+ preview.dataset.mode=mode;preview.setAttribute('aria-busy',String(!vehicleReady&&(isReference?referenceVehicle:st.vehicle)));if(!deferred&&(isReference||world.state))preview.dataset.audit=JSON.stringify(isReference?referenceView.audit():world.audit());$('download').disabled=!vehicleFullReady||deferred;$('download').title=vehicleFullReady?'Download PNG':'Preparing full-quality PNG';updateURL();
  document.querySelector('.wordmark').href=`./?scene=02&mode=${mode}&lanes=6&view=low`;revealActiveGroup();updateSegmentIndicators();moveSelection();
+ const revealFrame=()=>{
+ if(revision!==renderRevision)return;
+ if(deferred){world.renderFrame();preview.dataset.audit=JSON.stringify(world.audit());preview.dataset.renderPending='false';$('download').disabled=!vehicleFullReady;}
  if(cover){
   const finish=()=>{cover.remove();if(activeCover===cover)activeCover=null;};
   if(themeWipe){
@@ -184,16 +217,31 @@ function render(animate=false,themeWipe=false){
     ctx.clearRect(0,0,1920,1080);ctx.globalCompositeOperation='source-over';ctx.drawImage(previous,0,0);
     ctx.globalCompositeOperation='destination-in';const mask=ctx.createLinearGradient(x-band/2,0,x+band/2,0);mask.addColorStop(0,toDark?'#000':'#0000');mask.addColorStop(1,toDark?'#0000':'#000');ctx.fillStyle=mask;ctx.fillRect(0,0,1920,1080);ctx.globalCompositeOperation='source-over';
     if(t<1)transitionFrame=requestAnimationFrame(tick);else finish();};transitionFrame=requestAnimationFrame(tick);
-  }else{const animation=cover.animate([{opacity:1},{opacity:0}],{duration:240,easing:'cubic-bezier(.22,.8,.25,1)'});animation.onfinish=finish;}
+  }else{const animation=cover.animate([{opacity:1},{opacity:0}],{duration:motion==='element'?240:motion==='layout'?300:220,easing:'cubic-bezier(.22,.8,.25,1)'});animation.onfinish=finish;}
  }
+ };
+ // Compile new scene programs without holding the input handler until GPU completion.
+ if(deferred){world.renderer.compileAsync(world.scene,world.camera).then(revealFrame).catch(error=>{console.error(error);revealFrame();});}else revealFrame();
 }
 function updateSegmentIndicators(){
  for(const group of document.querySelectorAll('.view-segments')){if(group.hidden||group.closest('[hidden]'))continue;const active=group.querySelector('[aria-pressed=true]');if(!active)continue;group.style.setProperty('--selection-x',active.offsetLeft+'px');group.style.setProperty('--selection-width',active.offsetWidth+'px');}
 }
-window.addEventListener('resize',()=>{updateSegmentIndicators();moveSelection();const [w,h]=previewResolution();if(world.width!==w||world.height!==h){world.setResolution(w,h);requestRender();}});
+window.addEventListener('resize',()=>{world.finishCameraMotion();world.finishEnvironmentMotion();updateSegmentIndicators();moveSelection();const [w,h]=previewResolution();if(world.width!==w||world.height!==h){world.setResolution(w,h);requestRender();}});
 new ResizeObserver(()=>{moveSelection();}).observe($('scenes'));
-for(const b of $('road-controls').querySelectorAll('button'))b.addEventListener('click',()=>{preferences.get('road')[b.dataset.road]=b.dataset.road==='laneCount'?Number(b.dataset.value):b.dataset.value;requestRender();});
-for(const button of $('ramp-views').querySelectorAll('button'))button.addEventListener('click',()=>{preferences.get('ramp').cameraView=button.dataset.rampView;requestRender();});
+for(const b of $('road-controls').querySelectorAll('button'))b.addEventListener('click',()=>{const key=b.dataset.road,value=key==='laneCount'?Number(b.dataset.value):b.dataset.value;if(preferences.get('road')[key]===value)return;preferences.get('road')[key]=value;requestRender(key==='cameraView'?'camera':'layout');});
+for(const button of $('ramp-views').querySelectorAll('button'))button.addEventListener('click',()=>{if(preferences.get(selected).cameraView===button.dataset.rampView)return;preferences.get(selected).cameraView=button.dataset.rampView;requestRender('camera');});
+
+for(const button of $('junction-views').querySelectorAll('button'))button.addEventListener('click',()=>{if(preferences.get('junction').cameraView===button.dataset.junctionView)return;preferences.get('junction').cameraView=button.dataset.junctionView;requestRender('camera');});
+
+$('junction-play').addEventListener('click',()=>{
+ if(junctionRequested||world.cameraMotion)return;
+ const preference=preferences.get('junction');
+ if(preference.junctionPosition==='near'){
+  preference.junctionPosition='approaching';preference.cameraView='low';
+  world.update(state());
+ }
+ junctionRequested=true;preference.junctionPosition='near';preference.cameraView='high';requestRender('camera');
+});
 
 let pageTransition=null,requestedTheme=mode,themeAnimation=null,transitionTo=null;
 function changeTheme(theme){
@@ -206,7 +254,7 @@ function changeTheme(theme){
   return;
  }
  const commit=()=>{mode=theme;render(false);};
- if(!document.startViewTransition||reduced){commit();return;}
+ if(!document.startViewTransition||reduced){mode=theme;render(!reduced,true);return;}
  // R14: reveal from the actual theme control, as in the reference.
  const rect=$('theme-toggle').getBoundingClientRect(),x=rect.left+rect.width/2,y=rect.top+rect.height/2;
  const feather=140,radius=Math.hypot(Math.max(x,innerWidth-x),Math.max(y,innerHeight-y))+feather;
@@ -238,18 +286,26 @@ document.querySelector('.credits').addEventListener('click',e=>{if(e.metaKey||e.
 $('credits-back').addEventListener('click',e=>{if(e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;e.preventDefault();if(history.state?.srCredits)history.back();else{showCredits(false);updateURL();}});
 document.querySelector('.wordmark').addEventListener('click',e=>{if(e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;e.preventDefault();showCredits(false);selected='road';Object.assign(preferences.get('road'),{id:'02',shape:'straight',laneCount:6,cameraView:'low'});requestRender();});
 window.addEventListener('popstate',()=>showCredits(new URLSearchParams(location.search).get('page')==='credits'));
-for(const key of optionIds)$(key).addEventListener('change',()=>{if(selected==='reference')referenceVehicle=$('vehicle').checked;else preferences.get(selected)[key]=$(key).checked;requestRender();});
-for(const button of $('parking-views').querySelectorAll('button'))button.addEventListener('click',()=>{preferences.get(selected).id=selected==='outdoor'?({'10':'17','16':'18','14':'19'}[button.dataset.view]):button.dataset.view;requestRender();});
-$('layout').addEventListener('change',()=>{preferences.get(selected).id=$('layout').value;requestRender();});
-function frameName(){if(selected==='reference')return `waterfront-study-${mode}-1920x1080`;const st=state();return `${selected}-${st.id}${selected==='road'?'-'+st.laneCount+'lanes-'+st.cameraView:selected==='ramp'?'-'+st.cameraView:''}-${mode}-${optionIds.map(k=>`${k}-${st[k]?'on':'off'}`).join('-')}`;}
+for(const key of optionIds)$(key).addEventListener('change',()=>{if(selected==='reference')referenceVehicle=$('vehicle').checked;else preferences.get(selected)[key]=$(key).checked;requestRender(['buildings','trees'].includes(key)?'growth':'element');});
+for(const button of $('parking-views').querySelectorAll('button'))button.addEventListener('click',()=>{const id=selected==='outdoor'?({'10':'17','16':'18','14':'19'}[button.dataset.view]):button.dataset.view;if(preferences.get(selected).id===id)return;preferences.get(selected).id=id;requestRender('camera');});
+$('layout').addEventListener('change',()=>{preferences.get(selected).id=$('layout').value;requestRender('layout');});
+function frameName(){if(selected==='reference')return `waterfront-study-${mode}-1920x1080`;const st=state();return `${selected}-${st.id}${selected==='road'?'-'+st.laneCount+'lanes-'+st.cameraView:selected==='junction'?'-'+st.junctionPosition+'-'+st.cameraView:['ramp','elevated'].includes(selected)?'-'+st.cameraView:''}-${mode}-${optionIds.map(k=>`${k}-${st[k]?'on':'off'}`).join('-')}`;}
 $('download').addEventListener('click',()=>{
- if(!vehicleReady)return;const name=frameName(),[w,h]=[world.width,world.height];$('download').disabled=true;
+ if(!vehicleFullReady)return;world.finishCameraMotion();world.finishEnvironmentMotion();const name=frameName(),[w,h]=[world.width,world.height];$('download').disabled=true;
  try{world.setResolution(1920,1080);world.update(state());currentFrame().toBlob(blob=>{if(blob){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name+'.png';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),5000);}});}
  finally{world.setResolution(w,h);render(false);}
 });
 try{render();}catch(e){$('status').textContent='This preview requires WebGL. Please reopen in a modern browser.';throw e;}
 if(query.get('page')==='credits'){showCredits(true);const q=new URLSearchParams(location.search);q.set('page','credits');history.replaceState(null,'',`?${q}`);}
 
-function installVehicle(car){delete preview.dataset.loadError;world.setVehicle(car);vehicleReady=true;$('status').replaceChildren();render(false);preview.dataset.vehicleReady='true';}
-function failedVehicle(error){preview.dataset.loadError='true';console.error(error);$('status').textContent='Vehicle could not load. ';const retry=document.createElement('button');retry.type='button';retry.textContent='Retry';retry.addEventListener('click',()=>{retry.disabled=true;delete preview.dataset.loadError;$('status').textContent='Loading scene…';createVehicle().then(installVehicle).catch(failedVehicle);});$('status').append(retry);}
-vehiclePromise.then(installVehicle).catch(failedVehicle);
+async function installVehicle(car,full=false,animate=false){
+ delete preview.dataset.loadError;world.setVehicle(car);
+ // Keep the matching poster visible until the final mesh, shaders and shadow
+ // map have produced complete frames. Never reveal the decimated loading car.
+ world.update({...state(),vehicle:true},{deferRender:true});
+ await world.renderer.compileAsync(world.scene,world.camera);world.renderFrame();
+ await new Promise(requestAnimationFrame);world.renderFrame();
+ vehicleReady=true;vehicleFullReady=full;$('status').replaceChildren();render(animate,false,'element');preview.dataset.vehicleReady='true';preview.dataset.vehicleQuality=full?'full':'startup';
+}
+function failedVehicle(error){preview.dataset.loadError='true';console.error(error);$('status').textContent=vehicleReady?'Full-quality export is unavailable. ':'Vehicle could not load. ';const retry=document.createElement('button');retry.type='button';retry.textContent='Retry';retry.addEventListener('click',()=>{retry.disabled=true;delete preview.dataset.loadError;createVehicle().then(car=>installVehicle(car,true)).catch(failedVehicle);});$('status').append(retry);}
+vehiclePromise.then(car=>installVehicle(car,true)).catch(failedVehicle);

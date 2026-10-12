@@ -37,11 +37,13 @@ Start with the closest driving or parking scenario, adjust the camera and visual
 | Scene elements | Vehicle, buildings, trees, waterfront and roadworks, where supported by the selected scenario |
 | Export | 1920 × 1080 PNG |
 
+Camera changes animate through the 3D scene; other options use short transitions. Reduced-motion preferences are respected. Elevated roads and ramp mainlines have separated opposing carriageways; the elevated deck sits 8.5 m above ground with ground-level side streets and bridge supports.
+
 Options follow the selected scenario. Light and dark modes provide visual themes for design exploration, rather than a physical simulation of changing daylight. On mobile, the navigation expands within the page and stays open while comparing scenes.
 
 ## Scene preview
 
-![DriveScene Studio — current elevated road, dark mode](preview-v0.17.5.jpg)
+![DriveScene Studio — current elevated road, dark mode](preview-v0.17.9.jpg)
 
 ## Run
 
@@ -49,7 +51,7 @@ The checked-in `app.bundle.js` is ready to use. Serve this folder with any stati
 
 ## Develop
 
-Install Node.js, run `npm install`, then `npm run build`. Source modules are included beside the prebuilt bundle. The delivery vehicle bakes fixed geometry and material edits, removes cabin geometry hidden by opaque windows, and uses 16-bit position / 12-bit normal quantization, Meshopt and gzip. See [the preparation recipe](scripts/README.md) to regenerate it from the included source. Navigation initializes immediately; the first visible preview includes the vehicle. Mobile previews use an adaptive canvas; PNG downloads always render at 1920 × 1080.
+Install Node.js, run `npm install`, then `npm run build`. Source modules are included beside the prebuilt bundle. The delivery vehicle bakes fixed geometry and material edits, removes cabin geometry hidden by opaque windows, and uses 16-bit position / 12-bit normal quantization, Meshopt and gzip. See [the preparation recipe](scripts/README.md) to regenerate it from the included source. A scene-matched WebP provides the first complete frame while a lightweight vehicle initializes the interactive preview; the full-quality model then upgrades in the background. PNG export waits for the full model. Previews adapt their resolution to the display size, reuse recently visited scene geometry, and compile new scene shaders asynchronously; PNG downloads always render at 1920 × 1080.
 
 ## Hosting
 
