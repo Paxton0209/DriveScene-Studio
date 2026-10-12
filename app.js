@@ -35,7 +35,7 @@ const comparingNav=false; // Production uses the selected grouped navigation; st
 let navDesign=comparingNav&&['1','2','3'].includes(query.get('nav'))?query.get('nav'):'1';
 const optionIds=['buildings','waterfront','trees','vehicle','roadworks'];
 $('status').textContent='Loading scene…';
-let vehicleReady=false;
+let vehicleReady=false,exportInFlight=false,exportNoticeTimer;
 function previewResolution(){const width=matchMedia('(max-width:760px)').matches?Math.min(1280,Math.max(640,Math.ceil(preview.clientWidth*Math.min(devicePixelRatio||1,2)/16)*16)):1920;return [width,Math.round(width*9/16)];}
 const world=new World($('scene-canvas'),createVehicleProxy(),{width:previewResolution()[0],height:previewResolution()[1]});
 const vehiclePromise=createVehicle();
@@ -174,7 +174,7 @@ function render(animate=false,themeWipe=false){
  $('camera-control').hidden=!(parking||hasLayouts);document.querySelector('.toolbar').hidden=!(parking||hasLayouts);
  for(const button of $('parking-views').querySelectorAll('button'))button.setAttribute('aria-pressed',parking&&button.dataset.view===(s.key==='outdoor'?({'17':'10','18':'16','19':'14'}[st.id]):st.id));
  for(const [key,b]of sceneButtons)b.setAttribute('aria-current',key===selected);
- preview.dataset.mode=mode;preview.setAttribute('aria-busy','false');preview.dataset.audit=JSON.stringify(isReference?referenceView.audit():world.audit());$('download').disabled=!vehicleReady;updateURL();
+ preview.dataset.mode=mode;preview.setAttribute('aria-busy','false');preview.dataset.audit=JSON.stringify(isReference?referenceView.audit():world.audit());$('download').disabled=!vehicleReady||exportInFlight;updateURL();
  document.querySelector('.wordmark').href=`./?scene=02&mode=${mode}&lanes=6&view=low`;revealActiveGroup();updateSegmentIndicators();moveSelection();
  if(cover){
   const finish=()=>{cover.remove();if(activeCover===cover)activeCover=null;};
@@ -242,10 +242,20 @@ for(const key of optionIds)$(key).addEventListener('change',()=>{if(selected==='
 for(const button of $('parking-views').querySelectorAll('button'))button.addEventListener('click',()=>{preferences.get(selected).id=selected==='outdoor'?({'10':'17','16':'18','14':'19'}[button.dataset.view]):button.dataset.view;requestRender();});
 $('layout').addEventListener('change',()=>{preferences.get(selected).id=$('layout').value;requestRender();});
 function frameName(){if(selected==='reference')return `waterfront-study-${mode}-1920x1080`;const st=state();return `${selected}-${st.id}${selected==='road'?'-'+st.laneCount+'lanes-'+st.cameraView:selected==='ramp'?'-'+st.cameraView:''}-${mode}-${optionIds.map(k=>`${k}-${st[k]?'on':'off'}`).join('-')}`;}
-$('download').addEventListener('click',()=>{
- if(!vehicleReady)return;const name=frameName(),[w,h]=[world.width,world.height];$('download').disabled=true;
- try{world.setResolution(1920,1080);world.update(state());currentFrame().toBlob(blob=>{if(blob){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name+'.png';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),5000);}});}
- finally{world.setResolution(w,h);render(false);}
+$('download').addEventListener('click',async()=>{
+ if(!vehicleReady||exportInFlight)return;
+ const button=$('download'),label=button.querySelector('.export-label'),name=frameName(),snapshot=state(),[w,h]=[world.width,world.height];
+ exportInFlight=true;clearTimeout(exportNoticeTimer);button.disabled=true;button.setAttribute('aria-busy','true');delete button.dataset.exportState;label.textContent='Exporting…';$('status').textContent='Preparing PNG…';
+ try{
+  await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+  world.setResolution(1920,1080);world.update(snapshot);
+  const blob=await new Promise(resolve=>currentFrame().toBlob(resolve));
+  if(!blob)throw new Error('PNG encoding failed');
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name+'.png';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+  label.textContent='Exported';button.dataset.exportState='done';$('status').textContent='PNG download started.';
+  exportNoticeTimer=setTimeout(()=>{label.textContent='Export PNG';delete button.dataset.exportState;$('status').textContent='';},2400);
+ }catch(error){console.error(error);label.textContent='Try again';$('status').textContent='Export failed. Please try again.';}
+ finally{exportInFlight=false;button.setAttribute('aria-busy','false');world.setResolution(w,h);render(false);}
 });
 try{render();}catch(e){$('status').textContent='This preview requires WebGL. Please reopen in a modern browser.';throw e;}
 if(query.get('page')==='credits'){showCredits(true);const q=new URLSearchParams(location.search);q.set('page','credits');history.replaceState(null,'',`?${q}`);}
