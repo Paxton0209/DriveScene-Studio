@@ -1,6 +1,7 @@
 /* One shared shell aligns the brand, navigation, preview and footer. */
 :root {
   --page: #f6f7f8;
+  --control-height: 48px;
   --header-rgb: 246 247 248;
   --control-surface: #e9ebee;
   --control-hover: #e2e5e9;
@@ -101,7 +102,7 @@ main {
 .workspace .scene-options .view-segments {
   width: 100%;
   min-width: 0;
-  min-height: 48px;
+  min-height: var(--control-height);
   margin: 0;
   padding: 3px;
   gap: 0;
@@ -131,7 +132,7 @@ main {
 .workspace .scene-options .view-segments button[aria-pressed=true] { color: var(--text); font-weight: 600; }
 .workspace #parking-control { grid-column: 1 / -1; }
 .workspace .junction-transport { margin: 0; }
-.workspace .junction-transport { position: relative; display: grid; place-items: center; width: 100%; min-height: 48px; --progress: 0; }
+.workspace .junction-transport { position: relative; display: grid; place-items: center; width: 100%; min-height: var(--control-height); --progress: 0; }
 .workspace .junction-play { position: absolute; inset: 0; width: 100%; height: 100%; min-height: inherit; border-radius: var(--ui-radius); background: var(--control-surface); box-shadow: none; }
 .workspace .junction-play[data-motion-state="playing"] { background: color-mix(in srgb, var(--control-surface) 40%, transparent); opacity: 1; cursor: default; }
 .workspace .junction-play:not(:disabled):hover { background: var(--control-hover); box-shadow: none; }
@@ -156,10 +157,9 @@ main {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px 16px;
 }
-.workspace .switches:not(:has(.toggle:not([hidden]) ~ .toggle:not([hidden]))) > .toggle:not([hidden]) { max-width: 180px; }
 .workspace .toggle {
   min-width: 0;
-  min-height: 48px;
+  min-height: var(--control-height);
   padding: 10px 12px;
   gap: 8px;
   border: 0;
@@ -230,11 +230,12 @@ header:not(.credits-open) .header-backdrop { bottom: 0; }
 }
 /* Tall phones have room for calmer spacing and larger touch surfaces. */
 @media (max-width:760px) and (min-height:700px) {
+  :root { --control-height: clamp(48px, 6.4dvh, 60px); }
   .preview-shell { padding-bottom: clamp(18px, 2.6dvh, 26px); }
   .workspace .scene-options .view-segments,
   .workspace .junction-play,
   .workspace .junction-transport,
-  .workspace .toggle { min-height: clamp(48px, 6.4dvh, 60px); }
+  .workspace .toggle { min-height: var(--control-height); }
   .workspace .scene-options .view-segments button { min-height: clamp(42px, calc(6.4dvh - 6px), 54px); }
   .workspace .switches { row-gap: clamp(10px, 1.6dvh, 16px); }
   .workspace .environment-control { margin-top: clamp(20px, 3dvh, 28px); }
@@ -309,7 +310,7 @@ header:not(.credits-open) .header-backdrop { bottom: 0; }
 :root[data-resizing=true] #scenes > .nav-pill { transition: none !important; }
 
 /* Spread landscape desktops across the viewport, keeping the full scene visible. */
-@media (min-width:1400px) and (min-aspect-ratio:8/5) {
+@media (min-width:1100px) and (min-aspect-ratio:7/5) {
   :root { --shell-width:1920px; --desktop-nav-width:160px; --desktop-column-gap:24px; --desktop-gutter:32px; }
   .workspace { display:grid; grid-template-columns:minmax(0,1fr) 288px; gap:32px; align-items:start; }
   .preview-shell { padding:0; }
@@ -325,4 +326,29 @@ header:not(.credits-open) .header-backdrop { bottom: 0; }
   .workspace .switches { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px 12px; }
   .workspace .toggle { padding-inline:12px; }
   #status { grid-column:1/-1; }
+}
+
+/* Quiet settings: a single aligned list, with surfaces reserved for choices. */
+main { flex:0 0 auto; }
+.workspace .switches { display:flex; flex-direction:column; gap:4px; }
+.workspace .switches > .toggle:not([hidden]) { width:100%; max-width:none; min-height:var(--control-height); padding:12px 0; border-radius:0; background:transparent; border-bottom:1px solid var(--line); }
+.workspace .switches > .toggle:not([hidden]):not(:has(~ .toggle:not([hidden]))) { border-bottom:0; }
+.workspace .junction-play,
+.workspace .junction-play[data-motion-state="playing"],
+.workspace .junction-play:not(:disabled):hover { background:transparent; box-shadow:none; }
+.workspace .junction-play:not(:disabled):hover + .junction-play-copy { color:#007aff; }
+.site-signature { margin-top:12px; }
+@media (min-width:761px) {
+  :root[data-nav-design="1"] .structure-heading { margin-top:-3px; }
+  .workspace .environment-control { max-width:320px; justify-self:end; }
+}
+@media (min-width:1100px) and (min-aspect-ratio:7/5) {
+  .workspace .preview-settings { margin-top:-3px; }
+  .workspace .environment-control { max-width:none; }
+}
+@media (max-width:760px) {
+  .workspace { flex:0 0 auto; }
+  .workspace .preview-settings { flex:0 0 auto; justify-content:flex-start; }
+  .workspace .environment-control { margin-top:24px; }
+  .workspace .switches > .toggle:not([hidden]) { min-height:var(--control-height); }
 }
