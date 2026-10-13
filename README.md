@@ -45,6 +45,12 @@ Options follow the selected scenario. Light and dark modes provide visual themes
 
 ![DriveScene Studio — current elevated road, dark mode](preview-v0.17.9.jpg)
 
+## SR colour specification
+
+The scenes use a restrained, cool palette so that speed, navigation and alerts stay on top. Roadwork cones are the only saturated colour, reserved for hazards. The [SR colour specification](docs/SR-COLOR.md) lists every scene colour in light and dark themes, the lighting values, and how the palette is meant to sit behind an interface.
+
+![SR colour board, light theme](docs/sr-color-light.png)
+
 ## Run
 
 The checked-in `app.bundle.js` is ready to use. Serve this folder with any static web server. For example, run `python3 -m http.server 8000` and open http://localhost:8000. Do not open index.html using a file URL.
