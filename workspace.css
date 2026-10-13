@@ -352,3 +352,18 @@ main { flex:0 0 auto; }
   .workspace .environment-control { margin-top:24px; }
   .workspace .switches > .toggle:not([hidden]) { min-height:var(--control-height); }
 }
+
+/* Below-canvas controls share two equal columns with the choices above. */
+@media (min-width:761px) and (max-width:1099.98px), (min-width:761px) and (max-aspect-ratio:1.3999) {
+  .workspace .preview-settings { display:block; }
+  .workspace .environment-control { width:100%; max-width:none; margin-top:24px; justify-self:stretch; }
+  .workspace .switches { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:4px 16px; }
+  .workspace .switches > .toggle:nth-last-child(-n+2 of :not([hidden])) { border-bottom:0; }
+  .workspace .scene-options #road-controls,
+  .workspace #camera-control,
+  .workspace #camera-control:has(#layout-control:not([hidden])) { grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+  .workspace .scene-options:has(#road-controls:not([hidden])) > .road-settings-label { display:none; }
+  .workspace .scene-options #road-controls .choice-row { flex-direction:column; align-items:stretch; gap:8px; }
+  .workspace .scene-options #road-controls .option-label { width:auto; }
+  .workspace .scene-options #road-controls .view-segments { flex:0 0 auto; width:100%; }
+}
