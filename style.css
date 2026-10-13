@@ -513,3 +513,42 @@ header .wordmark{font-size:16px;line-height:24px;font-weight:600;letter-spacing:
  .scene-options #junction-position-control,.scene-options #ramp-camera-control{flex:1 1 0}
  .scene-options #layout-options button{font-size:12.5px}
 }
+
+
+/* R52: no extra layer. Image and controls sit directly on the page;
+   every control shares one capsule language with the switches. */
+:root{--fill:#e8e8ed;--fill-hover:#e0e0e6;--soft:var(--fill)}
+:root[data-theme=dark]{--fill:#1c1c1e;--fill-hover:#242427;--soft:var(--fill);--selected:#3a3a3c}
+.stage,:root[data-theme=dark] .stage{padding:0;border-radius:0;background:transparent;box-shadow:none}
+.stage .preview{border-radius:16px;box-shadow:0 0 0 1px rgb(var(--ink)/.04)}
+.stage .preview-settings{padding:18px 0 0;gap:16px}
+
+/* Capsules: segmented track, thumb, transport and switch tiles. */
+.scene-options .view-segments,.scene-options .toolbar .view-segments,.scene-options .road-option .view-segments{border-radius:999px;padding:3px;height:40px}
+.view-segments:before{top:3px;bottom:3px;border-radius:999px}
+.scene-options .view-segments button,.scene-options .road-option .view-segments button{border-radius:999px}
+.junction-play{border-radius:999px}
+.toggle,.toggle:last-child{border-radius:999px;min-height:40px;padding:0 6px 0 18px}
+.track{width:34px;height:22px}
+.track:after{left:3px;top:3px;width:16px;height:16px}
+.toggle input:checked+.track:after{transform:translateX(12px)}
+.toggle input:active+.track:after{width:19px}
+.toggle input:checked:active+.track:after{transform:translateX(9px)}
+.toggle .track{margin-right:3px}
+
+@media(max-width:760px){
+ .stage,.stage .preview{border-radius:14px}
+ .stage{border-radius:0}
+ .stage .preview-settings{padding:14px 0 0;gap:14px}
+ .toggle,.toggle:last-child{padding:0 6px 0 16px}
+ .track{width:34px;height:22px}
+ .track:after{width:16px;height:16px}
+ .toggle input:checked+.track:after{transform:translateX(12px)}
+ .toggle input:checked:active+.track:after{transform:translateX(9px)}
+}
+
+/* Page always fills the viewport: footer rests on the bottom edge, no dead band beneath it. */
+body{min-height:100vh;min-height:100svh;display:flex;flex-direction:column}
+body>header,body>main,body>.site-signature{width:100%}
+body>main{flex:1 0 auto}
+body>.site-signature{margin-top:auto}
