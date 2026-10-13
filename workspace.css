@@ -307,3 +307,22 @@ header:not(.credits-open) .header-backdrop { bottom: 0; }
 :root[data-resizing=true] .view-segments::before,
 .view-segments[data-resizing=true]::before,
 :root[data-resizing=true] #scenes > .nav-pill { transition: none !important; }
+
+/* Spread landscape desktops across the viewport, keeping the full scene visible. */
+@media (min-width:1400px) and (min-aspect-ratio:8/5) {
+  :root { --shell-width:1920px; --desktop-nav-width:160px; --desktop-column-gap:24px; --desktop-gutter:32px; }
+  .workspace { display:grid; grid-template-columns:minmax(0,1fr) 288px; gap:32px; align-items:start; }
+  .preview-shell { padding:0; }
+  .workspace .preview-settings { display:block; padding-top:0; }
+  .workspace .scene-options #road-controls,
+  .workspace #camera-control,
+  .workspace #camera-control:has(#layout-control:not([hidden])) { grid-template-columns:minmax(0,1fr); gap:16px; }
+  .workspace .scene-options:has(#road-controls:not([hidden])) > .road-settings-label { display:none; }
+  .workspace .scene-options #road-controls .choice-row { flex-direction:column; align-items:stretch; gap:8px; }
+  .workspace .scene-options #road-controls .option-label { width:auto; }
+  .workspace .scene-options #road-controls .view-segments { flex:0 0 auto; width:100%; }
+  .workspace .environment-control { margin-top:24px; width:100%; max-width:none; }
+  .workspace .switches { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px 12px; }
+  .workspace .toggle { padding-inline:12px; }
+  #status { grid-column:1/-1; }
+}

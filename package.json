@@ -1,6 +1,6 @@
 {
   "name": "drivescene-studio",
-  "version": "0.17.9",
+  "version": "0.18.0",
   "private": true,
   "type": "module",
   "scripts": {
