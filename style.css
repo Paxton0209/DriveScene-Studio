@@ -552,3 +552,10 @@ body{min-height:100vh;min-height:100svh;display:flex;flex-direction:column}
 body>header,body>main,body>.site-signature{width:100%}
 body>main{flex:1 0 auto}
 body>.site-signature{margin-top:auto}
+
+/* Desktop: the sidebar already names the scene, so the heading is for assistive tech only.
+   The image's top edge now lines up with the navigation. */
+@media(min-width:761px){
+ .scene-heading{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+ :root{--stage-w:max(560px,calc((100svh - 300px) * 16 / 9))}
+}
