@@ -265,7 +265,7 @@ header:not(.credits-open) .header-backdrop { bottom: 0; }
   .workspace .environment-control { margin-top: 16px; }
   #status { grid-column: 1 / -1; }
 }
-/* Give choices room to read; switches use bounded, equal tiles in two rows. */
+/* Keep settings and element columns stable across every scene family. */
 @media (min-width:1210px) and (min-height:820px) {
   :root {
     --desktop-nav-width: 160px;
@@ -277,10 +277,9 @@ header:not(.credits-open) .header-backdrop { bottom: 0; }
   .workspace .preview-settings {
     display: grid;
     grid-template-columns: 400px minmax(0, 1fr);
-    gap: 24px;
+    gap: 40px;
     align-items: start;
   }
-  .workspace .preview-settings:has(#road-controls:not([hidden])) { grid-template-columns: 280px minmax(0, 1fr); column-gap: 40px; }
   .workspace .scene-options #road-controls { grid-template-columns: minmax(0, 1fr); }
   main { padding-block: 12px; }
   .site-signature { margin-top: 8px; padding-bottom: 12px; }
@@ -292,13 +291,12 @@ header:not(.credits-open) .header-backdrop { bottom: 0; }
   .workspace .scene-options #road-controls { gap: 10px; }
   .workspace .scene-options #road-controls .choice-row { flex-direction: row; align-items: center; gap: 12px; }
   .workspace .scene-options #road-controls .option-label { width: 52px; flex-shrink: 0; }
+  .workspace .scene-options #road-controls .view-segments { flex: 1 1 0; width: auto; }
   .workspace #camera-control:has(#layout-control:not([hidden])) { grid-template-columns: 240px 144px; }
   .workspace .scene-options .view-segments button { font-size: 13px; }
   .workspace .environment-control { margin-top: 0; width: 100%; max-width: 684px; justify-self: end; }
-  .workspace .preview-settings:has(#road-controls:not([hidden])) .environment-control { max-width: 668px; }
   .workspace .switches { grid-template-columns: repeat(3, minmax(150px, 1fr)); gap: 10px 12px; }
-  .workspace .environment-control:not(:has(.toggle:not([hidden]) ~ .toggle:not([hidden]))) { max-width: 180px; }
-  .workspace .environment-control:not(:has(.toggle:not([hidden]) ~ .toggle:not([hidden]))) .switches { grid-template-columns: minmax(0, 1fr); }
+  .workspace .switches:not(:has(.toggle:not([hidden]) ~ .toggle:not([hidden]))) > .toggle:not([hidden]) { max-width: none; }
   .workspace .toggle { padding-inline: 12px; }
 }
 @media (prefers-reduced-motion:reduce) {
