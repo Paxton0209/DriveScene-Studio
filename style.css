@@ -562,3 +562,37 @@ body>.site-signature{margin-top:auto}
 /* Theme change keeps its original timing: surfaces and text follow the page's 420ms fade. */
 .toggle,.toggle:last-child{transition:background-color 420ms ease,color 420ms ease,transform var(--press)}
 .setting-title{transition:color 420ms ease}
+
+/* R53: more air under the image; quieter corner radius. */
+.stage .preview,.preview{border-radius:10px}
+.stage .preview-settings{padding:28px 0 0;gap:26px}
+.scene-options{gap:26px 24px}
+.scene-options .choice-row,.scene-options .road-option{gap:12px}
+.environment-control>.choice-label{margin-bottom:12px}
+.choice-label,.choice-row .option-label,.choice-row .choice-label,.environment-control>.choice-label{font-size:13px;line-height:18px}
+.scene-options .view-segments,.scene-options .toolbar .view-segments,.scene-options .road-option .view-segments{height:44px;padding:4px}
+.view-segments:before{top:4px;bottom:4px}
+.scene-options .view-segments button,.scene-options .road-option .view-segments button{height:36px;line-height:36px;font-size:13px}
+.junction-play{height:44px}
+.switches{gap:12px}
+.toggle,.toggle:last-child{min-height:44px;padding:0 8px 0 20px}
+.setting-title{font-size:13.5px}
+@media(min-width:761px){:root{--stage-w:max(560px,calc((100svh - 330px) * 16 / 9))}}
+@media(max-width:760px){
+ .stage .preview,.preview{border-radius:10px}
+ .stage .preview-settings{padding:20px 0 0;gap:20px}
+ .scene-options{gap:20px 12px}
+ .scene-options .choice-row,.scene-options .road-option{gap:10px}
+ .environment-control>.choice-label{margin-bottom:10px}
+ .switches{gap:10px}
+ .toggle,.toggle:last-child{padding:0 6px 0 16px}
+ .scene-options .view-segments button,.scene-options .road-option .view-segments button{font-size:13px}
+}
+
+/* Dark theme returns to the original palette, so the top-right theme wipe reveals exactly what it did before. */
+:root[data-theme=dark]{--page:#191a1c;--surface:#222427;--fill:#292b2f;--fill-hover:#303236;--soft:#292b2f;--selected:#45484d;--line:#303236;--hover:#25272b;--header-rgb:25 26 28;--nav-selected:#34373c;--ink:255 255 255;--text:rgb(var(--ink)/1);--text-secondary:rgb(var(--ink)/.60);--muted:var(--text-secondary)}
+:root[data-theme=dark] .track{background:#5b5f66}
+
+/* Selected navigation reads as a filled light-grey capsule against the page. */
+:root{--nav-selected:#e6e6eb}
+:root[data-nav-design="1"] #scenes>.nav-pill:not([hidden]){background:var(--nav-selected);box-shadow:none}
