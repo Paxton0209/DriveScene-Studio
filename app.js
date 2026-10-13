@@ -3,6 +3,8 @@ import {World} from './world.js';
 import {structures,legacyScenes} from './structures.js';
 import {createVehicle,createVehicleProxy} from './vehicle.js';
 import {disposeVehicle} from './dispose-vehicle.js';
+import {createTransportIcon} from './transport-icon.js';
+import {initContinuousCorners} from './continuous-corners.js';
 const $=id=>document.getElementById(id),preview=$('preview');
 const siteHeader=document.querySelector('header');
 siteHeader.classList.toggle('is-scrolled',scrollY>1);
@@ -18,7 +20,7 @@ function syncHeaderLayout(){
  sceneLayout.style.setProperty('--sidebar-top',`${headerBox.height+parseFloat(getComputedStyle(sceneLayout).paddingTop)}px`);
 }
 const headerLayoutObserver=new ResizeObserver(syncHeaderLayout);
-headerLayoutObserver.observe(sceneLayout);headerLayoutObserver.observe(siteHeader);
+headerLayoutObserver.observe(sceneLayout);headerLayoutObserver.observe(siteHeader);headerLayoutObserver.observe(document.querySelector('.preview-shell'));
 syncHeaderLayout();
 const query=new URLSearchParams(location.search),requested=query.get('scene'),initial=legacyScenes[requested]||requested;
 const first=structures.find(s=>s.layouts.some(([id])=>id===initial))||structures[0];
@@ -47,23 +49,13 @@ requestAnimationFrame(()=>requestAnimationFrame(()=>{document.documentElement.da
 const vehiclePromise=createVehicle();
 await new Promise(resolve=>setTimeout(resolve,0));
 performance.mark('studio-renderer-start');
-const world=await World.create($('scene-canvas'),createVehicleProxy(),{width:previewResolution()[0],height:previewResolution()[1]});
+const world=await World.create($('scene-canvas'),createVehicleProxy(),{width:previewResolution()[0],height:previewResolution()[1],measure:query.has("perf")});
 world.initializingScene=true;
 performance.measure('studio-renderer','studio-renderer-start');
 await new Promise(resolve=>setTimeout(resolve,0));
-let snapshotTimer=0,snapshotRevision=0;
-function scheduleSnapshot(){
- clearTimeout(snapshotTimer);const revision=++snapshotRevision;
- snapshotTimer=setTimeout(()=>{
-  if(!vehicleFullReady||world.cameraMotion||world.layoutMotion||world.layoutTransition||world.environmentMotion||preview.dataset.renderPending==='true')return;
-  const search=location.search;
-  $('scene-canvas').toBlob(blob=>{if(!blob)return;const reader=new FileReader();reader.onload=()=>{if(revision!==snapshotRevision||search!==location.search)return;try{sessionStorage.setItem('sr-frame-112',JSON.stringify({search,frame:reader.result}));}catch{}};reader.readAsDataURL(blob);},'image/png');
- },80);
-}
-
-world.onCameraFrame=moving=>{if(selected==='junction'){if(moving)junctionRequested=false;syncJunctionTransport();}preview.dataset.cameraMoving=String(moving);preview.dataset.cameraPose=JSON.stringify({position:world.camera.position.toArray(),aim:world.cameraAim.toArray(),offset:world.camera.view.offsetY,car:world.car.position.toArray(),anchor:world.captureCamera().anchor.toArray()});if(!moving){preview.dataset.audit=JSON.stringify(world.audit());scheduleSnapshot();}};
-world.onEnvironmentFrame=moving=>{preview.dataset.environmentMoving=String(moving);if(!moving){preview.dataset.audit=JSON.stringify(world.audit());scheduleSnapshot();}};
-world.onLayoutFrame=moving=>{preview.dataset.layoutMoving=String(moving);if(!moving){preview.dataset.audit=JSON.stringify(world.audit());scheduleSnapshot();}};
+world.onCameraFrame=moving=>{if(selected==='junction'){junctionRequested=false;syncJunctionTransport();}preview.dataset.cameraMoving=String(moving);if(!moving||query.has('perf'))preview.dataset.cameraPose=JSON.stringify({position:world.camera.position.toArray(),aim:world.cameraAim.toArray(),offset:world.camera.view.offsetY,car:world.car.position.toArray(),anchor:world.captureCamera().anchor.toArray()});if(!moving){preview.dataset.audit=JSON.stringify(world.audit());}};
+world.onEnvironmentFrame=moving=>{preview.dataset.environmentMoving=String(moving);if(!moving){preview.dataset.audit=JSON.stringify(world.audit());}};
+world.onLayoutFrame=moving=>{preview.dataset.layoutMoving=String(moving);if(!moving){preview.dataset.audit=JSON.stringify(world.audit());}};
 document.addEventListener('visibilitychange',()=>{if(document.hidden){world.finishLayoutTransition();world.finishCameraMotion();world.finishEnvironmentMotion();world.finishLayoutMotion();}});
 matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',event=>{if(event.matches){world.finishLayoutTransition();world.finishCameraMotion();world.finishEnvironmentMotion();world.finishLayoutMotion();}});
 const referenceView=null;let referenceVehicle=true;
@@ -140,10 +132,13 @@ function moveSelection(){
 // Pointer and keyboard choices share selected colors; repeated keyboard actions snap immediately.
 document.addEventListener('pointerdown',()=>{document.documentElement.dataset.choiceInput='pointer';},true);
 document.addEventListener('keydown',event=>{if(['Enter',' ','ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key))document.documentElement.dataset.choiceInput='keyboard';},true);
+const morphTransportIcon=createTransportIcon(document.querySelector('.junction-motion-icon'));
+let junctionTransportState='',junctionProgressPercent=-1;
 function syncJunctionTransport(){
  const near=preferences.get('junction').junctionPosition==='near',moving=selected==='junction'&&!!world.cameraMotion,busy=moving||junctionRequested,progress=moving?(world.cameraMotion.progress||0):junctionRequested?0:near?1:0;
- $('junction-play').dataset.motionState=busy?'playing':near?'replay':'ready';$('junction-play').disabled=busy;$('junction-play-label').textContent=busy?'Playing':near?'Replay':'Play';$('junction-play-icon').setAttribute('d',near&&!busy?'M3 8a7 7 0 1 1 1.5 7M3 3v5h5':'m7 4 8 6-8 6V4Z');$('junction-play').setAttribute('aria-label',busy?'Approach animation playing':near?'Replay approach animation':'Play approach animation');
- const bar=$('junction-progress');bar.style.setProperty('--progress',String(progress));bar.setAttribute('aria-valuenow',String(Math.round(progress*100)));bar.setAttribute('aria-valuetext',busy?'Approaching junction':near?'Stopped at junction':'Ready to approach');
+ const status=busy?'playing':near?'replay':'ready';
+ if(status!==junctionTransportState){junctionTransportState=status;const button=$('junction-play');button.dataset.motionState=status;$('junction-positions').dataset.motionState=status;button.hidden=false;button.disabled=busy;$('junction-playing').hidden=!busy;$('junction-play-label').textContent='Play';button.setAttribute('aria-label','Play approach animation');morphTransportIcon(busy);}
+ const bar=$('junction-progress');$('junction-positions').style.setProperty('--progress',String(progress));const percent=Math.round(progress*100);if(percent!==junctionProgressPercent){junctionProgressPercent=percent;bar.setAttribute('aria-valuenow',String(percent));bar.setAttribute('aria-valuetext',busy?`${percent}% complete`:near?'Stopped at junction':'Ready to approach');}
 }
 function syncSelectedControls(){
  const st=selected==='reference'?null:state();if(!st)return;
@@ -192,6 +187,7 @@ function render(animate=false,themeWipe=false,motion='scene'){
  }
  document.querySelectorAll('.frame-cover').forEach(el=>el.remove());activeCover=cover||null;if(cover)preview.append(cover);
  const isReference=selected==='reference',s=active(),st=isReference?null:state();
+ if(!vehicleReady&&!isReference){const mask=optionIds.reduce((bits,key,i)=>bits+(st[key]?1<<i:0),0),lanes=selected==='road'?st.laneCount:0,view=['road','ramp','junction','elevated'].includes(selected)?st.cameraView:'low';document.documentElement.style.setProperty('--startup-frame',`url("assets/startup/states/${st.id}-${lanes}-${view}-${mode}-${mask}.webp?v=139")`);}
  const deferred=animate&&!cameraMotion&&!environmentMotion&&!layoutMotion&&!structureMotion&&!isReference&&vehicleReady;preview.dataset.renderPending=String(deferred);
  if(isReference)referenceView.render(mode,referenceVehicle);else if(!world.initializingScene&&(vehicleReady||!st.vehicle))world.update({...st,vehicle:vehicleReady&&st.vehicle},{cameraMotion,environmentMotion,layoutMotion,structureMotion,deferRender:deferred});
  $('scene-canvas').hidden=false;$('reference-image').hidden=true;displayedReference=isReference;
@@ -229,7 +225,7 @@ function render(animate=false,themeWipe=false,motion='scene'){
  document.querySelector('.wordmark').href=`./?scene=02&mode=${mode}&lanes=6&view=low`;revealActiveGroup();updateSegmentIndicators();moveSelection();
  const revealFrame=()=>{
  if(revision!==renderRevision)return;
- if(deferred){if(!world.preparedRoots.has(world.root))world.renderPreparedFrame();world.renderFrame();preview.dataset.audit=JSON.stringify(world.audit());preview.dataset.renderPending='false';scheduleSnapshot();$('download').disabled=!vehicleFullReady;}
+ if(deferred){if(!world.preparedRoots.has(world.root))world.renderPreparedFrame();world.renderFrame();preview.dataset.audit=JSON.stringify(world.audit());preview.dataset.renderPending='false';$('download').disabled=!vehicleFullReady;}
  if(cover){
   const finish=()=>{cover.remove();if(activeCover===cover)activeCover=null;};
   if(themeWipe){
@@ -242,13 +238,21 @@ function render(animate=false,themeWipe=false,motion='scene'){
  }
  };
  // Compile new scene programs without holding the input handler until GPU completion.
- scheduleSnapshot();
+
  if(deferred){world.prepareScene().then(revealFrame).catch(error=>{console.error(error);revealFrame();});}else revealFrame();
 }
 function updateSegmentIndicators(){
  for(const group of document.querySelectorAll('.view-segments')){if(group.hidden||group.closest('[hidden]'))continue;const active=group.querySelector('[aria-pressed=true]');if(!active)continue;group.style.setProperty('--selection-x',active.offsetLeft+'px');group.style.setProperty('--selection-width',active.offsetWidth+'px');}
 }
-window.addEventListener('resize',()=>{world.finishLayoutTransition();world.finishCameraMotion();world.finishEnvironmentMotion();world.finishLayoutMotion();updateSegmentIndicators();moveSelection();const [w,h]=previewResolution();if(world.width!==w||world.height!==h){world.setResolution(w,h);requestRender();}});
+let resizeChoicesTimer=0;
+function syncChoiceGeometry(){document.documentElement.dataset.resizing='true';clearTimeout(resizeChoicesTimer);resizeChoicesTimer=setTimeout(()=>{delete document.documentElement.dataset.resizing;},120);updateSegmentIndicators();}
+const choiceResizeTimers=new WeakMap();
+const choiceResizeObserver=new ResizeObserver(entries=>{
+ for(const {target:group} of entries){group.dataset.resizing='true';clearTimeout(choiceResizeTimers.get(group));choiceResizeTimers.set(group,setTimeout(()=>{delete group.dataset.resizing;},120));}
+ updateSegmentIndicators();
+});
+for(const group of document.querySelectorAll('.view-segments'))choiceResizeObserver.observe(group);
+window.addEventListener('resize',()=>{syncChoiceGeometry();world.finishLayoutTransition();world.finishCameraMotion();world.finishEnvironmentMotion();world.finishLayoutMotion();moveSelection();const [w,h]=previewResolution();if(world.width!==w||world.height!==h){world.setResolution(w,h);requestRender();}});
 new ResizeObserver(()=>{moveSelection();}).observe($('scenes'));
 for(const b of $('road-controls').querySelectorAll('button'))b.addEventListener('click',()=>{const key=b.dataset.road,value=key==='laneCount'?Number(b.dataset.value):b.dataset.value;if(preferences.get('road')[key]===value)return;preferences.get('road')[key]=value;requestRender(key==='cameraView'?'camera':'layout');});
 for(const button of $('ramp-views').querySelectorAll('button'))button.addEventListener('click',()=>{if(preferences.get(selected).cameraView===button.dataset.rampView)return;preferences.get(selected).cameraView=button.dataset.rampView;requestRender('camera');});
@@ -257,6 +261,8 @@ for(const button of $('junction-views').querySelectorAll('button'))button.addEve
 
 $('junction-play').addEventListener('click',()=>{
  if(junctionRequested||world.cameraMotion)return;
+ // Settle a type change before resetting the camera for an approach replay.
+ world.finishLayoutTransition();
  const preference=preferences.get('junction');
  if(preference.junctionPosition==='near'){
   preference.junctionPosition='approaching';preference.cameraView='low';
@@ -319,6 +325,7 @@ $('download').addEventListener('click',()=>{
 });
 
 try{render();}catch(e){$('status').textContent='This preview requires WebGL. Please reopen in a modern browser.';throw e;}
+initContinuousCorners({forceFallback:query.has('corner-fallback')});
 if(query.get('page')==='credits'){showCredits(true);const q=new URLSearchParams(location.search);q.set('page','credits');history.replaceState(null,'',`?${q}`);}
 
 async function installVehicle(car,full=false,animate=false){
@@ -339,7 +346,7 @@ async function installVehicle(car,full=false,animate=false){
    await new Promise(requestAnimationFrame);world.renderFrame();
   }while(requested.id!==state().id||requested.laneCount!==state().laneCount);
  }finally{world.initializingScene=false;}
- vehicleReady=true;vehicleFullReady=full;$('status').replaceChildren();render(animate,false,'element');preview.dataset.vehicleReady='true';preview.dataset.vehicleQuality=full?'full':'startup';scheduleSnapshot();
+ vehicleReady=true;vehicleFullReady=full;$('status').replaceChildren();render(animate,false,'element');preview.dataset.vehicleReady='true';preview.dataset.vehicleQuality=full?'full':'startup';
 }
 function failedVehicle(error){preview.dataset.loadError='true';console.error(error);$('status').textContent=vehicleReady?'Full-quality export is unavailable. ':'Vehicle could not load. ';const retry=document.createElement('button');retry.type='button';retry.textContent='Retry';retry.addEventListener('click',()=>{retry.disabled=true;delete preview.dataset.loadError;createVehicle().then(car=>installVehicle(car,true)).catch(failedVehicle);});$('status').append(retry);}
 vehiclePromise.then(car=>installVehicle(car,true)).catch(failedVehicle);

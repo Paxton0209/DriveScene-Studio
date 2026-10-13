@@ -7,7 +7,7 @@ import {RoundedBoxGeometry} from './RoundedBoxGeometry.js';
 // Keep createSourceVehicle below as the reproducible source preparation step.
 let decodingWorkersReady=false;
 export async function createVehicle({startup=false}={}){
- if(!decodingWorkersReady&&typeof Worker!=='undefined'&&/Chrome|Chromium|Edg/.test(navigator.userAgent)){MeshoptDecoder.useWorkers(Math.min(2,Math.max(1,(navigator.hardwareConcurrency||2)-1)));decodingWorkersReady=true;}
+ if(!decodingWorkersReady&&typeof Worker!=='undefined'){decodingWorkersReady=true;try{MeshoptDecoder.useWorkers(Math.min(2,Math.max(1,(navigator.hardwareConcurrency||2)-1)));}catch{MeshoptDecoder.useWorkers(0);}}
  let compressed;
  if(!startup&&globalThis.__fullVehicleRequest){compressed=await globalThis.__fullVehicleRequest;delete globalThis.__fullVehicleRequest;}
  else if(startup&&globalThis.__startupVehicleRequest){compressed=await globalThis.__startupVehicleRequest;delete globalThis.__startupVehicleRequest;}

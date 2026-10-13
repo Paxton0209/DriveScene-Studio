@@ -46,7 +46,7 @@ export async function prepareRenderer(world){
  for(const job of jobs){
   job.scene.add(job.proxy);
   const previous=renderer.getRenderTarget();renderer.setRenderTarget(job.target);
-  try{pending.push(renderer.compileAsync(job.scene,job.camera));}finally{job.proxy.removeFromParent();renderer.setRenderTarget(previous);}
+  try{if(world.performanceStats)world.performanceStats.compiles++;pending.push(renderer.compileAsync(job.scene,job.camera));}finally{job.proxy.removeFromParent();renderer.setRenderTarget(previous);}
   if(performance.now()-sliceStart>6){await yieldToBrowser();sliceStart=performance.now();}
  }
  await Promise.all(pending);sliceStart=performance.now();
