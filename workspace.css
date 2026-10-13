@@ -135,7 +135,7 @@ main {
 .workspace .junction-transport { position: relative; display: grid; place-items: center; width: 100%; min-height: var(--control-height); --progress: 0; }
 .workspace .junction-play { position: absolute; inset: 0; width: 100%; height: 100%; min-height: inherit; border-radius: var(--ui-radius); background: var(--control-surface); box-shadow: none; }
 .workspace .junction-play[data-motion-state="playing"] { background: color-mix(in srgb, var(--control-surface) 40%, transparent); opacity: 1; cursor: default; }
-.workspace .junction-play:not(:disabled):hover { background: var(--control-hover); box-shadow: none; }
+.workspace .junction-play:not(:disabled):hover { background: var(--control-surface); box-shadow: none; }
 .workspace .junction-play-copy { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; line-height: 20px; pointer-events: none; }
 #junction-play-label { text-align: center; }
 .workspace .junction-play-copy .junction-motion-icon { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; overflow: visible; }
@@ -333,10 +333,6 @@ main { flex:0 0 auto; }
 .workspace .switches { display:flex; flex-direction:column; gap:4px; }
 .workspace .switches > .toggle:not([hidden]) { width:100%; max-width:none; min-height:var(--control-height); padding:12px 0; border-radius:0; background:transparent; border-bottom:1px solid var(--line); }
 .workspace .switches > .toggle:not([hidden]):not(:has(~ .toggle:not([hidden]))) { border-bottom:0; }
-.workspace .junction-play,
-.workspace .junction-play[data-motion-state="playing"],
-.workspace .junction-play:not(:disabled):hover { background:transparent; box-shadow:none; }
-.workspace .junction-play:not(:disabled):hover + .junction-play-copy { color:#007aff; }
 .site-signature { margin-top:12px; }
 @media (min-width:761px) {
   :root[data-nav-design="1"] .structure-heading { margin-top:-3px; }

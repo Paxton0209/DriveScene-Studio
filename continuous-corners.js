@@ -15,10 +15,10 @@ export function initContinuousCorners({forceFallback=false}={}){
  const watched=new WeakSet(),sizes=new WeakMap();
  const update=element=>{
   const {width,height}=element.getBoundingClientRect();if(!width||!height)return;
-  const r=radius,key=`${width}:${height}:${r}`;
+  const r=element.matches('.view-segments button')?Math.max(0,radius-3):radius,key=`${width}:${height}:${r}`;
   if(sizes.get(element)===key)return;sizes.set(element,key);element.dataset.continuous='true';
   element.style.setProperty('--continuous-clip',`path("${path(width,height,r)}")`);
-  if(element.classList.contains('view-segments')){const active=element.querySelector('[aria-pressed=true]');if(active)element.style.setProperty('--selection-clip',`path("${path(active.offsetWidth,element.clientHeight-6,radius)}")`);}
+  if(element.classList.contains('view-segments')){const active=element.querySelector('[aria-pressed=true]');if(active)element.style.setProperty('--selection-clip',`path("${path(active.offsetWidth,element.clientHeight-6,Math.max(0,radius-3))}")`);}
  };
  const observer=new ResizeObserver(entries=>{for(const entry of entries)update(entry.target);});
  const scan=root=>{const elements=[...(root.matches?.(selectors)?[root]:[]),...root.querySelectorAll(selectors)];for(const element of elements){if(watched.has(element))continue;watched.add(element);observer.observe(element);update(element);}};
