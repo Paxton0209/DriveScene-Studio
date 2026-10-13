@@ -52,7 +52,7 @@ function scheduleSnapshot(){
  snapshotTimer=setTimeout(()=>{
   if(!vehicleFullReady||world.cameraMotion||world.layoutMotion||world.layoutTransition||world.environmentMotion||preview.dataset.renderPending==='true')return;
   const search=location.search;
-  $('scene-canvas').toBlob(blob=>{if(!blob)return;const reader=new FileReader();reader.onload=()=>{if(revision!==snapshotRevision||search!==location.search)return;try{sessionStorage.setItem('sr-frame-100',JSON.stringify({search,frame:reader.result}));}catch{}};reader.readAsDataURL(blob);},'image/png');
+  $('scene-canvas').toBlob(blob=>{if(!blob)return;const reader=new FileReader();reader.onload=()=>{if(revision!==snapshotRevision||search!==location.search)return;try{sessionStorage.setItem('sr-frame-111',JSON.stringify({search,frame:reader.result}));}catch{}};reader.readAsDataURL(blob);},'image/png');
  },80);
 }
 
@@ -160,6 +160,7 @@ document.querySelector('.wordmark').addEventListener('click',event=>{
 });
 function requestRender(motion='scene'){
  ++renderRevision;
+
  if($('current-scene-name'))$('current-scene-name').textContent=active().name;
  cancelAnimationFrame(pendingRender);revealActiveGroup();
  for(const [key,b]of sceneButtons)b.setAttribute('aria-current',key===selected);
@@ -174,7 +175,7 @@ function render(animate=false,themeWipe=false,motion='scene'){
  let cover,previous;
  const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
  const environmentMotion=animate&&motion==='growth'&&vehicleReady&&!reduced&&document.documentElement.dataset.choiceInput!=='keyboard';
- const structureMotion=animate&&motion==='layout'&&['junction','ramp'].includes(selected)&&vehicleReady&&!reduced&&document.documentElement.dataset.choiceInput!=='keyboard';
+ const structureMotion=animate&&motion==='layout'&&selected==='junction'&&vehicleReady&&!reduced&&document.documentElement.dataset.choiceInput!=='keyboard';
  const layoutMotion=animate&&motion==='layout'&&selected==='road'&&vehicleReady&&!reduced&&document.documentElement.dataset.choiceInput!=='keyboard';
  const cameraMotion=animate&&motion==='camera'&&vehicleReady&&!reduced&&document.documentElement.dataset.choiceInput!=='keyboard';
  if(animate&&vehicleReady&&!reduced&&!cameraMotion&&!environmentMotion&&!layoutMotion&&!structureMotion&&document.documentElement.dataset.choiceInput!=='keyboard'){
@@ -232,7 +233,7 @@ function render(animate=false,themeWipe=false,motion='scene'){
     ctx.clearRect(0,0,1920,1080);ctx.globalCompositeOperation='source-over';ctx.drawImage(previous,0,0);
     ctx.globalCompositeOperation='destination-in';const mask=ctx.createLinearGradient(x-band/2,0,x+band/2,0);mask.addColorStop(0,toDark?'#000':'#0000');mask.addColorStop(1,toDark?'#0000':'#000');ctx.fillStyle=mask;ctx.fillRect(0,0,1920,1080);ctx.globalCompositeOperation='source-over';
     if(t<1)transitionFrame=requestAnimationFrame(tick);else finish();};transitionFrame=requestAnimationFrame(tick);
-  }else{const animation=cover.animate([{opacity:1},{opacity:0}],{duration:layoutMotion?160:motion==='element'?240:motion==='layout'?500:220,easing:'cubic-bezier(.33,0,.2,1)'});animation.onfinish=finish;}
+  }else{const animation=cover.animate([{opacity:1},{opacity:0}],{duration:layoutMotion?160:motion==='element'?240:motion==='layout'?500:220,easing:motion==='layout'&&selected==='ramp'?'cubic-bezier(.4,0,.2,1)':'cubic-bezier(.33,0,.2,1)'});animation.onfinish=finish;}
  }
  };
  // Compile new scene programs without holding the input handler until GPU completion.
@@ -311,6 +312,7 @@ $('download').addEventListener('click',()=>{
  try{world.setResolution(1920,1080);world.update(state());currentFrame().toBlob(blob=>{if(blob){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name+'.png';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),5000);}});}
  finally{world.setResolution(w,h);render(false);}
 });
+
 try{render();}catch(e){$('status').textContent='This preview requires WebGL. Please reopen in a modern browser.';throw e;}
 if(query.get('page')==='credits'){showCredits(true);const q=new URLSearchParams(location.search);q.set('page','credits');history.replaceState(null,'',`?${q}`);}
 
