@@ -373,3 +373,113 @@ html{scroll-padding-top:calc(var(--header-height) + 24px)}
 .junction-play-copy{gap:6px;font-size:12px;line-height:20px}
 .junction-transport svg{width:16px;height:16px}
 @media(max-width:760px){.junction-play{min-width:88px;min-height:40px}}
+
+
+/* R50: one screen, one glance. Image and every control stay visible together;
+   surfaces carry hierarchy, controls pair up two per row. */
+:root{--page:#f5f5f7;--surface:#fff;--fill:#f0f0f3;--fill-hover:#e9e9ed;--soft:var(--fill);--selected:#fff;--line:rgb(0 0 0/.07);--hover:#ececf0;--header-rgb:245 245 247;--nav-selected:#fff;--ink:29 29 31;--text:rgb(var(--ink)/1);--text-secondary:rgb(var(--ink)/.58);--muted:var(--text-secondary);--text-tertiary:rgb(var(--ink)/.44);
+ --ease-out:cubic-bezier(.23,1,.32,1);--press:140ms var(--ease-out);
+ --ring:0 0 0 1px rgb(0 0 0/.05);--segment-shadow:0 1px 2px rgb(0 0 0/.08),0 3px 8px rgb(0 0 0/.06),0 0 0 .5px rgb(0 0 0/.04);
+ --preview-shadow:0 0 0 1px rgb(0 0 0/.04),0 2px 4px rgb(0 0 0/.04),0 18px 40px -18px rgb(0 0 0/.28);
+ --card-shadow:0 0 0 1px rgb(0 0 0/.04),0 1px 2px rgb(0 0 0/.03);
+ font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue","Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+:root[data-theme=dark]{--page:#000;--surface:#1c1c1e;--fill:#2c2c2e;--fill-hover:#333336;--soft:var(--fill);--selected:#5a5a5e;--line:rgb(255 255 255/.08);--hover:#1c1c1e;--header-rgb:0 0 0;--nav-selected:#1c1c1e;--ink:245 245 247;--text:rgb(var(--ink)/1);--text-secondary:rgb(var(--ink)/.6);--muted:var(--text-secondary);--text-tertiary:rgb(var(--ink)/.42);
+ --segment-shadow:none;--preview-shadow:0 0 0 1px rgb(255 255 255/.06);--card-shadow:0 0 0 1px rgb(255 255 255/.05)}
+body{background:var(--page)}
+
+/* Brand: heavier wordmark, version as a quiet tag. */
+header .brand{align-items:center;gap:8px}
+header .wordmark{font-size:16px;line-height:24px;font-weight:600;letter-spacing:-.022em}
+.site-version{font-size:11px;line-height:18px;font-weight:500;padding:0 7px;border-radius:999px;background:rgb(var(--ink)/.06);color:var(--text-secondary);letter-spacing:.01em}
+@media(min-width:761px){header{min-height:72px}}
+
+/* Navigation pill sits on the page like a card. */
+:root[data-nav-design="1"] #scenes>.nav-pill:not([hidden]){background:var(--nav-selected);box-shadow:var(--card-shadow),0 2px 8px rgb(0 0 0/.05)}
+:root[data-theme=dark][data-nav-design="1"] #scenes>.nav-pill:not([hidden]){box-shadow:none}
+
+/* Scene heading: display type with tight tracking gives the page a voice. */
+.scene-heading{margin:0 0 16px}
+.scene-kicker{margin:0 0 2px;font-size:12px;line-height:16px;font-weight:500;color:var(--text-tertiary);letter-spacing:.01em}
+.scene-heading #scene-title{position:static;width:auto;height:auto;margin:0;padding:0;overflow:visible;clip:auto;white-space:normal;font-size:28px;line-height:34px;font-weight:600;letter-spacing:-.025em;color:var(--text)}
+@media(min-width:761px){.scene-kicker{display:none}}
+
+/* Preview: a lifted material rather than a flat rectangle. */
+.preview{border-radius:16px;box-shadow:var(--preview-shadow)}
+
+/* Desktop: size the image by viewport height, so image + controls share one screen. */
+@media(min-width:761px){
+ main{padding-top:20px}
+ .workspace{max-width:max(560px,calc((100svh - 380px) * 16 / 9))}
+}
+
+/* Control card */
+.preview-settings{margin-top:14px;display:grid;gap:16px;padding:16px;border-radius:18px;background:var(--surface);box-shadow:var(--card-shadow)}
+.scene-options{display:flex;flex-direction:row;flex-wrap:wrap;gap:12px 16px;padding:0;border:0}
+.scene-options #road-controls,.scene-options .toolbar,.scene-options #camera-control{display:contents}
+.scene-options .choice-row,.scene-options .road-option{flex:1 1 calc(50% - 8px);min-width:0;width:auto;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:8px;min-height:0;padding:0;border:0}
+@media(min-width:761px){.scene-options .choice-row,.scene-options .road-option{flex:0 1 calc(50% - 8px)}}
+.choice-label,.choice-row .option-label,.choice-row .choice-label,.environment-control>.choice-label{display:block;font-size:12px;line-height:16px;font-weight:500;color:var(--text-secondary);letter-spacing:.005em}
+.environment-control>.choice-label{margin-bottom:8px}
+
+/* Segmented control: full cell width, equal segments. */
+.scene-options .view-segments,.scene-options .toolbar .view-segments,.scene-options .road-option .view-segments{display:flex;width:100%;max-width:none;min-width:0;min-height:0;height:40px;margin:0;padding:3px;gap:0;border-radius:11px;background:var(--fill)}
+.view-segments:before{top:3px;bottom:3px;border-radius:8px;box-shadow:var(--segment-shadow)}
+.scene-options .view-segments button,.scene-options .road-option .view-segments button{flex:1 1 0;min-width:0;min-height:0;height:34px;padding:0 6px;border-radius:8px;font-size:13px;line-height:34px;font-weight:500;color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis}
+.scene-options .view-segments button[aria-pressed=true]{color:var(--text);font-weight:600}
+.choice-row>.view-segments{margin-left:0}
+
+/* Transport fills its cell and matches the segmented height. */
+.junction-transport{margin:0;width:100%}
+.junction-play{width:100%;min-width:0;height:40px;min-height:0;padding:0 12px;border-radius:11px;background:var(--fill);color:var(--text)}
+.junction-play[data-motion-state=replay]{background:var(--fill);box-shadow:none;color:var(--text)}
+.junction-play-copy{font-size:13px;font-weight:600}
+@media(hover:hover) and (pointer:fine){.junction-play:hover:not(:disabled),.junction-play[data-motion-state=replay]:hover{background:var(--fill-hover)}}
+.junction-play:active:not(:disabled){transform:scale(.97);background:var(--fill-hover)}
+
+/* Element switches become paired tiles; the whole tile is the hit target. */
+.switches{display:grid;grid-template-columns:repeat(auto-fill,minmax(136px,1fr));gap:8px}
+.toggle,.toggle:last-child{min-height:44px;padding:0 12px 0 14px;gap:10px;border:0;border-radius:11px;background:var(--fill);transition:background-color 160ms ease,transform var(--press)}
+.toggle:active{transform:scale(.97)}
+@media(hover:hover) and (pointer:fine){.toggle:hover{background:var(--fill-hover)}}
+.setting-copy{min-width:0}
+.setting-title{font-size:13px;line-height:18px;font-weight:500;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color 160ms ease}
+.toggle:has(input:checked) .setting-title{color:var(--text)}
+.track{width:32px;height:20px}
+.track:after{left:2px;top:2px;width:16px;height:16px}
+.toggle input:checked+.track:after{transform:translateX(12px)}
+.toggle input:active+.track:after{width:19px}
+.toggle input:checked:active+.track:after{transform:translateX(9px)}
+:root[data-theme=dark] .track{background:#48484a}
+.toggle input:focus-visible+.track{outline:none}
+.toggle:has(input:focus-visible){outline:2px solid #007aff;outline-offset:2px}
+
+/* Footer and status sit below the card. */
+#status{margin:12px 0 0}
+
+@media(max-width:760px){
+ :root{--mobile-gutter:16px}
+ main{padding-top:8px}
+ header .wordmark{font-size:15px;line-height:22px;letter-spacing:-.02em}
+ .site-version{font-size:10px;line-height:16px;padding:0 6px}
+ .scene-heading{margin:0 0 12px}
+ .scene-heading #scene-title{font-size:24px;line-height:30px;letter-spacing:-.022em}
+ .preview{border-radius:14px}
+ .preview-settings{margin-top:12px;padding:14px;gap:14px;border-radius:16px}
+ .scene-options{gap:12px}
+ .scene-options .choice-row,.scene-options .road-option{gap:6px}
+ .environment-control>.choice-label{margin-bottom:6px}
+ .switches{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .scene-options .view-segments button,.scene-options .road-option .view-segments button{font-size:12.5px;padding:0 2px;letter-spacing:-.01em;text-overflow:clip}
+ #layout-options button{font-size:12px}
+ .track{width:32px;height:20px}
+ .track:after{width:16px;height:16px}
+ .toggle input:checked+.track:after{transform:translateX(12px)}
+ .toggle input:checked:active+.track:after{transform:translateX(9px)}
+ .site-signature{margin-top:8px}
+}
+@media(max-width:359px){
+ .preview-settings{padding:12px}
+ .scene-options .view-segments button{font-size:12px}
+ .toggle,.toggle:last-child{padding:0 10px 0 12px}
+}
+@media(prefers-reduced-motion:reduce){.toggle:active,.junction-play:active:not(:disabled){transform:none}}
