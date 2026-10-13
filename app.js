@@ -45,14 +45,19 @@ let vehicleReady=false,vehicleFullReady=false,junctionRequested=false;
 function previewResolution(){const mobile=matchMedia('(max-width:760px)').matches;const width=Math.min(mobile?1280:1440,Math.max(640,Math.ceil(preview.clientWidth*Math.min(devicePixelRatio||1,2)/16)*16));return [width,Math.round(width*9/16)];}
 requestAnimationFrame(()=>requestAnimationFrame(()=>{document.documentElement.dataset.uiReady='true';}));
 const vehiclePromise=createVehicle();
-const world=new World($('scene-canvas'),createVehicleProxy(),{width:previewResolution()[0],height:previewResolution()[1]});
+await new Promise(resolve=>setTimeout(resolve,0));
+performance.mark('studio-renderer-start');
+const world=await World.create($('scene-canvas'),createVehicleProxy(),{width:previewResolution()[0],height:previewResolution()[1]});
+world.initializingScene=true;
+performance.measure('studio-renderer','studio-renderer-start');
+await new Promise(resolve=>setTimeout(resolve,0));
 let snapshotTimer=0,snapshotRevision=0;
 function scheduleSnapshot(){
  clearTimeout(snapshotTimer);const revision=++snapshotRevision;
  snapshotTimer=setTimeout(()=>{
   if(!vehicleFullReady||world.cameraMotion||world.layoutMotion||world.layoutTransition||world.environmentMotion||preview.dataset.renderPending==='true')return;
   const search=location.search;
-  $('scene-canvas').toBlob(blob=>{if(!blob)return;const reader=new FileReader();reader.onload=()=>{if(revision!==snapshotRevision||search!==location.search)return;try{sessionStorage.setItem('sr-frame-111',JSON.stringify({search,frame:reader.result}));}catch{}};reader.readAsDataURL(blob);},'image/png');
+  $('scene-canvas').toBlob(blob=>{if(!blob)return;const reader=new FileReader();reader.onload=()=>{if(revision!==snapshotRevision||search!==location.search)return;try{sessionStorage.setItem('sr-frame-112',JSON.stringify({search,frame:reader.result}));}catch{}};reader.readAsDataURL(blob);},'image/png');
  },80);
 }
 
@@ -188,7 +193,7 @@ function render(animate=false,themeWipe=false,motion='scene'){
  document.querySelectorAll('.frame-cover').forEach(el=>el.remove());activeCover=cover||null;if(cover)preview.append(cover);
  const isReference=selected==='reference',s=active(),st=isReference?null:state();
  const deferred=animate&&!cameraMotion&&!environmentMotion&&!layoutMotion&&!structureMotion&&!isReference&&vehicleReady;preview.dataset.renderPending=String(deferred);
- if(isReference)referenceView.render(mode,referenceVehicle);else if(vehicleReady||!st.vehicle)world.update({...st,vehicle:vehicleReady&&st.vehicle},{cameraMotion,environmentMotion,layoutMotion,structureMotion,deferRender:deferred});
+ if(isReference)referenceView.render(mode,referenceVehicle);else if(!world.initializingScene&&(vehicleReady||!st.vehicle))world.update({...st,vehicle:vehicleReady&&st.vehicle},{cameraMotion,environmentMotion,layoutMotion,structureMotion,deferRender:deferred});
  $('scene-canvas').hidden=false;$('reference-image').hidden=true;displayedReference=isReference;
  $('reference').setAttribute('aria-current',isReference);
  $('scene-title').textContent=isReference?'Visual key':s.name;
@@ -220,7 +225,7 @@ function render(animate=false,themeWipe=false,motion='scene'){
  $('camera-control').hidden=!(parking||hasLayouts||ramp);document.querySelector('.toolbar').hidden=!(parking||hasLayouts||ramp);
  for(const button of $('parking-views').querySelectorAll('button'))button.setAttribute('aria-pressed',parking&&button.dataset.view===(s.key==='outdoor'?({'17':'10','18':'16','19':'14'}[st.id]):st.id));
  for(const [key,b]of sceneButtons)b.setAttribute('aria-current',key===selected);
- preview.dataset.mode=mode;preview.setAttribute('aria-busy',String(!vehicleReady&&(isReference?referenceVehicle:st.vehicle)));if(!deferred&&(isReference||world.state))preview.dataset.audit=JSON.stringify(isReference?referenceView.audit():world.audit());$('download').disabled=!vehicleFullReady||deferred;$('download').title=vehicleFullReady?'Download PNG':'Preparing full-quality PNG';updateURL();
+ preview.dataset.mode=mode;preview.setAttribute('aria-busy',String(world.initializingScene||!vehicleReady&&(isReference?referenceVehicle:st.vehicle)));if(!deferred&&(isReference||world.state))preview.dataset.audit=JSON.stringify(isReference?referenceView.audit():world.audit());$('download').disabled=!vehicleFullReady||deferred;$('download').title=vehicleFullReady?'Download PNG':'Preparing full-quality PNG';updateURL();
  document.querySelector('.wordmark').href=`./?scene=02&mode=${mode}&lanes=6&view=low`;revealActiveGroup();updateSegmentIndicators();moveSelection();
  const revealFrame=()=>{
  if(revision!==renderRevision)return;
@@ -317,12 +322,23 @@ try{render();}catch(e){$('status').textContent='This preview requires WebGL. Ple
 if(query.get('page')==='credits'){showCredits(true);const q=new URLSearchParams(location.search);q.set('page','credits');history.replaceState(null,'',`?${q}`);}
 
 async function installVehicle(car,full=false,animate=false){
+ performance.mark('studio-scene-start');
  delete preview.dataset.loadError;world.setVehicle(car);
  // Keep the matching poster visible until the final mesh, shaders and shadow
  // map have produced complete frames. Never reveal the decimated loading car.
- world.update({...state(),vehicle:true},{deferRender:true});
- await world.prepareScene();world.renderPreparedFrame();
- await new Promise(requestAnimationFrame);world.renderFrame();
+ world.initializingScene=true;
+ try{let requested;
+  do{
+   requested=state();await world.prepareInitialScene(requested);
+   world.update({...requested,vehicle:true},{deferRender:true});
+   performance.measure('studio-scene','studio-scene-start');
+   await new Promise(resolve=>setTimeout(resolve,0));
+   performance.mark('studio-warm-start');
+   await world.prepareScene();world.renderPreparedFrame();
+   performance.measure('studio-warm','studio-warm-start');
+   await new Promise(requestAnimationFrame);world.renderFrame();
+  }while(requested.id!==state().id||requested.laneCount!==state().laneCount);
+ }finally{world.initializingScene=false;}
  vehicleReady=true;vehicleFullReady=full;$('status').replaceChildren();render(animate,false,'element');preview.dataset.vehicleReady='true';preview.dataset.vehicleQuality=full?'full':'startup';scheduleSnapshot();
 }
 function failedVehicle(error){preview.dataset.loadError='true';console.error(error);$('status').textContent=vehicleReady?'Full-quality export is unavailable. ':'Vehicle could not load. ';const retry=document.createElement('button');retry.type='button';retry.textContent='Retry';retry.addEventListener('click',()=>{retry.disabled=true;delete preview.dataset.loadError;createVehicle().then(car=>installVehicle(car,true)).catch(failedVehicle);});$('status').append(retry);}
