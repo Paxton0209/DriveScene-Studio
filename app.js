@@ -191,7 +191,7 @@ function render(animate=false,themeWipe=false,motion='scene'){
  if(isReference)referenceView.render(mode,referenceVehicle);else if(vehicleReady||!st.vehicle)world.update({...st,vehicle:vehicleReady&&st.vehicle},{cameraMotion,environmentMotion,layoutMotion,structureMotion,deferRender:deferred});
  $('scene-canvas').hidden=false;$('reference-image').hidden=true;displayedReference=isReference;
  $('reference').setAttribute('aria-current',isReference);
- $('scene-title').textContent=isReference?'Visual key':s.name;
+ $('scene-title').textContent=isReference?'Visual key':s.name;if($('scene-kicker'))$('scene-kicker').textContent=isReference?'Reference':s.group==='closed'?'Parking scene':'Driving scene';
  $('scene-canvas').setAttribute('aria-label',isReference?`Visual key, ${mode}, BMW vehicle`:`${s.name}, ${mode}, ${optionIds.filter(k=>st[k]).join(', ')}`);
  document.documentElement.dataset.theme=mode;
  try{localStorage.setItem('sr-theme',mode);}catch{}
