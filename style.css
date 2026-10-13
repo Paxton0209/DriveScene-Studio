@@ -483,3 +483,33 @@ header .wordmark{font-size:16px;line-height:24px;font-weight:600;letter-spacing:
  .toggle,.toggle:last-child{padding:0 10px 0 12px}
 }
 @media(prefers-reduced-motion:reduce){.toggle:active,.junction-play:active:not(:disabled){transform:none}}
+
+
+/* R51: image and controls form one stage; the layout centres on it, rows fill edge to edge. */
+:root{--stage-w:max(560px,calc((100svh - 352px) * 16 / 9))}
+.stage{padding:8px;border-radius:22px;background:var(--surface);box-shadow:var(--card-shadow),0 12px 32px -20px rgb(0 0 0/.18)}
+:root[data-theme=dark] .stage{box-shadow:var(--card-shadow)}
+.stage .preview{border-radius:14px;box-shadow:none}
+.stage .preview-settings{margin:0;padding:16px 8px 8px;border-radius:0;background:transparent;box-shadow:none;gap:14px}
+
+/* Switches share each row evenly; an odd last tile takes the full row. */
+.switches{display:flex;flex-wrap:wrap;gap:8px}
+.switches>.toggle{flex:1 1 0;min-width:0}
+
+@media(min-width:761px){
+ main,header,.site-signature{max-width:calc(var(--stage-w) + 320px)}
+ .workspace{max-width:none}
+ .scene-options .choice-row,.scene-options .road-option{flex:1 1 0}
+}
+@media(min-width:761px) and (max-width:1250px){main,header,.site-signature{max-width:calc(var(--stage-w) + 300px)}}
+
+@media(max-width:760px){
+ .stage{padding:6px;border-radius:20px}
+ .stage .preview{border-radius:14px}
+ .stage .preview-settings{padding:14px 8px 8px;gap:12px}
+ .switches>.toggle{flex:1 1 calc(50% - 4px)}
+ /* Long layout names get the wider share of the row. */
+ .scene-options #layout-control{flex:1.6 1 0}
+ .scene-options #junction-position-control,.scene-options #ramp-camera-control{flex:1 1 0}
+ .scene-options #layout-options button{font-size:12.5px}
+}
