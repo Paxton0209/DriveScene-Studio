@@ -385,7 +385,6 @@ html{scroll-padding-top:calc(var(--header-height) + 24px)}
  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue","Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 :root[data-theme=dark]{--page:#000;--surface:#1c1c1e;--fill:#2c2c2e;--fill-hover:#333336;--soft:var(--fill);--selected:#5a5a5e;--line:rgb(255 255 255/.08);--hover:#1c1c1e;--header-rgb:0 0 0;--nav-selected:#1c1c1e;--ink:245 245 247;--text:rgb(var(--ink)/1);--text-secondary:rgb(var(--ink)/.6);--muted:var(--text-secondary);--text-tertiary:rgb(var(--ink)/.42);
  --segment-shadow:none;--preview-shadow:0 0 0 1px rgb(255 255 255/.06);--card-shadow:0 0 0 1px rgb(255 255 255/.05)}
-body{background:var(--page)}
 
 /* Brand: heavier wordmark, version as a quiet tag. */
 header .brand{align-items:center;gap:8px}
@@ -559,3 +558,7 @@ body>.site-signature{margin-top:auto}
  .scene-heading{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
  :root{--stage-w:max(560px,calc((100svh - 300px) * 16 / 9))}
 }
+
+/* Theme change keeps its original timing: surfaces and text follow the page's 420ms fade. */
+.toggle,.toggle:last-child{transition:background-color 420ms ease,color 420ms ease,transform var(--press)}
+.setting-title{transition:color 420ms ease}
