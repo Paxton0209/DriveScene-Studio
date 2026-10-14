@@ -18,7 +18,7 @@ This project provides a reusable starting point for that work: simplified enviro
 
 ## From background to cockpit interface
 
-![Cockpit interface concept combining an SR junction background, a speed display, navigation and controls](cockpit-example-r39.png)
+![Cockpit interface concept with an SR junction, speed display, turn guidance, map controls and arrival information](docs/cockpit-navigation-dark.png)
 
 This example comes from the project's Figma design workspace. The SR scene sits alongside navigation, with speed and other UI information layered over a quiet environment. Its geometry remains readable while the interface retains its hierarchy. The complete cockpit screen illustrates how an exported background can be used in interface design; the website exports the scene itself, without speed labels, navigation or app controls.
 
@@ -49,7 +49,7 @@ Options follow the selected scenario. Light and dark modes provide visual themes
 
 The scenes use a restrained, cool palette so that speed, navigation and alerts stay on top. Roadwork cones are the only saturated colour, reserved for hazards. The [SR colour specification](docs/SR-COLOR.md) lists every scene colour in light and dark themes, the lighting values, and how the palette is meant to sit behind an interface.
 
-![SR colour board, light theme](docs/sr-color-light.png)
+<p><img src="docs/sr-color-paired-light.png" alt="SR colour specification in light mode, with cockpit context and scene families" width="1200"><br><img src="docs/sr-color-paired-dark.png" alt="The matching SR colour specification in dark mode" width="1200"></p>
 
 ## Run
 
