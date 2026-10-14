@@ -1,0 +1,4 @@
+.analytics-choice[hidden]{display:none}
+.analytics-choice{position:fixed;z-index:100;inset:auto 24px 20px auto;width:min(440px,calc(100vw - 48px));box-sizing:border-box;padding:16px 18px;border:1px solid #dedfe1;border-radius:8px;background:#f7f8f9;color:#303235;box-shadow:0 4px 20px #0000000a;font:13px/1.5 system-ui,sans-serif}
+.analytics-choice p{margin:0 0 12px}.analytics-choice a{color:inherit;text-decoration:underline;text-underline-offset:3px}.analytics-choice div{display:flex;justify-content:flex-end;gap:8px}.analytics-choice button{font:inherit;color:inherit;background:transparent;border:1px solid #c8cace;border-radius:5px;padding:7px 14px;cursor:pointer}.analytics-choice button:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+[data-theme=dark] .analytics-choice{background:#202225;color:#dedfe1;border-color:#3c3e42}[data-theme=dark] .analytics-choice button{border-color:#606268}

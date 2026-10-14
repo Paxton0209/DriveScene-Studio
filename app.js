@@ -1,3 +1,4 @@
+import { initAnalyticsChoice, trackPngExport } from './analytics.js';
 import {playThemeSound} from './theme-sound.js';
 import {World} from './world.js';
 import {structures,legacyScenes} from './structures.js';
@@ -5,6 +6,7 @@ import {createVehicle,createVehicleProxy} from './vehicle.js';
 import {disposeVehicle} from './dispose-vehicle.js';
 import {createTransportIcon} from './transport-icon.js';
 import {initContinuousCorners} from './continuous-corners.js';
+initAnalyticsChoice();
 const $=id=>document.getElementById(id),preview=$('preview');
 const siteHeader=document.querySelector('header');
 siteHeader.classList.toggle('is-scrolled',scrollY>1);
@@ -319,8 +321,8 @@ for(const button of $('parking-views').querySelectorAll('button'))button.addEven
 $('layout').addEventListener('change',()=>{preferences.get(selected).id=$('layout').value;requestRender('layout');});
 function frameName(){if(selected==='reference')return `waterfront-study-${mode}-1920x1080`;const st=state();return `${selected}-${st.id}${selected==='road'?'-'+st.laneCount+'lanes-'+st.cameraView:selected==='junction'?'-'+st.junctionPosition+'-'+st.cameraView:['ramp','elevated'].includes(selected)?'-'+st.cameraView:''}-${mode}-${optionIds.map(k=>`${k}-${st[k]?'on':'off'}`).join('-')}`;}
 $('download').addEventListener('click',()=>{
- if(!vehicleFullReady)return;world.finishLayoutTransition();world.finishCameraMotion();world.finishEnvironmentMotion();world.finishLayoutMotion();const name=frameName(),[w,h]=[world.width,world.height];$('download').disabled=true;
- try{world.setResolution(1920,1080);world.update(state());currentFrame().toBlob(blob=>{if(blob){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name+'.png';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),5000);}});}
+ if(!vehicleFullReady)return;world.finishLayoutTransition();world.finishCameraMotion();world.finishEnvironmentMotion();world.finishLayoutMotion();const exportScene=selected,exportTheme=mode;const name=frameName(),[w,h]=[world.width,world.height];$('download').disabled=true;
+ try{world.setResolution(1920,1080);world.update(state());currentFrame().toBlob(blob=>{if(blob){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name+'.png';a.click();trackPngExport(exportScene,exportTheme);setTimeout(()=>URL.revokeObjectURL(a.href),5000);}});}
  finally{world.setResolution(w,h);render(false);}
 });
 

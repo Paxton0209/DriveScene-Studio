@@ -1,0 +1,9 @@
+# Private usage reports
+
+The hosted site uses GA4 only after a visitor chooses Allow in the privacy prompt. Before consent (or after No thanks, Do Not Track, Global Privacy Control, or the privacy-page opt-out), no Google script or analytics request is sent. Advertising storage, advertising personalization and Google signals stay disabled. Reporting access remains private to the owner. The public measurement ID does not grant report access.
+
+Explicit events: `page_view` once per document, and `png_export` after the generated PNG blob starts a browser download. Scene controls change URL query parameters but do not count as additional page views. `png_export` includes only an allowlisted scene category, theme and dimensions. It cannot prove that the browser saved the file. Page URL queries/fragments and referrer paths/queries are excluded from configured payloads. Google may process standard engagement/session events after consent.
+
+GA4 enhanced measurement must remain disabled in the stream settings, especially history-change page views. No user IDs, ad integrations, session replay, uploaded images or typed inputs are collected. Analytics cookies have a configured 30-day expiry. See `privacy.html` for visitor information and opt-out. Reports cover consenting browsers with successful network delivery, not all users; blockers and network restrictions cause undercounting. Never infer unique people or downloads from GitHub clone counts.
+
+`analytics.js` runs only on the original hosted scene URL. Forks, local development, privacy pages and previews do not send data. Fork owners who add analytics must configure their own service, disclosure and consent behavior. Never commit reporting credentials or daily private reports. Test with `node --test tests/analytics.test.mjs`; rebuild with `npm run build`.
