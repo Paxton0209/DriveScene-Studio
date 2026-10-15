@@ -34,7 +34,7 @@ const ELEVATED_DECK_HEIGHT=8.5;
 
 export class World {
  static async create(canvas,car,options={}){
-  const renderer=new THREE.WebGLRenderer({canvas,antialias:true,preserveDrawingBuffer:true,alpha:options.alpha||false});
+  const renderer=new THREE.WebGLRenderer({canvas,antialias:false,preserveDrawingBuffer:true,alpha:options.alpha||false});
   await new Promise(resolve=>setTimeout(resolve,0));
   return new World(canvas,car,{...options,renderer});
  }
@@ -43,7 +43,8 @@ export class World {
   this.palette=palette;this.width=width;this.height=height;this.sceneCache=new Map();this.preparedRoots=new WeakSet();this.geometryTemplates=new Map();this.laneMaterials=new Map();
   this.environmentGrowth={buildings:{value:1,velocity:0},trees:{value:0,velocity:0},waterfront:{value:0,velocity:0},roadworks:{value:0,velocity:0}};
   this.layoutBlend={value:1};this.structurePaintOpacity={value:1};this.waterMix={value:0};this.roadCameraCache=new Map();
-  this.renderer=renderer||new THREE.WebGLRenderer({canvas,antialias:true,preserveDrawingBuffer:true,alpha});
+  // Scene edges are antialiased in the composer's multisampled render target.
+  this.renderer=renderer||new THREE.WebGLRenderer({canvas,antialias:false,preserveDrawingBuffer:true,alpha});
   this.renderer.setPixelRatio(1);this.renderer.setSize(width,height,false);
   this.renderer.shadowMap.enabled=true;this.renderer.shadowMap.type=THREE.VSMShadowMap;this.renderer.shadowMap.autoUpdate=false;
   this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1;
@@ -821,6 +822,7 @@ export class World {
   motion.frame=requestAnimationFrame(tick);
  }
  renderFrame(moving=false){
+  if(this.suspended)return;
   const stats=this.performanceStats,started=stats?performance.now():0;if(stats){this.renderer.info.autoReset=false;this.renderer.info.reset();}
   const {id,mode,vehicle}=this.state,dark=mode==='dark',isParking=parkingIds.includes(id);
   const shadowKey=JSON.stringify([this.car.position.toArray(),this.car.rotation.toArray(),vehicle,this.environmentGrowth.trees.value,this.environmentGrowth.roadworks.value,this.environmentGrowth.waterfront.value,this.layoutBlend.value,mode]);
