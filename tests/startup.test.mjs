@@ -4,11 +4,12 @@ import vm from 'node:vm';
 import {readFile} from 'node:fs/promises';
 import {fetchAsset,takePrefetched} from '../asset-request.js';
 
-test('a failed prefetch is consumed so the next attempt performs a fresh request',async()=>{
+test('a failed prefetch is consumed and automatically gets one fresh request',async()=>{
  const scope={asset:Promise.reject(new Error('offline'))};let requests=0;
- await assert.rejects(takePrefetched('asset',()=>++requests,scope),/offline/);
+ assert.equal(await takePrefetched('asset',()=>++requests,scope),1);
  assert.equal('asset' in scope,false);
- assert.equal(takePrefetched('asset',()=>++requests,scope),1);
+ assert.equal(takePrefetched('asset',()=>++requests,scope),2);
+ await assert.rejects(takePrefetched('asset',()=>Promise.reject(new Error('still offline')),{asset:Promise.reject(new Error('offline'))}),/still offline/);
 });
 test('asset timeout covers a stalled body, not just response headers',async t=>{
  let aborted=false;
@@ -23,6 +24,18 @@ test('HTTP failures are classified and successful assets retain exact bytes',asy
  const bytes=new Uint8Array([1,2,3]).buffer;
  globalThis.fetch=async()=>({ok:true,arrayBuffer:async()=>bytes});
  assert.equal(await fetchAsset('test'),bytes);
+});
+test('transfer progress refreshes the idle timeout and preserves all chunks',async t=>{
+ const delays=[10,10,10];let signal;
+ t.mock.method(globalThis,'fetch',async(_url,options)=>{
+  signal=options.signal;
+  return {ok:true,body:{getReader:()=>({
+   async read(){if(!delays.length)return {done:true};await new Promise(resolve=>setTimeout(resolve,delays.shift()));return {done:false,value:new Uint8Array([delays.length])};},
+   releaseLock(){}
+  })}};
+ });
+ assert.deepEqual([...new Uint8Array(await fetchAsset('test',{timeoutMs:25}))],[2,1,0]);
+ assert.equal(signal.aborted,false);
 });
 
 const source=(await readFile(new URL('../startup.js',import.meta.url),'utf8')).replace(/import\('\.\/app\.bundle\.js[^']*'\)/,'loadApp()');
