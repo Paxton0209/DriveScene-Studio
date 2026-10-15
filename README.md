@@ -35,11 +35,21 @@ Start with the closest driving or parking scenario, adjust the camera and visual
 | Junction and ramp | Crossroads or T-junction; exit or merge |
 | Camera | Low/high road and ramp views, and scenario-specific parking viewpoints, including bird's-eye views |
 | Scene elements | Vehicle, buildings, trees, waterfront and roadworks, where supported by the selected scenario |
-| Export | 1920 × 1080 PNG |
+| Export | 1920 × 1080 PNG, camera JSON, 16-bit depth PNG and a perspective kit ZIP |
 
 Camera changes animate through the 3D scene; other options use short transitions. Reduced-motion preferences are respected. Elevated roads and ramp mainlines have separated opposing carriageways; the elevated deck sits 8.5 m above ground with ground-level side streets and bridge supports.
 
 Options follow the selected scenario. Light and dark modes provide visual themes for design exploration, rather than a physical simulation of changing daylight. On mobile, the navigation expands within the page and stays open while comparing scenes.
+
+## Camera, depth and Figma alignment
+
+Click the download icon to open the centered format dialog. PNG image is selected by default; the other choices are **Perspective kit**, **Camera settings** and **Depth map**. The kit contains the matching scene PNG, camera JSON, depth PNG, a transparent perspective SVG and usage notes. Active scene and camera animations settle to the selected endpoint before capture; all files in a kit describe that same final frame.
+
+Place `scene.png` and `perspective.svg` at (0, 0) in a 1920 × 1080 Figma frame, without cropping. The SVG grid uses 1 m columns and 5 m rows on a horizontal plane at the ego vehicle's road height. A 2 m × 3.5 m reference arrow starts 18 m ahead. Use it to align navigation artwork, then hide the reference layer. The guide does not follow branch/ramp geometry or account for occlusion. Figma does not import the JSON as a 3D camera or automatically perspective-warp artwork.
+
+The camera JSON includes the full projection and view matrices, orientation, FOV, clipping planes and view offset. Matrices are column-major; world units are meters with Y up, and the camera faces local -Z. The image origin is top-left. Preserve the projection matrix, including the view offset, when recreating the camera.
+
+Depth PNG is 16-bit linear grayscale camera-space Z distance: `meters = uint16 / 65535 * 200`. Near geometry is dark; sky and distances at or beyond 200 m are white. Depth edges are not antialiased, and decorative transparency, glow and contact shadows are excluded. Water is represented by its surface. These depths support compositing and geometry workflows; use the SVG for manual Figma alignment. The package includes environment and vehicle attribution.
 
 ## Scene preview
 

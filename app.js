@@ -6,6 +6,9 @@ import {createVehicle,createVehicleProxy} from './vehicle.js';
 import {disposeVehicle} from './dispose-vehicle.js';
 import {createTransportIcon} from './transport-icon.js';
 import {initContinuousCorners} from './continuous-corners.js';
+import {initExportControls} from './export-controls.js';
+import {cameraMetadata,perspectiveSvg,renderDepth,exportSize,exportReadme} from './export-scene.js';
+import {canvasPng,depthPng,zipFiles,downloadFile} from './export-files.js';
 initAnalyticsChoice();
 const $=id=>document.getElementById(id),preview=$('preview');
 const siteHeader=document.querySelector('header');
@@ -233,7 +236,7 @@ function render(animate=false,themeWipe=false,motion='scene'){
  $('camera-control').hidden=!(parking||hasLayouts||ramp);document.querySelector('.toolbar').hidden=!(parking||hasLayouts||ramp);
  for(const button of $('parking-views').querySelectorAll('button'))button.setAttribute('aria-pressed',parking&&button.dataset.view===(s.key==='outdoor'?({'17':'10','18':'16','19':'14'}[st.id]):st.id));
  for(const [key,b]of sceneButtons)b.setAttribute('aria-current',key===selected);
- preview.dataset.mode=mode;preview.setAttribute('aria-busy',String(world.initializingScene||!vehicleReady&&(isReference?referenceVehicle:st.vehicle)));if(!deferred&&(isReference||world.state))preview.dataset.audit=JSON.stringify(isReference?referenceView.audit():world.audit());$('download').disabled=!vehicleFullReady||deferred;$('download').title=vehicleFullReady?'Download PNG':'Preparing full-quality PNG';updateURL();
+ preview.dataset.mode=mode;preview.setAttribute('aria-busy',String(world.initializingScene||!vehicleReady&&(isReference?referenceVehicle:st.vehicle)));if(!deferred&&(isReference||world.state))preview.dataset.audit=JSON.stringify(isReference?referenceView.audit():world.audit());$('download').disabled=!vehicleFullReady||deferred;$('download').title=vehicleFullReady?'Download':'Preparing export';updateURL();
  document.querySelector('.wordmark').href=`./?scene=02&mode=${mode}&lanes=6&view=low`;revealActiveGroup();updateSegmentIndicators();moveSelection();
  const revealFrame=()=>{
  if(revision!==renderRevision)return;
@@ -340,11 +343,35 @@ for(const key of optionIds)$(key).addEventListener('change',()=>{if(selected==='
 for(const button of $('parking-views').querySelectorAll('button'))button.addEventListener('click',()=>{const id=selected==='outdoor'?({'10':'17','16':'18','14':'19'}[button.dataset.view]):button.dataset.view;if(preferences.get(selected).id===id)return;preferences.get(selected).id=id;requestRender('camera');});
 $('layout').addEventListener('change',()=>{preferences.get(selected).id=$('layout').value;requestRender('layout');});
 function frameName(){if(selected==='reference')return `waterfront-study-${mode}-1920x1080`;const st=state();return `${selected}-${st.id}${selected==='road'?'-'+st.laneCount+'lanes-'+st.cameraView:selected==='junction'?'-'+st.junctionPosition+'-'+st.cameraView:['ramp','elevated'].includes(selected)?'-'+st.cameraView:''}-${mode}-${optionIds.map(k=>`${k}-${st[k]?'on':'off'}`).join('-')}`;}
-$('download').addEventListener('click',()=>{
- if(!vehicleFullReady)return;world.finishLayoutTransition();world.finishCameraMotion();world.finishEnvironmentMotion();world.finishLayoutMotion();const exportScene=selected,exportTheme=mode;const name=frameName(),[w,h]=[world.width,world.height];$('download').disabled=true;
- try{world.setResolution(1920,1080);world.update(state());currentFrame().toBlob(blob=>{if(blob){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name+'.png';a.click();trackPngExport(exportScene,exportTheme);setTimeout(()=>URL.revokeObjectURL(a.href),5000);}});}
- finally{world.setResolution(w,h);render(false);}
-});
+let exporting=false;
+const exportControls=initExportControls($('download'),exportAssets);
+async function exportAssets(format='image'){
+ if(exporting||!vehicleFullReady||world.suspended||preview.dataset.renderPending==='true')return;
+ exporting=true;exportControls.setBusy(true);exportControls.announce('Preparing export…');
+ const previousSize=[world.width,world.height];let captured;
+ try{
+  world.finishLayoutTransition();world.finishCameraMotion();world.finishEnvironmentMotion();world.finishLayoutMotion();
+  const name=frameName(),exportScene=selected,exportTheme=mode;
+  try{
+   world.setResolution(exportSize.width,exportSize.height);world.update(state());
+   const metadata=cameraMetadata(world,{sceneName:exportScene,sourceUrl:location.href});metadata.image.file=format==='kit'?'scene.png':name+'.png';metadata.depth.file=format==='kit'?'depth.png':name+'-depth.png';
+   const canvas=document.createElement('canvas');canvas.width=exportSize.width;canvas.height=exportSize.height;
+   if(format==='image'||format==='kit')canvas.getContext('2d').drawImage(currentFrame(),0,0);
+   captured={name,exportScene,exportTheme,canvas,metadata,guide:format==='kit'?perspectiveSvg(world):null,pixels:format==='depth'||format==='kit'?renderDepth(world):null};
+  }finally{world.setResolution(...previousSize);render(false);}
+  const cameraJson=JSON.stringify(captured.metadata,null,2)+'\n';let blob,filename;
+  if(format==='camera'){blob=new Blob([cameraJson],{type:'application/json'});filename=captured.name+'-camera.json';}
+  else if(format==='depth'){blob=await depthPng(captured.pixels,exportSize.width,exportSize.height);filename=captured.name+'-depth.png';}
+  else if(format==='kit'){
+   const [image,depth]=await Promise.all([canvasPng(captured.canvas),depthPng(captured.pixels,exportSize.width,exportSize.height)]);
+   blob=await zipFiles([['scene.png',image],['camera.json',cameraJson],['depth.png',depth],['perspective.svg',captured.guide],['README.txt',exportReadme]]);filename=captured.name+'-perspective-kit.zip';
+  }else{blob=await canvasPng(captured.canvas);filename=captured.name+'.png';}
+  downloadFile(blob,filename);
+  if(format==='image'||format==='kit')trackPngExport(captured.exportScene,captured.exportTheme);
+  exportControls.announce(format==='kit'?'Perspective kit downloaded.':format==='camera'?'Camera JSON downloaded.':format==='depth'?'Depth PNG downloaded.':'PNG downloaded.');
+ }catch(error){console.error('Scene export failed',error);exportControls.announce('Export failed. Please try again.',true);}
+ finally{exporting=false;exportControls.setBusy(false);$('download').disabled=!vehicleFullReady||world.suspended||preview.dataset.renderPending==='true';}
+}
 
 try{render();}catch(e){$('status').textContent='This preview requires WebGL. Please reopen in a modern browser.';throw e;}
 initContinuousCorners({forceFallback:query.has('corner-fallback')});
