@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-const request=globalThis.__studioEnvironmentRequest||fetch(new URL('./assets/studio-environment.bin.gz?v=1',import.meta.url)).then(response=>{if(!response.ok)throw Error('Environment asset failed to load');return response.arrayBuffer();});
+import {fetchAsset,takePrefetched} from './asset-request.js';
+const request=takePrefetched('__studioEnvironmentRequest',()=>fetchAsset(new URL('./assets/studio-environment.bin.gz?v=1',import.meta.url)));
 const packed=await request;
 const decoded=await new Response(new Blob([packed]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
 const header=new DataView(decoded),width=header.getUint32(0,true),height=header.getUint32(4,true),pixels=new Uint16Array(decoded,8);
