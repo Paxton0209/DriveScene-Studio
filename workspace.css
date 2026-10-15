@@ -332,7 +332,7 @@ header:not(.credits-open) .header-backdrop { bottom: 0; }
 main { flex:0 0 auto; }
 .workspace .switches { display:flex; flex-direction:column; gap:4px; }
 .workspace .switches > .toggle:not([hidden]) { width:100%; max-width:none; min-height:var(--control-height); padding:12px 0; border-radius:0; background:transparent; border-bottom:1px solid var(--line); }
-.workspace .switches > .toggle:not([hidden]):not(:has(~ .toggle:not([hidden]))) { border-bottom:0; }
+.workspace .switches > .toggle:not([hidden]):not(:has(~ .toggle:not([hidden]))) { border-bottom-color:transparent; }
 .site-signature { margin-top:12px; }
 @media (min-width:761px) {
   :root[data-nav-design="1"] .structure-heading { margin-top:-3px; }
@@ -354,7 +354,7 @@ main { flex:0 0 auto; }
   .workspace .preview-settings { display:block; }
   .workspace .environment-control { width:100%; max-width:none; margin-top:24px; justify-self:stretch; }
   .workspace .switches { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:4px 16px; }
-  .workspace .switches > .toggle:nth-last-child(-n+2 of :not([hidden])) { border-bottom:0; }
+  .workspace .switches > .toggle:nth-last-child(-n+2 of :not([hidden])) { border-bottom-color:transparent; }
   .workspace .scene-options #road-controls,
   .workspace #camera-control,
   .workspace #camera-control:has(#layout-control:not([hidden])) { grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
