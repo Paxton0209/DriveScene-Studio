@@ -85,3 +85,8 @@ Original application code is licensed under [MIT](LICENSE), copyright (c) 2026 P
 ## Background reading
 
 [Tesla's driving visualization documentation](https://www.tesla.com/ownersmanual/model3/en_us/GUID-2CB60804-9CEA-4F4B-8B04-09B991368DC5.html) illustrates how detected roads and objects can be represented on a cockpit display. [Volvo's camera limitations documentation](https://www.volvocars.com/en-sa/support/car/v90/16w46/article/dcc0393b8976b065c0a80151160585ff/) describes gaps in camera coverage. These references provide context for SR interface exploration and do not indicate an affiliation with either manufacturer.
+
+
+## Download additional vehicle models
+
+The [vehicle library](vehicle-library/README.md) contains complete original BMW iX, Volvo XC90, Tesla Model 3 (2024), Tesla Model Y and Porsche Taycan assets, plus four prepared delivery variants. It includes attribution, checksums and a standard-library Python downloader for use on another computer. Run `python3 vehicle-library/download.py --output vehicle-models` after cloning.

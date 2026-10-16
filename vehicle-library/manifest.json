@@ -1,0 +1,284 @@
+{
+  "schema_version": 1,
+  "repository": "Paxton0209/DriveScene-Studio",
+  "models": [
+    {
+      "id": "ix",
+      "name": "BMW iX",
+      "author": "DisneyCars (https://sketchfab.com/supercarmodels)",
+      "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+      "source": "https://sketchfab.com/3d-models/2024-bmw-ix-b277d6b6109845ffb3cc5de325e71948",
+      "source_archive": {
+        "path": "sources/ix.zip",
+        "bytes": 7011663,
+        "sha256": "9f811c9441a84414087231007721f53f78190678b3b7d893c596ee831ddc6f71",
+        "parts": [
+          {
+            "path": "sources/ix.zip.part001",
+            "bytes": 4194304,
+            "sha256": "e62d37c710392453d2039f46a2088d1d6293642a6d14030bada40224786562f7"
+          },
+          {
+            "path": "sources/ix.zip.part002",
+            "bytes": 2817359,
+            "sha256": "48a00fc20921646c0892a93d90572d0cef4445a2d96d0a2f21b4c080fb2f7fd7"
+          }
+        ]
+      },
+      "original_files": [
+        {
+          "path": "ix/source.glb",
+          "bytes": 12339224,
+          "sha256": "b1d519830c07dc536915e141569b517b2cc662a920547853f6d8c1ce114b6e49"
+        }
+      ],
+      "prepared": {
+        "path": "prepared/ix/model.glb.gz",
+        "bytes": 3034503,
+        "sha256": "dab4bc2955a101f09e32bf4eae896c23e4fb5fe4788006cbe4404dffa280200c",
+        "preview": "prepared/ix/preview.webp",
+        "glb_bytes": 3653364,
+        "glb_sha256": "d2b0c2a2e257af6753a510948d1426cbc2b0f592e243f597f0e701c6e29d6fb0"
+      }
+    },
+    {
+      "id": "xc90",
+      "name": "Volvo XC90",
+      "author": "Nieve5677 (https://sketchfab.com/niev)",
+      "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+      "source": "https://sketchfab.com/3d-models/volvo-xc90-8135a6c9c9344079bfaefc9d747e2ceb",
+      "source_archive": {
+        "path": "sources/xc90.zip",
+        "bytes": 7295360,
+        "sha256": "61875a83ea6081f3a8697ee6136fdb9d2049cf5ff88897c81a1e716893511c55",
+        "parts": [
+          {
+            "path": "sources/xc90.zip.part001",
+            "bytes": 4194304,
+            "sha256": "46d3bfe76af9476c4c3922b5ac2d16951c662ffa0a7b0607ab4805ca092b9454"
+          },
+          {
+            "path": "sources/xc90.zip.part002",
+            "bytes": 3101056,
+            "sha256": "cbb10415d41ad9f6c58a1559e42a00f472221e08f7f494338ec1689be882e64c"
+          }
+        ]
+      },
+      "original_files": [
+        {
+          "path": "xc90/source.glb",
+          "bytes": 21506228,
+          "sha256": "374a43770a9996a4fd84fa9a35a94fc5a54978eb413ee9970931f95b4807c940"
+        }
+      ],
+      "prepared": {
+        "path": "prepared/xc90/model.glb.gz",
+        "bytes": 2547109,
+        "sha256": "5bd110a26b9d8cbd73b02b768e3cf221668053a843266abe3af14ff58d8e1208",
+        "preview": "prepared/xc90/preview.webp",
+        "glb_bytes": 4385284,
+        "glb_sha256": "9bf70d8ed9676cd1b29acdcb19026e3f88621e51e7d14354c7181fd8c150fdee"
+      }
+    },
+    {
+      "id": "model-3",
+      "name": "Tesla Model 3 (2024)",
+      "author": "RBLXSupercars (https://sketchfab.com/RBLXSupercars)",
+      "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+      "source": "https://sketchfab.com/3d-models/2024-tesla-model-3-fd22be415215453693d67e33aa7812d0",
+      "source_archive": {
+        "path": "sources/model-3.zip",
+        "bytes": 4747144,
+        "sha256": "a9f2118a68e1a1781f534ecb00ef5f9b61052df2f8e4e9668ab5c373709c7cdb",
+        "parts": [
+          {
+            "path": "sources/model-3.zip.part001",
+            "bytes": 4194304,
+            "sha256": "8e21a165999dc33056fbfd7232761edd5d0f4237d75955e2fdc9060f963d4e09"
+          },
+          {
+            "path": "sources/model-3.zip.part002",
+            "bytes": 552840,
+            "sha256": "d8297d0de85f447a4fa975c688174c9f0f4d32fb89e9a6b5fa8c53664c5fcfbb"
+          }
+        ]
+      },
+      "original_files": [
+        {
+          "path": "model-3/2024_tesla_model_3.glb",
+          "bytes": 8706568,
+          "sha256": "6ef6933d93ee0812d4049446a38e9b46273cab03b21be1e2ef1d502eccdb684b"
+        },
+        {
+          "path": "model-3/CREDITS.md",
+          "bytes": 853,
+          "sha256": "3a3ae3307366f1d162dddc653561a0b216beac29b8a543761608ec349138a855"
+        }
+      ],
+      "prepared": {
+        "path": "prepared/model-3/model.glb.gz",
+        "bytes": 1611711,
+        "sha256": "a0b34d54ff19cf1ef46ee7c1abaaa204c6f5f6de163e9e2b9e0fcfb2ef06e143",
+        "preview": "prepared/model-3/preview.webp",
+        "glb_bytes": 2090908,
+        "glb_sha256": "ccb77747f36f4fb636142a6632337a67124103b8aac64f8f38a76f48912a1e81"
+      }
+    },
+    {
+      "id": "model-y",
+      "name": "Tesla Model Y",
+      "author": "Nieve5677 (https://sketchfab.com/niev)",
+      "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+      "source": "https://sketchfab.com/3d-models/tesla-model-y-bc8ac22c744b4d11b92f2f31ab0297d0",
+      "source_archive": {
+        "path": "sources/model-y.zip",
+        "bytes": 12589150,
+        "sha256": "8be344a2205f8be5746dcdd1f380ca692104d5dcd48abbf2dfe4339aa0a554a4",
+        "parts": [
+          {
+            "path": "sources/model-y.zip.part001",
+            "bytes": 4194304,
+            "sha256": "243ac313f5f5739bb63f1a5bfdf36d94096bdf6bb857a9b6d39dc7e4e1b83646"
+          },
+          {
+            "path": "sources/model-y.zip.part002",
+            "bytes": 4194304,
+            "sha256": "2bbec61319bf67d2d52532ecfa00ac0c4adf60d6dde7b3b4953f55feabd383f8"
+          },
+          {
+            "path": "sources/model-y.zip.part003",
+            "bytes": 4194304,
+            "sha256": "aa34b102fba284dd8063c7cffd8b634d973da24dc56e587bf95a982aa8f3ed43"
+          },
+          {
+            "path": "sources/model-y.zip.part004",
+            "bytes": 6238,
+            "sha256": "2af22bf8e569e491609fcd687a902866cd42d8910a1eeda065e97a4663de247d"
+          }
+        ]
+      },
+      "original_files": [
+        {
+          "path": "model-y/source.glb",
+          "bytes": 40689172,
+          "sha256": "dd60df30cf39410c4ec4f6591b4cbf7dc62817186c948279f4dc5c99e143a55f"
+        }
+      ],
+      "prepared": null
+    },
+    {
+      "id": "taycan",
+      "name": "Porsche Taycan",
+      "author": "Mikhail Hamanovich (https://sketchfab.com/mihailhamanovich)",
+      "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+      "source": "https://sketchfab.com/3d-models/porshe-taycan-c6004141452e4d3ab048bf0fee52666d",
+      "source_archive": {
+        "path": "sources/taycan.zip",
+        "bytes": 59084633,
+        "sha256": "57c59d79c6e73e38bebc697af81fc7969d5f828e19cace8c60d3ac78396e8f90",
+        "parts": [
+          {
+            "path": "sources/taycan.zip.part001",
+            "bytes": 4194304,
+            "sha256": "050c5990a1746fddf60e439e37164cbb270cdffe348a367a51ca8a29b1b9edeb"
+          },
+          {
+            "path": "sources/taycan.zip.part002",
+            "bytes": 4194304,
+            "sha256": "e164e2a1278de0503067f6f4f92a394a35b512a11cc28b8b6e710595632fbc64"
+          },
+          {
+            "path": "sources/taycan.zip.part003",
+            "bytes": 4194304,
+            "sha256": "4b12354ea9366932c0604baa6aef2bee46bd1eb825c43452de42f6f702da52f8"
+          },
+          {
+            "path": "sources/taycan.zip.part004",
+            "bytes": 4194304,
+            "sha256": "fe98ef0329ab30e6782d107ab7ef0935636f77c4a60d2cec049ca774e63e5379"
+          },
+          {
+            "path": "sources/taycan.zip.part005",
+            "bytes": 4194304,
+            "sha256": "5665dde8e76069ac79f59b2cc2d0a039530d54627835067eae51d9d61c1afc85"
+          },
+          {
+            "path": "sources/taycan.zip.part006",
+            "bytes": 4194304,
+            "sha256": "5b2a7552517998b92c9feb0c9fa5da505845694bc9e06a60c599c4ae89ca7be8"
+          },
+          {
+            "path": "sources/taycan.zip.part007",
+            "bytes": 4194304,
+            "sha256": "719634b3b79efc645ae8e60852e3ededff7b46935bed7ac75813ad036f1879db"
+          },
+          {
+            "path": "sources/taycan.zip.part008",
+            "bytes": 4194304,
+            "sha256": "e4e8bf1ddddfa0ef5019d315456ba30ba9c50e09de5ae84226060a2f3d2106c6"
+          },
+          {
+            "path": "sources/taycan.zip.part009",
+            "bytes": 4194304,
+            "sha256": "271064ed8bbca08fd6632721283066f96367430bc38de4b30c15a747d4bd56ad"
+          },
+          {
+            "path": "sources/taycan.zip.part010",
+            "bytes": 4194304,
+            "sha256": "4e806b66ed91780c21afe477d827a21f3ad71a5580d9f146f120f18c3661a67d"
+          },
+          {
+            "path": "sources/taycan.zip.part011",
+            "bytes": 4194304,
+            "sha256": "be239fef4500dc25ac32d7f0b98229d07379f67875151bb84229000b12236410"
+          },
+          {
+            "path": "sources/taycan.zip.part012",
+            "bytes": 4194304,
+            "sha256": "35258e8eeafb0121f5e7c773aed444a25dc7df9cc7c9b17e3cd44987b6de8cb6"
+          },
+          {
+            "path": "sources/taycan.zip.part013",
+            "bytes": 4194304,
+            "sha256": "7168a7e8138e4ac4c95dd02855f1f0424d68bd93d1b0fac21048eeebd229dcf8"
+          },
+          {
+            "path": "sources/taycan.zip.part014",
+            "bytes": 4194304,
+            "sha256": "f3b42b27846e92f2cfb337a4289f6282584a70fe3a8e2e4ed82a96d9c0d896bb"
+          },
+          {
+            "path": "sources/taycan.zip.part015",
+            "bytes": 364377,
+            "sha256": "b21ca498ab7d7c5ec49a7ad26685303d69e070c6618de030b090d20b9237e519"
+          }
+        ]
+      },
+      "original_files": [
+        {
+          "path": "taycan/scene.bin",
+          "bytes": 93743444,
+          "sha256": "585d8ca5716fd6c77f248b9cdd78333f33ada210f1bdb8b5d6d86e476bb42e46"
+        },
+        {
+          "path": "taycan/scene.gltf",
+          "bytes": 266106,
+          "sha256": "f81b5429eba94329e7a663d45be46657fe75ebcf7445f04c28a2081575f12fd5"
+        },
+        {
+          "path": "taycan/textures/znack1_baseColor.png",
+          "bytes": 5443001,
+          "sha256": "fa1d72694dccd32135d4f53ba45189fd58d8aeb10fb454bb664ef37f6bc991df"
+        }
+      ],
+      "prepared": {
+        "path": "prepared/taycan/model.glb.gz",
+        "bytes": 5265592,
+        "sha256": "6a24b77f323fa48329fc997889c33ee50b3b51928180886859231cec2494ea00",
+        "preview": "prepared/taycan/preview.webp",
+        "glb_bytes": 6332488,
+        "glb_sha256": "3083aafd243b6444cd2f3a15912b5ed3dfc44d6958d68e384b718c00da932e59"
+      }
+    }
+  ]
+}
