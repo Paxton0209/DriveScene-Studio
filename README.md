@@ -34,12 +34,15 @@ Start with the closest driving or parking scenario, adjust the camera and visual
 | Road layout | Straight roads; 2, 4 or 6 lanes |
 | Junction and ramp | Crossroads or T-junction; exit or merge |
 | Camera | Low/high road and ramp views, and scenario-specific parking viewpoints, including bird's-eye views |
-| Scene elements | Vehicle, buildings, trees, waterfront and roadworks, where supported by the selected scenario |
+| Vehicle | BMW X6, Tesla Model 3, BMW iX or Volvo XC90; the selected vehicle remains visible across scenes |
+| Scene elements | Buildings, trees, waterfront and roadworks, where supported by the selected scenario |
 | Export | 1920 × 1080 PNG, camera JSON, 16-bit depth PNG and a perspective kit ZIP |
 
 Camera changes animate through the 3D scene; other options use short transitions. Reduced-motion preferences are respected. Elevated roads and ramp mainlines have separated opposing carriageways; the elevated deck sits 8.5 m above ground with ground-level side streets and bridge supports.
 
 Options follow the selected scenario. Light and dark modes provide visual themes for design exploration, rather than a physical simulation of changing daylight. On mobile, the navigation expands within the page and stays open while comparing scenes.
+
+Open Vehicle to choose a model without changing the scene or camera. The selector supports arrow keys, Home and End, reuses recently prepared models within a bounded resource budget, and preserves the current vehicle if a new model cannot load. Indoor and outdoor parking share the same bay dimensions and spacing. Model attribution follows the selected vehicle in perspective-kit exports; additional sources and preparation notices are in [vehicle-library/CREDITS.md](vehicle-library/CREDITS.md).
 
 ## Camera, depth and Figma alignment
 

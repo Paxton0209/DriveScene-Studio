@@ -10,21 +10,30 @@ export function initExportControls(download,onExport){
  for(const [format,title,description,extension]of formats){
   const label=document.createElement('label'),input=document.createElement('input'),copy=document.createElement('span'),name=document.createElement('span'),detail=document.createElement('span');
   label.className='export-choice';input.type='radio';input.name='export-format';input.value=format;input.checked=format==='image';name.textContent=title;detail.textContent=description;detail.className='export-detail';copy.append(name,detail);label.append(input,copy);choices.append(label);
-  input.addEventListener('change',()=>{if(input.checked)submit.textContent='Download '+extension;});
+  input.addEventListener('change',()=>{if(input.checked){submit.textContent='Download '+extension;size.style.visibility=format==='image'?'visible':'hidden';if(format==='image')dialog.setAttribute('aria-describedby',size.id);else dialog.removeAttribute('aria-describedby');}});
  }
  dialog.append(header,size,choices,submit);document.body.append(dialog);
  const feedback=document.createElement('span');feedback.className='export-feedback';feedback.hidden=true;feedback.setAttribute('role','status');feedback.setAttribute('aria-live','polite');document.querySelector('.preview-shell').append(feedback);
  download.setAttribute('aria-haspopup','dialog');download.setAttribute('aria-controls','export-dialog');download.setAttribute('aria-label','Download');download.title='Download';
- let busy=false,feedbackTimer=0,previousOverflow='';
- const close=()=>{if(dialog.open)dialog.close();};
+ let busy=false,feedbackTimer=0,previousOverflow='',openingFrame=0;
+ const close=()=>{
+  if(!dialog.open||dialog.dataset.state==='closing')return;
+  cancelAnimationFrame(openingFrame);dialog.dataset.state='closing';
+  const animations=dialog.getAnimations();
+  const finish=()=>{if(dialog.open&&dialog.dataset.state==='closing')dialog.close();};
+  if(animations.length)Promise.allSettled(animations.map(animation=>animation.finished)).then(finish);else finish();
+ };
  download.addEventListener('click',()=>{
   if(download.disabled||busy||dialog.open)return;
-  previousOverflow=document.documentElement.style.overflow;document.documentElement.style.overflow='hidden';dialog.showModal();choices.querySelector('input:checked').focus({preventScroll:true});
+  previousOverflow=document.documentElement.style.overflow;document.documentElement.style.overflow='hidden';dialog.dataset.state='entering';dialog.showModal();choices.querySelector('input:checked').focus({preventScroll:true});
+  dialog.getBoundingClientRect();
+  openingFrame=requestAnimationFrame(()=>{if(dialog.open&&dialog.dataset.state==='entering')dialog.dataset.state='open';});
  });
- dialog.addEventListener('close',()=>{document.documentElement.style.overflow=previousOverflow;});
+ dialog.addEventListener('close',()=>{cancelAnimationFrame(openingFrame);delete dialog.dataset.state;document.documentElement.style.overflow=previousOverflow;});
+ dialog.addEventListener('cancel',event=>{event.preventDefault();close();});
  closeButton.addEventListener('click',close);
  dialog.addEventListener('click',event=>{const bounds=dialog.getBoundingClientRect();if(event.target===dialog&&(event.clientX<bounds.left||event.clientX>bounds.right||event.clientY<bounds.top||event.clientY>bounds.bottom))close();});
- submit.addEventListener('click',()=>{const format=choices.querySelector('input:checked').value;close();onExport(format);});
+ submit.addEventListener('click',()=>{if(dialog.dataset.state==='closing')return;const format=choices.querySelector('input:checked').value;close();onExport(format);});
  const sync=()=>{if(busy&&!download.disabled)download.disabled=true;submit.disabled=busy||download.disabled||download.inert;if(download.inert)close();};
  new MutationObserver(sync).observe(download,{attributes:true,attributeFilter:['disabled','inert']});
  return {

@@ -1,5 +1,8 @@
-.export-dialog { width:min(360px,calc(100vw - 40px)); max-height:calc(100dvh - 40px); margin:auto; padding:28px; border:1px solid transparent; border-radius:var(--ui-radius); corner-shape:squircle; color:var(--text); background:var(--page); box-shadow:0 16px 64px rgb(0 0 0 / .1); overscroll-behavior:contain; }
-.export-dialog::backdrop { background:rgb(0 0 0 / .12); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); }
+.export-dialog { width:min(360px,calc(100vw - 40px)); max-height:calc(100dvh - 40px); margin:auto; padding:28px; border:1px solid transparent; border-radius:var(--ui-radius); corner-shape:squircle; color:var(--text); background:var(--page); box-shadow:0 16px 64px rgb(0 0 0 / .1); overscroll-behavior:contain; opacity:0; transform-origin:center; transition:opacity 80ms linear; }
+.export-dialog[data-state=open] { opacity:1; }
+.export-dialog::backdrop { background:rgb(0 0 0 / .12); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); opacity:0; transition:opacity 80ms linear; }
+.export-dialog[data-state=open]::backdrop { opacity:1; }
+.export-dialog[data-state=entering], .export-dialog[data-state=entering]::backdrop { transition:none; }
 .export-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; }
 .export-heading h2 { margin:0; font-size:18px; line-height:28px; font-weight:600; letter-spacing:-.02em; }
 .export-close { display:grid; place-items:center; width:40px; height:40px; margin-block:-6px; margin-inline-end:-8px; border-radius:var(--ui-radius); background:transparent; color:var(--text-secondary); }
@@ -23,12 +26,15 @@
  .export-submit:hover { opacity:.9; }
 }
 @media (prefers-reduced-motion:no-preference) {
- .export-dialog[open] { transition:opacity 180ms cubic-bezier(.22,1,.36,1),transform 180ms cubic-bezier(.22,1,.36,1); }
- @starting-style { .export-dialog[open] { opacity:0; transform:translateY(4px); } }
+ .export-dialog { transform:scale(.98); transition:opacity 120ms ease-out,transform 120ms ease-out; }
+ .export-dialog[data-state=open] { transform:scale(1); transition:opacity 160ms cubic-bezier(.2,0,0,1),transform 240ms cubic-bezier(.22,1,.36,1); }
+ .export-dialog::backdrop { transition:opacity 120ms ease-out; }
+ .export-dialog[data-state=open]::backdrop { transition:opacity 180ms cubic-bezier(.2,0,0,1); }
+ .export-dialog[data-state=entering], .export-dialog[data-state=entering]::backdrop { transition:none; }
  .export-submit, .export-close { transition:transform 150ms ease-out; }
  .export-submit:not(:disabled):active, .export-close:not(:disabled):active { transform:scale(.96); }
 }
-:root[data-choice-input=keyboard] .export-dialog, :root[data-choice-input=keyboard] .export-submit, :root[data-choice-input=keyboard] .export-close { transition:none; }
+:root[data-choice-input=keyboard] .export-submit, :root[data-choice-input=keyboard] .export-close { transition:none; }
 @media (max-width:760px) {
  .export-dialog { padding:24px; }
  .export-close { width:44px; height:44px; margin-block:-8px; }

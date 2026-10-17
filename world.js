@@ -2,7 +2,7 @@ import {laneRetireTiming,junctionApproachTiming,previewMotionSettings} from './m
 import {createStudioEnvironment} from './studio-environment.js';
 import {attachGroundReflection} from './ground-reflection.js?v=139';
 import {createTailLight,updateTailLight} from './tail-light.js';
-import {anchorVehicle} from './framing.js';
+import {anchorVehicle,vehicleFrame} from './framing.js';
 import {buildOutdoorParking} from './outdoor-parking.js';
 import {buildParkingReference} from './parking-reference.js';
 import * as THREE from 'three';
@@ -968,11 +968,14 @@ export class World {
   const tick=now=>{if(this.cameraMotion!==motion||motion.paused)return;const dt=motion.last?Math.min(48,now-motion.last):0;motion.last=now;if(sample(motion.elapsed+dt,dt)){this.finishCameraMotion();return;}motion.frame=requestAnimationFrame(tick);};
   motion.sample=sample;motion.tick=tick;motion.frame=requestAnimationFrame(tick);
  }
- setVehicle(car){
-  this.preparedRoots=new WeakSet();this.reflectionSceneRoot=null;this.roadCameraCache.clear();this.finishLayoutMotion();this.finishEnvironmentMotion();this.stopCameraMotion();
+ setVehicle(car,{disposePrevious=true,preserveScene=false}={}){
+  if(!preserveScene){this.preparedRoots=new WeakSet();this.reflectionSceneRoot=null;this.finishLayoutMotion();this.finishEnvironmentMotion();this.stopCameraMotion();}
+  this.roadCameraCache.clear();
   const previous=this.car;car.position.copy(previous.position);car.rotation.copy(previous.rotation);
-  previous.removeFromParent();this.egoContact.removeFromParent();disposeVehicle(previous);disposeVehicle(this.egoContact);
-  this.car=car;this.scene.add(car);this.egoContact=createContactShadows(car);this.scene.add(this.egoContact);this.vehicleNeedsFraming=true;
+  previous.removeFromParent();this.egoContact.removeFromParent();if(disposePrevious)disposeVehicle(previous);disposeVehicle(this.egoContact);
+  this.car=car;this.scene.add(car);this.egoContact=createContactShadows(car);this.scene.add(this.egoContact);this.vehicleNeedsFraming=!preserveScene;
+  this.shadowSceneRoot=null;this.renderer.shadowMap.needsUpdate=true;
+  if(preserveScene){this.framing={...this.framing,vehicleFrame:vehicleFrame(car,this.camera)};return;}
   // Parking replicas depend on the car geometry; road geometry can be retained.
   for(const [key,cached]of this.sceneCache)if(parkingIds.includes(cached.fields.current)){this.disposeSceneRoot(cached.fields.root);this.sceneCache.delete(key);}
   if(parkingIds.includes(this.current))this.current=null;
