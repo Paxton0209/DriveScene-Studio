@@ -1,0 +1,8 @@
+
+html,body {margin:0!important;padding:0!important;overflow:hidden!important;width:100%!important;height:100%!important;background:transparent!important}
+body>header,body>aside,body>footer,#header-sentinel,#analytics-choice,.preview-settings,#status,#credits-view,.vehicle-picker,.preview-feedback,main>aside,.dimensions,#download {display:none!important}
+main,.workspace,.preview-shell {display:block!important;position:static!important;inset:auto!important;width:100%!important;height:100%!important;max-width:none!important;padding:0!important;margin:0!important;gap:0!important}
+#preview {position:relative!important;width:100%!important;height:100%!important;max-width:none!important;aspect-ratio:16/9!important;border-radius:0!important;overflow:hidden!important}
+#scene-canvas,.frame-cover {position:absolute!important;inset:0!important;width:100%!important;height:100%!important;object-fit:contain!important}
+
+html:not([data-cached-preview=true]) .preview[aria-busy=true]{background-image:none!important}

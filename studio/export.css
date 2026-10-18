@@ -1,0 +1,43 @@
+.export-dialog { width:min(360px,calc(100vw - 40px)); max-height:calc(100dvh - 40px); margin:auto; padding:28px; border:1px solid transparent; border-radius:var(--ui-radius); corner-shape:squircle; color:var(--text); background:var(--page); box-shadow:0 16px 64px rgb(0 0 0 / .1); overscroll-behavior:contain; opacity:0; transform-origin:center; transition:opacity 80ms linear; }
+.export-dialog[data-state=open] { opacity:1; }
+.export-dialog::backdrop { background:rgb(0 0 0 / .12); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); opacity:0; transition:opacity 80ms linear; }
+.export-dialog[data-state=open]::backdrop { opacity:1; }
+.export-dialog[data-state=entering], .export-dialog[data-state=entering]::backdrop { transition:none; }
+.export-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+.export-heading h2 { margin:0; font-size:18px; line-height:28px; font-weight:600; letter-spacing:-.02em; }
+.export-close { display:grid; place-items:center; width:40px; height:40px; margin-block:-6px; margin-inline-end:-8px; border-radius:var(--ui-radius); background:transparent; color:var(--text-secondary); }
+#export-dialog-size { margin:2px 0 20px; color:var(--text-secondary); font-size:12px; line-height:18px; }
+.export-dialog fieldset { display:grid; gap:4px; min-width:0; margin:0 0 20px; padding:0; border:0; }
+.export-choice { display:flex; align-items:center; gap:12px; min-height:60px; padding:10px 12px; border-radius:var(--ui-radius); corner-shape:squircle; cursor:pointer; }
+.export-choice:has(input:checked) { background:var(--soft); }
+.export-choice input { flex:none; width:16px; height:16px; margin:0; accent-color:var(--text); }
+.export-choice > span { display:flex; flex-direction:column; gap:2px; min-width:0; font-size:13px; line-height:20px; font-weight:500; overflow-wrap:anywhere; }
+.export-detail { color:var(--text-secondary); font-size:11px; line-height:16px; font-weight:400; }
+.export-submit { width:100%; min-height:44px; padding:10px 16px; border-radius:var(--ui-radius); corner-shape:squircle; background:var(--text); color:var(--page); font-size:13px; font-weight:500; }
+.export-submit:disabled { opacity:.4; cursor:default; }
+.export-submit:focus-visible, .export-close:focus-visible { outline:2px solid #007aff; outline-offset:3px; }
+.export-choice:has(input:focus-visible) { outline:2px solid #007aff; outline-offset:-2px; }
+.export-sr-only { position:absolute; width:1px; height:1px; padding:0; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+.export-feedback[hidden] { display:none; }
+.export-feedback { position:absolute; inset-inline-end:8px; bottom:62px; max-width:calc(100% - 16px); color:var(--text-secondary); font-size:11px; line-height:16px; z-index:5; padding:6px 8px; background:var(--page); border-radius:4px; pointer-events:none; }
+.export-feedback[data-error=true] { color:var(--text); }
+@media (hover:hover) {
+ .export-close:hover, .export-choice:not(:has(input:checked)):hover { background:var(--hover); }
+ .export-submit:hover { opacity:.9; }
+}
+@media (prefers-reduced-motion:no-preference) {
+ .export-dialog { transform:scale(.98); transition:opacity 120ms ease-out,transform 120ms ease-out; }
+ .export-dialog[data-state=open] { transform:scale(1); transition:opacity 160ms cubic-bezier(.2,0,0,1),transform 240ms cubic-bezier(.22,1,.36,1); }
+ .export-dialog::backdrop { transition:opacity 120ms ease-out; }
+ .export-dialog[data-state=open]::backdrop { transition:opacity 180ms cubic-bezier(.2,0,0,1); }
+ .export-dialog[data-state=entering], .export-dialog[data-state=entering]::backdrop { transition:none; }
+ .export-submit, .export-close { transition:transform 150ms ease-out; }
+ .export-submit:not(:disabled):active, .export-close:not(:disabled):active { transform:scale(.96); }
+}
+:root[data-choice-input=keyboard] .export-submit, :root[data-choice-input=keyboard] .export-close { transition:none; }
+@media (max-width:760px) {
+ .export-dialog { padding:24px; }
+ .export-close { width:44px; height:44px; margin-block:-8px; }
+ .export-choice { min-height:64px; padding-inline:10px; }
+ .export-submit { min-height:48px; }
+}

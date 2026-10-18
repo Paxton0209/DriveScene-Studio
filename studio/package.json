@@ -1,0 +1,14 @@
+{
+  "name": "drivescene-three-column-preview",
+  "version": "0.19.0-preview.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node engine/build.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "start": "python3 -m http.server 8000 --bind 127.0.0.1"
+  },
+  "dependencies": {"three": "0.180.0"},
+  "devDependencies": {"esbuild": "0.25.10"},
+  "license": "MIT"
+}

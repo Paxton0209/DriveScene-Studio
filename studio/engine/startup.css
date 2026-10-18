@@ -1,0 +1,7 @@
+.workspace .preview[data-load-error=true]{background-image:var(--startup-frame)}
+.preview[data-load-error=true] #scene-canvas,.preview[data-load-error=true] .frame-cover{visibility:hidden}
+.preview-feedback{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:12px;padding:12px 0;border-top:1px solid var(--line);font-size:12px;line-height:1.5;color:var(--muted)}
+.preview-feedback button{flex:none;min-height:36px;padding:8px 12px;border:1px solid var(--line);border-radius:4px;background:transparent;color:var(--text-secondary)}
+.preview-feedback button:hover{background:var(--hover)}
+.preview-feedback button:disabled{opacity:.5}
+@media(max-width:760px){.preview-feedback{gap:12px;font-size:12px}}
