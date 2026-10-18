@@ -21,31 +21,87 @@ export function createSpring(paint,initial=0){
 
 const indicators=new WeakMap();
 const segmentIndicators=new WeakMap();
+export const MORPH_STRENGTH=1.2;
+function boundedSpring(initial,target,velocity,seconds,duration,visualDuration){
+ const frequency=2*Math.PI/(visualDuration*ARC_MOTION_SCALE*1.2),damping=.84,damped=frequency*Math.sqrt(1-damping*damping),offset=initial-target,tangent=(velocity+damping*frequency*offset)/damped;
+ const sample=time=>{const decay=Math.exp(-damping*frequency*time),angle=damped*time,value=target+decay*(offset*Math.cos(angle)+tangent*Math.sin(angle)),speed=decay*(velocity*Math.cos(angle)-(damping*frequency*tangent+damped*offset)*Math.sin(angle));return {value,speed};};
+ const end=sample(duration),raw=sample(seconds),phase=seconds/duration,correction=(end.value-target)*(3*phase*phase-2*phase**3)+end.speed*duration*(phase**3-phase*phase),slope=(end.value-target)*(6*phase-6*phase*phase)/duration+end.speed*(3*phase*phase-2*phase);
+ return {value:raw.value-correction,speed:raw.speed-slope};
+}
+export function selectionMotionFrames(from,to,axis='x',velocity={leading:0,trailing:0},durationMs=500*ARC_MOTION_SCALE){
+ const vertical=axis==='y',start=vertical?from.y:from.x,end=start+(vertical?from.height:from.width),target=vertical?to.y:to.x,targetSize=vertical?to.height:to.width,forward=target>=start,duration=durationMs/1000,count=Math.ceil(durationMs/4),frames=[],states=[];
+ for(let index=0;index<=count;index++){
+  const offset=index/count,time=duration*offset,leading=boundedSpring(start,target,velocity.leading,time,duration,forward?.26+.16*MORPH_STRENGTH:.26),trailing=boundedSpring(end,target+targetSize,velocity.trailing,time,duration,forward?.26:.26+.16*MORPH_STRENGTH),span=Math.max(1,trailing.value-leading.value),limit=(vertical?.045:.08)*MORPH_STRENGTH,compression=1-limit*(1-Math.exp(-Math.max(0,span/targetSize-1)*(vertical?.14:.24)/limit));
+  const position={x:vertical?to.x:leading.value,y:vertical?leading.value:to.y,width:vertical?to.width*compression:span,height:vertical?span:to.height*compression};
+  if(index===0)Object.assign(position,from);
+  if(index===count)Object.assign(position,to);
+  states.push({...position,leadingVelocity:leading.speed,trailingVelocity:trailing.speed});
+  frames.push({offset,transform:`translate3d(${position.x}px,${position.y}px,0) scale(${position.width/to.width},${position.height/to.height})`});
+ }
+ return {frames,states,duration:durationMs};
+}
+function createSelectionMotion(indicator,initial,axis){
+ let target={...initial},presentation={...initial},animation=null,sequence=null;
+ function current(){
+  if(!animation||!sequence)return {...presentation,leadingVelocity:0,trailingVelocity:0};
+  const phase=Math.min(1,Math.max(0,(Number(animation.currentTime)||0)/sequence.duration)),position=phase*(sequence.states.length-1),index=Math.floor(position),first=sequence.states[index],second=sequence.states[Math.min(index+1,sequence.states.length-1)],blend=position-index;
+  return Object.fromEntries(Object.keys(first).map(key=>[key,first[key]+(second[key]-first[key])*blend]));
+ }
+ return {indicator,to(next,instant=false){
+  if(Object.keys(next).every(key=>next[key]===target[key])&&indicator.style.transform)return;
+  const from=current();animation?.cancel();animation=null;target={...next};presentation={...next};
+  indicator.style.width=next.width+'px';indicator.style.height=next.height+'px';indicator.style.transform=`translate3d(${next.x}px,${next.y}px,0)`;
+  if(instant||reducedMotion())return;
+  sequence=selectionMotionFrames(from,next,axis,{leading:from.leadingVelocity,trailing:from.trailingVelocity});
+  const active=indicator.animate(sequence.frames,{duration:sequence.duration,easing:'linear'});animation=active;
+  active.onfinish=()=>{if(animation===active){animation=null;sequence=null;}};
+ }};
+}
 export function morphSegment(container,selected,instant=false){
- const inset=3,start=selected.offsetLeft,end=start+selected.offsetWidth;
+ const next={x:selected.offsetLeft,y:3,width:selected.offsetWidth,height:container.clientHeight-6};
  let motion=segmentIndicators.get(container);
  if(!motion){
   const indicator=document.createElement('span');indicator.className='segment-indicator';indicator.setAttribute('aria-hidden','true');container.prepend(indicator);container.dataset.motionIndicator='true';
-  let leading=start,trailing=end,targetWidth=end-start;
-  const paint=()=>{const left=Math.max(inset,leading),right=Math.min(container.clientWidth-inset,trailing),width=Math.max(1,right-left),compression=1-Math.min(.08,Math.max(0,width/targetWidth-1)*.24);indicator.style.width=width+'px';indicator.style.transform=`translateX(${left}px) scaleY(${compression})`;indicator.style.borderRadius=(6+Math.max(0,1-compression)*24)+'px';};
-  const leftSpring=createSpring(value=>{leading=value;paint();},start),rightSpring=createSpring(value=>{trailing=value;paint();},end);
-  motion={target:start,to(left,right,immediate){targetWidth=right-left;const forward=left>=this.target;leftSpring.to(left,{instant:immediate,visualDuration:forward?.42:.26,rebound:.16});rightSpring.to(right,{instant:immediate,visualDuration:forward?.26:.42,rebound:.16});this.target=left;}};
+  motion=createSelectionMotion(indicator,next,'x');
   segmentIndicators.set(container,motion);instant=true;
  }
- motion.to(start,end,instant||reducedMotion());
+ motion.to(next,instant);
 }
 export function glideIndicator(container,position,instant=false,height=44,left=0,width=container.clientWidth){
  let motion=indicators.get(container);
  if(!motion){
   const indicator=document.createElement('span');indicator.className='scene-indicator';indicator.setAttribute('aria-hidden','true');
-  let leading=position,trailing=position+height,targetHeight=height,offset=left;
-  const paint=()=>{const span=Math.max(1,trailing-leading),compression=1-Math.min(.045,Math.max(0,span/targetHeight-1)*.14);indicator.style.transform=`translate3d(${offset}px,${leading}px,0) scale(${compression},${span/targetHeight})`;};
-  const leadingSpring=createSpring(value=>{leading=value;paint();},leading),trailingSpring=createSpring(value=>{trailing=value;paint();},trailing);
-  motion={indicator,target:position,to(next,nextHeight,nextLeft,nextWidth,immediate){targetHeight=nextHeight;offset=nextLeft;indicator.style.width=nextWidth+'px';indicator.style.height=nextHeight+'px';const forward=next>=this.target;leadingSpring.to(next,{instant:immediate,visualDuration:forward?.38:.25,rebound:.08});trailingSpring.to(next+nextHeight,{instant:immediate,visualDuration:forward?.25:.38,rebound:.08});this.target=next;}};
+  motion=createSelectionMotion(indicator,{x:left,y:position,width,height},'y');
   indicators.set(container,motion);instant=true;
  }
  if(motion.indicator.parentNode!==container)container.prepend(motion.indicator);
- container.dataset.motionIndicator='true';motion.to(position,height,left,width,instant);
+ container.dataset.motionIndicator='true';motion.to({x:left,y:position,width,height},instant);
+}
+
+const toggleMotions=new WeakMap();
+export function toggleMotionFrames(from,target,durationMs=350*ARC_MOTION_SCALE,shapePhase=0){
+ const frames=[],count=Math.ceil(durationMs/4),duration=durationMs/1000;
+ for(let index=0;index<=count;index++){
+  const offset=index/count,position=boundedSpring(from.x,target,from.velocity||0,offset*duration,duration,.26),shape=Math.min(1,shapePhase+offset),envelope=16*shape*shape*(1-shape)**2,width=index===0?from.width:1+.20*MORPH_STRENGTH*envelope,height=index===0?from.height:1-.08*MORPH_STRENGTH*envelope;
+  frames.push({offset,transform:`translateX(${position.value}px) scale(${width},${height})`,velocity:position.speed});
+ }
+ return {frames:frames.map(({offset,transform})=>({offset,transform})),velocities:frames.map(frame=>frame.velocity),duration:durationMs};
+}
+export function initToggleMotion(root){
+ for(const input of root.querySelectorAll('.toggle input')){
+  if(toggleMotions.has(input))continue;
+  const track=document.createElement('span'),thumb=document.createElement('span');track.className='toggle-track';thumb.className='toggle-thumb';track.setAttribute('aria-hidden','true');track.append(thumb);input.after(track);input.dataset.motionToggle='true';
+  thumb.style.transform=`translateX(${input.checked?12:0}px)`;toggleMotions.set(input,{thumb,animation:null,sequence:null,shapePhase:0});
+ }
+}
+export function animateToggle(input){
+ const motion=toggleMotions.get(input);if(!motion)return;
+ const from=getComputedStyle(motion.thumb).transform,matrix=new DOMMatrixReadOnly(from==='none'?undefined:from),phase=motion.animation&&motion.sequence?Math.min(1,Math.max(0,(Number(motion.animation.currentTime)||0)/motion.sequence.duration)):1,velocity=motion.sequence?.velocities[Math.round(phase*(motion.sequence.velocities.length-1))]||0,shape=motion.shapePhase+phase;motion.animation?.cancel();
+ const target=input.checked?12:0;motion.thumb.style.transform=`translateX(${target}px)`;
+ if(reducedMotion()||document.documentElement.dataset.choiceInput==='keyboard')return;
+ motion.shapePhase=shape<1?shape:0;
+ motion.sequence=toggleMotionFrames({x:matrix.m41,width:matrix.a,height:matrix.d,velocity},target,350*ARC_MOTION_SCALE,motion.shapePhase);
+ motion.animation=motion.thumb.animate(motion.sequence.frames,{duration:motion.sequence.duration,easing:'linear'});
 }
 
 export function createVehicleMorph(popup,trigger,onClose){

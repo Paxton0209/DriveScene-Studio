@@ -4,7 +4,7 @@ export const DEFAULT_PATH_MOTION=Object.freeze({preset:'flow'});
 const LEGACY_PATH_MOTION=Object.freeze({tailMs:198,curve:55,mode:'accelerate'});
 export const PATH_MOTION_PRESETS=Object.freeze({
  glide:Object.freeze({id:'glide',label:'连续扫入',durationMs:760,bezier:[.32,.72,0,1],lead:.24,feather:.055,handoff:.10,bandLength:.42,bandBlend:.22,particles:.70}),
- flow:Object.freeze({id:'flow',label:'柔和推开',durationMs:680,bezier:[.42,0,.58,1],lead:.30,feather:.105,handoff:.17,bandLength:.65,bandBlend:.16,particles:.42}),
+ flow:Object.freeze({id:'flow',label:'柔和推开',durationMs:500,bezier:[.42,0,.58,1],lead:.30,feather:.105,handoff:.17,bandLength:.65,bandBlend:.16,particles:.42}),
  snap:Object.freeze({id:'snap',label:'轻快收束',durationMs:520,bezier:[.23,1,.32,1],lead:.16,feather:.04,handoff:.075,bandLength:.28,bandBlend:.18,particles:.56})
 });
 export function normalizePathMotion(value={}){

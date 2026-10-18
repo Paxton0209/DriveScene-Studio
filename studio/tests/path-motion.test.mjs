@@ -7,7 +7,7 @@ function referenceBezier(progress,curve){
  for(let iteration=0;iteration<36;iteration++){const phase=(lower+upper)/2;if(sample(phase,curve[0],curve[2])<progress)lower=phase;else upper=phase;}
  return sample((lower+upper)/2,curve[1],curve[3]);
 }
-test('the selected soft-flow preset is the default',()=>{assert.deepEqual(DEFAULT_PATH_MOTION,{preset:'flow'});assert.equal(pathMotionDuration(DEFAULT_PATH_MOTION),544);});
+test('the selected soft-flow preset is the default and opens in 400ms',()=>{assert.deepEqual(DEFAULT_PATH_MOTION,{preset:'flow'});assert.equal(pathMotionDuration(DEFAULT_PATH_MOTION),400);});
 test('invalid and legacy settings remain safe',()=>{for(const value of [null,undefined,{},[],{preset:'unknown'}])assert.deepEqual(normalizePathMotion(value),DEFAULT_PATH_MOTION);assert.deepEqual(normalizePathMotion({tailMs:119,curve:46,mode:'accelerate'}),{tailMs:119,curve:46,mode:'accelerate'});});
 for(const [id,preset]of Object.entries(PATH_MOTION_PRESETS)){
  test(id+' is monotone, accurate and fully settled',()=>{let previous=-1;const settings={preset:id},duration=pathMotionDuration(settings);for(let index=0;index<=10000;index++){const progress=index/10000,eased=cubicBezierProgress(progress,preset.bezier);assert.ok(Math.abs(eased-referenceBezier(progress,preset.bezier))<1e-7);const frame=pathMotionFrame(progress*duration,settings);assert.ok(frame.front>=previous);previous=frame.front;for(const value of Object.values(frame))assert.ok(Number.isFinite(value));}const last=pathMotionFrame(duration,settings);assert.equal(last.bandBlend,0);assert.equal(last.appearance,1);assert.equal(last.fill,1);assert.ok(last.front>1+last.feather);assert.ok(last.front>1+last.handoff*.55);});

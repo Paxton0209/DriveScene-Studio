@@ -321,8 +321,19 @@
 }
 
 #product .segments[data-motion-indicator=true]::before{display:none}
-#product .segments .segment-indicator{position:absolute;left:0;top:3px;bottom:3px;z-index:0;border-radius:6px;background:var(--selected);box-shadow:inset 0 1px 0 #ffffff90,0 1px 1px #0000000d;pointer-events:none;transform-origin:center}
+#product .segments .segment-indicator{position:absolute;left:0;top:0;z-index:0;border-radius:6px;background:var(--selected);box-shadow:inset 0 1px 0 #ffffff90,0 1px 1px #0000000d;pointer-events:none;transform-origin:0 0}
 #product.dark .segments .segment-indicator{box-shadow:inset 0 1px 0 #ffffff0c,0 1px 1px #0000001a}
+#scene-nav .scene-indicator{transform-origin:0 0}
+#product .toggle{position:relative}
+#product .toggle input[data-motion-toggle=true]{opacity:0}
+#product .toggle .toggle-track{position:absolute;inset-inline-end:12px;top:calc(50% - 10px);width:32px;height:20px;border-radius:20px;background:#c4c8ce;box-shadow:inset 0 0 0 1px #0000000c;pointer-events:none}
+#product.dark .toggle .toggle-track{background:#646970;box-shadow:inset 0 0 0 1px #ffffff0c}
+#product .toggle input:checked+.toggle-track{background:var(--accent)}
+#product .toggle .toggle-thumb{position:absolute;left:3px;top:3px;width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 1px 2px #00000024,0 0 0 1px #00000004}
+#product .toggle input:focus-visible+.toggle-track{outline:2px solid var(--accent);outline-offset:3px}
+#product .toggle input:disabled+.toggle-track{opacity:.35}
+@media(prefers-reduced-motion:no-preference){#product .toggle .toggle-track{transition:background-color 160ms ease-out}}
+@media(forced-colors:active){#product .toggle input[data-motion-toggle=true]{opacity:1}#product .toggle .toggle-track{display:none}}
 #product .segments button{position:relative;z-index:1}
 #product #scene-nav .scene-choice:not([data-selected=true]){color:color-mix(in srgb,var(--text) 78%,transparent)}
 @media(hover:hover) and (pointer:fine){
