@@ -1,6 +1,6 @@
 # DriveScene Studio · Three-column preview
 
-This preview adds a three-column scene workspace with compact settings, four vehicle models, theme-aware scenery, weather and export controls. The selected path-activation treatment is **Soft flow**: a single continuous front with a broad feather, sparse particles and a short settling highlight. Its current duration is 544 ms.
+This preview adds a three-column scene workspace with compact settings, four vehicle models, theme-aware scenery, weather and export controls. The selected path-activation treatment is **Soft flow**: a single continuous front with a broad feather, sparse particles and a short settling highlight. Its current duration is 400 ms.
 
 ![Three-column studio preview](docs/preview.png)
 
@@ -9,6 +9,8 @@ This preview adds a three-column scene workspace with compact settings, four veh
 The committed bundle runs without a build step. From this directory, run `python3 -m http.server 8000 --bind 127.0.0.1`, then open `http://127.0.0.1:8000/?layout=triple`.
 
 For source changes, run `npm install`, `npm test` and `npm run build`. The engine build resolves files relative to its own script and can also be invoked from another working directory.
+
+The ten original activation-sound candidates are at `http://127.0.0.1:8000/sound-review/`. They can be auditioned with the current path motion or downloaded together as WAV files; they do not replace the main-workbench sound. For another computer, use [CONTINUE.md](CONTINUE.md) to resume this exact preview branch.
 
 ## Interaction
 

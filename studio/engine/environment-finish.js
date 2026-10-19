@@ -69,6 +69,7 @@ export function installEnvironmentFinish(world,strength=.4){
    shader.fragmentShader=shader.fragmentShader.replace('#include <opaque_fragment>',`
     vec3 finishNormal=normalize(vFinishNormal);
     ${shaping}
+    ${surface?'outgoingLight=mix(outgoingLight,vec3(dot(outgoingLight,vec3(.2126,.7152,.0722))),finishTone);':''}
     ${surface||kind==='grass'?`
     float finishContact=0.;
     for(int contactIndex=0;contactIndex<32;contactIndex++){
@@ -89,6 +90,6 @@ export function installEnvironmentFinish(world,strength=.4){
     `:''}
     #include <opaque_fragment>`);
   };
-  material.customProgramCacheKey=()=>cacheKey+'-environment-finish-58-'+kind;
+  material.customProgramCacheKey=()=>cacheKey+'-environment-finish-64-'+kind;
  }
 }

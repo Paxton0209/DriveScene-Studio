@@ -22,20 +22,25 @@ export function createSpring(paint,initial=0){
 const indicators=new WeakMap();
 const segmentIndicators=new WeakMap();
 export const MORPH_STRENGTH=1.2;
+export const NAV_MORPH_SCALE=.56;
+export const CONTROL_MORPH_SCALE=.85;
+export const TOGGLE_MORPH_SCALE=CONTROL_MORPH_SCALE*.90;
 function boundedSpring(initial,target,velocity,seconds,duration,visualDuration){
  const frequency=2*Math.PI/(visualDuration*ARC_MOTION_SCALE*1.2),damping=.84,damped=frequency*Math.sqrt(1-damping*damping),offset=initial-target,tangent=(velocity+damping*frequency*offset)/damped;
  const sample=time=>{const decay=Math.exp(-damping*frequency*time),angle=damped*time,value=target+decay*(offset*Math.cos(angle)+tangent*Math.sin(angle)),speed=decay*(velocity*Math.cos(angle)-(damping*frequency*tangent+damped*offset)*Math.sin(angle));return {value,speed};};
  const end=sample(duration),raw=sample(seconds),phase=seconds/duration,correction=(end.value-target)*(3*phase*phase-2*phase**3)+end.speed*duration*(phase**3-phase*phase),slope=(end.value-target)*(6*phase-6*phase*phase)/duration+end.speed*(3*phase*phase-2*phase);
  return {value:raw.value-correction,speed:raw.speed-slope};
 }
-export function selectionMotionFrames(from,to,axis='x',velocity={leading:0,trailing:0},durationMs=500*ARC_MOTION_SCALE){
+export function selectionMotionFrames(from,to,axis='x',velocity={leading:0,trailing:0},durationMs=500*ARC_MOTION_SCALE,deformationScale=axis==='y'?NAV_MORPH_SCALE:CONTROL_MORPH_SCALE){
  const vertical=axis==='y',start=vertical?from.y:from.x,end=start+(vertical?from.height:from.width),target=vertical?to.y:to.x,targetSize=vertical?to.height:to.width,forward=target>=start,duration=durationMs/1000,count=Math.ceil(durationMs/4),frames=[],states=[];
+ const initialSpan=end-start,initialSpanVelocity=velocity.trailing-velocity.leading,limit=(vertical?.045:.08)*MORPH_STRENGTH,compress=span=>limit*(1-Math.exp(-Math.max(0,span/targetSize-1)*(vertical?.14:.24)/limit)),initialCompression=1-(vertical?from.width/to.width:from.height/to.height);
  for(let index=0;index<=count;index++){
-  const offset=index/count,time=duration*offset,leading=boundedSpring(start,target,velocity.leading,time,duration,forward?.26+.16*MORPH_STRENGTH:.26),trailing=boundedSpring(end,target+targetSize,velocity.trailing,time,duration,forward?.26:.26+.16*MORPH_STRENGTH),span=Math.max(1,trailing.value-leading.value),limit=(vertical?.045:.08)*MORPH_STRENGTH,compression=1-limit*(1-Math.exp(-Math.max(0,span/targetSize-1)*(vertical?.14:.24)/limit));
-  const position={x:vertical?to.x:leading.value,y:vertical?leading.value:to.y,width:vertical?to.width*compression:span,height:vertical?span:to.height*compression};
+  const offset=index/count,time=duration*offset,leading=boundedSpring(start,target,velocity.leading,time,duration,forward?.26+.16*MORPH_STRENGTH:.26),trailing=boundedSpring(end,target+targetSize,velocity.trailing,time,duration,forward?.26:.26+.16*MORPH_STRENGTH),rawSpan=trailing.value-leading.value,settle=offset*offset*(3-2*offset),tangent=offset**3-2*offset*offset+offset,span=Math.max(1,targetSize+(rawSpan-targetSize)*deformationScale+(initialSpan-targetSize)*(1-deformationScale)*(1-settle)+initialSpanVelocity*(1-deformationScale)*duration*tangent),compression=1-compress(rawSpan)*deformationScale-(initialCompression-compress(initialSpan)*deformationScale)*(1-settle),center=(leading.value+trailing.value)/2;
+  const spanVelocity=(trailing.speed-leading.speed)*deformationScale+(initialSpan-targetSize)*(1-deformationScale)*(-6*offset+6*offset*offset)/duration+initialSpanVelocity*(1-deformationScale)*(3*offset*offset-4*offset+1),centerVelocity=(leading.speed+trailing.speed)/2;
+  const position={x:vertical?to.x:center-span/2,y:vertical?center-span/2:to.y,width:vertical?to.width*compression:span,height:vertical?span:to.height*compression};
   if(index===0)Object.assign(position,from);
   if(index===count)Object.assign(position,to);
-  states.push({...position,leadingVelocity:leading.speed,trailingVelocity:trailing.speed});
+  states.push({...position,leadingVelocity:centerVelocity-spanVelocity/2,trailingVelocity:centerVelocity+spanVelocity/2});
   frames.push({offset,transform:`translate3d(${position.x}px,${position.y}px,0) scale(${position.width/to.width},${position.height/to.height})`});
  }
  return {frames,states,duration:durationMs};
@@ -82,7 +87,7 @@ const toggleMotions=new WeakMap();
 export function toggleMotionFrames(from,target,durationMs=350*ARC_MOTION_SCALE,shapePhase=0){
  const frames=[],count=Math.ceil(durationMs/4),duration=durationMs/1000;
  for(let index=0;index<=count;index++){
-  const offset=index/count,position=boundedSpring(from.x,target,from.velocity||0,offset*duration,duration,.26),shape=Math.min(1,shapePhase+offset),envelope=16*shape*shape*(1-shape)**2,width=index===0?from.width:1+.20*MORPH_STRENGTH*envelope,height=index===0?from.height:1-.08*MORPH_STRENGTH*envelope;
+  const offset=index/count,position=boundedSpring(from.x,target,from.velocity||0,offset*duration,duration,.26),shape=Math.min(1,shapePhase+offset),envelope=16*shape*shape*(1-shape)**2,width=index===0?from.width:1+.20*MORPH_STRENGTH*TOGGLE_MORPH_SCALE*envelope,height=index===0?from.height:1-.08*MORPH_STRENGTH*TOGGLE_MORPH_SCALE*envelope;
   frames.push({offset,transform:`translateX(${position.value}px) scale(${width},${height})`,velocity:position.speed});
  }
  return {frames:frames.map(({offset,transform})=>({offset,transform})),velocities:frames.map(frame=>frame.velocity),duration:durationMs};
