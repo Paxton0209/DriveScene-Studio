@@ -4,9 +4,9 @@ import {RoomEnvironment} from 'three/examples/jsm/environments/RoomEnvironment.j
 import {createTrafficVehicle,setTrafficAppearance,readyTrafficModel} from '../engine/traffic-vehicle.js';
 
 let dark=false,rotate=false;
-await Promise.all(['sedan','suv'].map(type=>readyTrafficModel(null,type)));
+await Promise.all(['model-y'].map(type=>readyTrafficModel(null,type)));
 const views=[];
-for(const [id,create] of ['sedan','suv'].map(type=>[type,()=>createTrafficVehicle(type)])){
+for(const [id,create] of ['model-y'].map(type=>[type,()=>createTrafficVehicle(type)])){
  const container=document.getElementById(id),scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(28,1,.1,100),renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.95;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;container.append(renderer.domElement);
  const pmrem=new THREE.PMREMGenerator(renderer);scene.environment=pmrem.fromScene(new RoomEnvironment(),.04).texture;scene.environmentIntensity=.45;pmrem.dispose();
  const hemi=new THREE.HemisphereLight(0xd4e2f3,0x737882,1.35),key=new THREE.DirectionalLight(0xfff9f0,2.3);key.position.set(-5,8,5);key.castShadow=true;key.shadow.mapSize.set(1024,1024);key.shadow.camera.left=-6;key.shadow.camera.right=6;key.shadow.camera.top=6;key.shadow.camera.bottom=-6;key.shadow.normalBias=.015;key.shadow.radius=4;scene.add(hemi,key);
@@ -18,4 +18,6 @@ function appearance(){document.body.dataset.theme=dark?'dark':'light';document.g
 document.getElementById('theme').onclick=()=>{dark=!dark;appearance();};document.getElementById('rotate').onclick=event=>{rotate=!rotate;event.currentTarget.setAttribute('aria-pressed',String(rotate));};appearance();
 let last=0;function render(time){const dt=last?Math.min(.05,(time-last)/1000):0;last=time;for(const v of views){if(rotate)v.car.rotation.y+=dt*.28;v.reflect();v.renderer.render(v.scene,v.camera);}requestAnimationFrame(render);}requestAnimationFrame(render);
 
-for(const [id,pos]of [['rear',[4.6,3.2,6.6]],['front',[-4.6,3.2,-6.6]],['side',[9.5,2.7,0]]])document.getElementById(id).onclick=()=>{rotate=false;document.getElementById('rotate').setAttribute('aria-pressed','false');for(const v of views){v.car.rotation.y=0;v.camera.position.set(...pos);v.camera.lookAt(0,.75,0);}};
+for(const [id,pos]of [['bottom',[5,-2,6]],['rear',[4.6,3.2,6.6]],['front',[-4.6,3.2,-6.6]],['side',[9.5,2.7,0]]])document.getElementById(id).onclick=()=>{rotate=false;document.getElementById('rotate').setAttribute('aria-pressed','false');for(const v of views){v.car.rotation.y=0;v.camera.position.set(...pos);v.camera.lookAt(0,.75,0);}};
+
+document.getElementById('close').onclick=event=>{const on=event.currentTarget.getAttribute('aria-pressed')!=='true';event.currentTarget.setAttribute('aria-pressed',String(on));for(const v of views){v.camera.fov=on?22:28;v.camera.updateProjectionMatrix();}};

@@ -1,3 +1,4 @@
+import {roadSurfaceMorph} from './road-surface-morph.js';
 import {prepareRoadLayout,patchRoadLayout} from './road-layout-morph.js';
 import {installSrRoadSheen} from './sr-road-sheen.js';
 import {installNeutralDarkSurfaces} from './neutral-surfaces.js';
@@ -683,6 +684,7 @@ export class World {
 
   }
   this.state={id,mode,trees:vegetated,vehicle,buildings,waterfront,roadworks,laneCount,cameraView,junctionPosition};
+  if(geometryChanged)this.continuousDrive?.rebind();
   this.environmentTargets={buildings:buildings?1:0,trees:vegetated?1:0,waterfront:waterfront&&!!this.waterBounds?1:0,roadworks:roadworks&&!!this.roadworkZone?1:0};
   if(!environmentMotion||geometryChanged)for(const key of Object.keys(this.environmentGrowth)){
    if(layoutPhase)continue;
@@ -706,7 +708,7 @@ export class World {
  }
 
  completeLayoutTransition(transition){if(this.layoutTransition!==transition)return;const target=transition.target;this.clearLayoutTransition();this.onLayoutFrame?.(false);if(JSON.stringify(target)!==JSON.stringify(this.state))this.update(target,{environmentMotion:true,cameraMotion:target.cameraView!==this.state.cameraView});}
- clearLayoutTransition(){const old=this.layoutTransition;if(old?.frame)cancelAnimationFrame(old.frame);for(const line of old?.departingLines||[]){line.removeFromParent();line.geometry.dispose();}this.layoutTransition=null;this.structureMotion=null;this.structurePaintOpacity.value=1;}
+ clearLayoutTransition(){const old=this.layoutTransition;if(old?.frame)cancelAnimationFrame(old.frame);for(const line of old?.departingLines||[]){line.removeFromParent();line.geometry.dispose();if(line.userData.ownedLaneMaterial)line.material.dispose();}this.layoutTransition=null;this.structureMotion=null;this.structurePaintOpacity.value=1;}
  prepareStructurePaint(family){
   this.root.updateMatrixWorld(true);
   this.root.traverse(o=>{
@@ -774,10 +776,10 @@ export class World {
   const from={...(this.layoutVisual||this.roadLayout(this.state))},lineAlphas=new Map(),departingLines=[];
   this.root.traverse(o=>{
    if(o.userData.laneOffset===undefined)return;
-   lineAlphas.set(o.userData.laneOffset.toFixed(3),o.material.opacity);
+   const key=o.userData.laneOffset.toFixed(3);lineAlphas.set(key,Math.max(lineAlphas.get(key)||0,o.material.opacity));
    if(o.material.opacity>.001&&Math.abs(o.userData.laneOffset)>=target.laneCount*3.7/2-.1){
     // Preserve retiring paint as a separate layer until the user-approved cut time.
-    const line=o.clone();line.geometry=o.geometry.clone();line.userData.departingLane=true;departingLines.push(line);
+    if(departingLines.some(line=>line.userData.laneOffset===o.userData.laneOffset))return;const line=o.clone();line.geometry=o.geometry.clone();line.material=o.material.clone();line.material.onBeforeCompile=o.material.onBeforeCompile;line.material.customProgramCacheKey=o.material.customProgramCacheKey;line.material.defaultAttributeValues=o.material.defaultAttributeValues;line.userData.departingLane=true;line.userData.ownedLaneMaterial=true;departingLines.push(line);
    }
   });
   this.clearLayoutTransition();this.stopLayoutMotion(false);this.stopEnvironmentMotion();this.stopCameraMotion();
@@ -795,7 +797,7 @@ export class World {
   this.clearLayoutTransition();this.stopLayoutMotion();this.stopEnvironmentMotion();this.mat.lanePaint.opacity=1;this.update(transition.target);this.onLayoutFrame?.(false);
  }
  roadLayout(state){return {width:(state?.laneCount||6)*3.7,curve:0};}
- stopLayoutMotion(reset=true){if(this.layoutMotion)cancelAnimationFrame(this.layoutMotion.frame);this.layoutMotion=null;if(reset){this.layoutBlend.value=1;this.mat.lanePaint.opacity=1;}}
+ stopLayoutMotion(reset=true){if(this.layoutMotion){cancelAnimationFrame(this.layoutMotion.frame);this.layoutMotion.surfaces?.reset();}this.layoutMotion=null;if(reset){this.layoutBlend.value=1;this.mat.lanePaint.opacity=1;}}
  finishLayoutMotion(){if(!this.layoutMotion)return;this.layoutVisual=this.layoutMotion.to;this.stopLayoutMotion();this.renderFrame();const transition=this.layoutTransition;if(transition)this.completeLayoutTransition(transition);else this.onLayoutFrame?.(false);}
  startLayoutMotion(from,to){
   if(Math.abs(from.width-to.width)<.001&&Math.abs(from.curve-to.curve)<.001){this.layoutVisual=to;return;}
@@ -805,12 +807,14 @@ export class World {
   this.root.traverse(o=>{if(o.userData.laneOffset!==undefined)o.material.opacity=this.layoutTransition?.lineAlphas.get(o.userData.laneOffset.toFixed(3))||0;});
   const addingLines=[...this.root.children].some(o=>o.userData.laneOffset!==undefined&&!o.userData.departingLane&&(this.layoutTransition?.lineAlphas.get(o.userData.laneOffset.toFixed(3))||0)<.999);
   const speed=previewMotionSettings.laneSpeed/MOTION_TIME_SCALE,duration=448/speed,lineDelay=58.96/speed,lineDuration=439.57/speed;
-  const motion={from,to,frame:0,start:0,addingLines,duration,elapsed:0,paused:false};this.layoutMotion=motion;this.onLayoutFrame?.(true);
+  const surfaces=roadSurfaceMorph(this.root,this.mat,to.width);surfaces.apply(from.width);
+  const motion={from,to,surfaces,frame:0,start:0,addingLines,duration,elapsed:0,paused:false};this.layoutMotion=motion;this.onLayoutFrame?.(true);
   const sample=elapsed=>{
    const frameAt=performance.now(),perf=this.laneTransitionPerformance;if(perf){if(perf.lastFrame)perf.maxFrameGapMs=Math.max(perf.maxFrameGapMs,frameAt-perf.lastFrame);perf.lastFrame=frameAt;perf.frames++;}
    motion.elapsed=elapsed;const t=Math.min(1,elapsed/duration),omega=6,tail=(1+omega)*Math.exp(-omega),ease=1-(1+omega*t)*Math.exp(-omega*t)+tail*t*t*(3-2*t);
    for(const {o,x}of construction)o.position.x=x+(from.width-to.width)/2*(1-ease);
    this.layoutBlend.value=ease;this.layoutVisual={width:THREE.MathUtils.lerp(from.width,to.width,ease),curve:THREE.MathUtils.lerp(from.curve,to.curve,ease)};
+   surfaces.apply(this.layoutVisual.width);
    const lineProgress=THREE.MathUtils.clamp((elapsed-lineDelay)/lineDuration,0,1);
    this.mat.lanePaint.opacity=lineProgress*lineProgress*(3-2*lineProgress);
    const edge=this.layoutVisual.width/2-.25,retireAt=laneRetireTiming[`${Math.round(from.width/3.7)}-${Math.round(to.width/3.7)}`];
@@ -1082,6 +1086,6 @@ export class World {
   const minX=Math.min(...pts.map(p=>p.x)),maxX=Math.max(...pts.map(p=>p.x)),minY=Math.min(...pts.map(p=>p.y)),maxY=Math.max(...pts.map(p=>p.y));
   const glass=[];let exhaustCount=0;this.car.traverse(o=>{if(!o.isMesh)return;if(o.name==='Object_39')exhaustCount++;for(const m of (Array.isArray(o.material)?o.material:[o.material]))if(m.name==='glass')glass.push({opacity:m.opacity,transparent:m.transparent,transmission:m.transmission||0,roughness:m.roughness,envMapIntensity:m.envMapIntensity});});
   const junctionFrame=['05','08'].includes(this.current)?[-1,1].flatMap(x=>[-28.9,-51.1].map(z=>{const p=new THREE.Vector3(x*11.1,0,z).project(this.camera);return {x:(p.x+1)/2,y:(1-p.y)/2};})):null;
-  return {...this.state,srQualityMix:SR_QUALITY_MIX,laneCacheReady:!!this.laneCacheReady,laneTransitionPerformance:this.laneTransitionPerformance,activationSweep:this.activationSweep?.audit(),driving:this.continuousDrive?.audit(),traffic:this.trafficSystem?.audit(),vehicleMaterialStudy:this.car.userData.materialStudy||null,environmentFinish:this.environmentFinish.audit(),performance:this.performanceAudit(),renderQuality:{resolution:[this.width,this.height],shadowSize:this.sun.shadow.mapSize.x,samples:this.composer.renderTarget1.samples},dividedRoad:this.dividedRoad,groundReflection:this.groundReflectionAudit,shadow:this.shadowFrameAudit,environmentGrowth:Object.fromEntries(Object.entries(this.environmentGrowth).map(([key,ch])=>[key,ch.value])),palette:this.palette,roadColor:this.mat.road.color.getHexString(),groundColor:this.mat.ground.color.getHexString(),lightIntensity:[this.hemi.intensity,this.sun.intensity,this.fill.intensity],framing:this.framing,environmentSignature:this.environmentSignature,glass,exhaustCount,contactPatches:this.egoContact.children.length,junctionFrame,vehicleSpec:this.car.userData.vehicleSpec,junctionDimensions:this.junctionDimensions,parkingReplica:this.parkingReplica,parkedVehicles:this.parkedVehicles||[],visibleBuildingsBySide:{left:this.root.children.filter(o=>o.userData.buildingOwned&&o.visible&&o.position.x<0).length,right:this.root.children.filter(o=>o.userData.buildingOwned&&o.visible&&o.position.x>0).length},buildingOwnedCount:this.root.children.filter(o=>o.userData.buildingOwned).length,buildingShadowCasters:this.root.children.filter(o=>o.userData.buildingOwned&&o.castShadow).length,buildingVSMParticipants:this.root.children.filter(o=>o.userData.buildingOwned&&(o.castShadow||o.receiveShadow)).length,roadworkZone:this.roadworkZone,pedestrianPassages:this.pedestrianPassages,rampDimensions:this.rampDimensions,vehicleDimensions:box.getSize(new THREE.Vector3()).toArray(),vehicleBounds:{left:(minX+1)/2,top:(1-maxY)/2,width:(maxX-minX)/2,height:(maxY-minY)/2,bottom:(1-minY)/2},center:{x:(center.x+1)/2,y:(1-center.y)/2},roadElevation:this.car.position.y-.02,roadSlope:0,horizon:this.environmentTone.value?'shared smootherstep from 65m to 300m':'original material-specific smootherstep',treePlacements,buildingsPlaced:this.buildingPlacements,waterBounds:this.waterBounds,parkingBays:this.parkingBays,parkingColumns:this.parkingColumns.map(c=>c.position.toArray()),vehiclePhysicalLength:this.car.userData.vehicleSpec.length||4.85,geometry:this.current,geometrySignature:this.geometrySignature,camera:this.camera.position.toArray(),car:this.car.position.toArray()};
+  return {...this.state,laneVisual:{width:this.layoutVisual?.width,blend:this.layoutBlend.value,transition:!!this.layoutTransition,lines:this.root.children.filter(o=>o.userData.laneOffset!==undefined).map(o=>({x:o.userData.laneOffset,opacity:o.material.opacity,retiring:!!o.userData.departingLane,z:o.position.z}))},srQualityMix:SR_QUALITY_MIX,laneCacheReady:!!this.laneCacheReady,laneTransitionPerformance:this.laneTransitionPerformance,activationSweep:this.activationSweep?.audit(),driving:this.continuousDrive?.audit(),traffic:this.trafficSystem?.audit(),vehicleMaterialStudy:this.car.userData.materialStudy||null,environmentFinish:this.environmentFinish.audit(),performance:this.performanceAudit(),renderQuality:{resolution:[this.width,this.height],shadowSize:this.sun.shadow.mapSize.x,samples:this.composer.renderTarget1.samples},dividedRoad:this.dividedRoad,groundReflection:this.groundReflectionAudit,shadow:this.shadowFrameAudit,environmentGrowth:Object.fromEntries(Object.entries(this.environmentGrowth).map(([key,ch])=>[key,ch.value])),palette:this.palette,roadColor:this.mat.road.color.getHexString(),groundColor:this.mat.ground.color.getHexString(),lightIntensity:[this.hemi.intensity,this.sun.intensity,this.fill.intensity],framing:this.framing,environmentSignature:this.environmentSignature,glass,exhaustCount,contactPatches:this.egoContact.children.length,junctionFrame,vehicleSpec:this.car.userData.vehicleSpec,junctionDimensions:this.junctionDimensions,parkingReplica:this.parkingReplica,parkedVehicles:this.parkedVehicles||[],visibleBuildingsBySide:{left:this.root.children.filter(o=>o.userData.buildingOwned&&o.visible&&o.position.x<0).length,right:this.root.children.filter(o=>o.userData.buildingOwned&&o.visible&&o.position.x>0).length},buildingOwnedCount:this.root.children.filter(o=>o.userData.buildingOwned).length,buildingShadowCasters:this.root.children.filter(o=>o.userData.buildingOwned&&o.castShadow).length,buildingVSMParticipants:this.root.children.filter(o=>o.userData.buildingOwned&&(o.castShadow||o.receiveShadow)).length,roadworkZone:this.roadworkZone,pedestrianPassages:this.pedestrianPassages,rampDimensions:this.rampDimensions,vehicleDimensions:box.getSize(new THREE.Vector3()).toArray(),vehicleBounds:{left:(minX+1)/2,top:(1-maxY)/2,width:(maxX-minX)/2,height:(maxY-minY)/2,bottom:(1-minY)/2},center:{x:(center.x+1)/2,y:(1-center.y)/2},roadElevation:this.car.position.y-.02,roadSlope:0,horizon:this.environmentTone.value?'shared smootherstep from 65m to 300m':'original material-specific smootherstep',treePlacements,buildingsPlaced:this.buildingPlacements,waterBounds:this.waterBounds,parkingBays:this.parkingBays,parkingColumns:this.parkingColumns.map(c=>c.position.toArray()),vehiclePhysicalLength:this.car.userData.vehicleSpec.length||4.85,geometry:this.current,geometrySignature:this.geometrySignature,camera:this.camera.position.toArray(),car:this.car.position.toArray()};
  }
 }

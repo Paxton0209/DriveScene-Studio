@@ -13,20 +13,21 @@ export function createContinuousDriving(world,{schedule=cb=>requestAnimationFram
   const key=world.root?.uuid+'|'+world.state?.laneCount;
   if(rootKey===key)return;
   const carry=!!root&&['02','09'].includes(root.userData?.trafficScene)&&['02','09'].includes(world.state?.id),priorDistance=distance;
-  const priorGroups=carry?groups.map(g=>({kind:g.kind,z:g.z})):[];
+  const priorGroups=carry?new Map(groups.map(g=>[g.identity,{z:g.z,items:g.items.map(item=>({offset:item.object.position.clone().sub(item.position),relativeZ:item.object.position.z-g.z,scale:item.object.scale.clone().divide(item.scale),rotation:item.object.rotation.clone(),baseY:item.object.userData.growthBaseY,height:item.object.userData.growthHeight}))}])):new Map();
   restore();root=world.root;rootKey=key;if(!root)return;
   const map=new Map();
   function add(object,key,kind){if(!map.has(key))map.set(key,{kind,items:[]});map.get(key).items.push(record(object));}
   for(const object of [...root.children]){
    if(object.userData.environmentKey)add(object,object.userData.environmentKey,object.userData.buildingOwned?'building':'lawn');
    else if(object.userData.constructionAssembly||object.userData.constructionContact)add(object,'roadworks','roadworks');
-   if(object.userData.laneDash)marks.push(record(object));
+   if(object.userData.laneDash){const item=record(object);if(object.userData.departingLane)item.position.z-=priorDistance%10;marks.push(item);}
   }
   for(const tree of [...(world.vegetation?.children||[])])add(tree,tree.uuid,'tree');
   groups=[...map.values()];
   for(const group of groups){
    group.x=group.items.reduce((n,item)=>n+item.position.x,0)/group.items.length;
    group.z=group.items.reduce((n,item)=>n+item.position.z,0)/group.items.length;
+   group.identity=[group.kind,Math.sign(group.x),group.z.toFixed(3),'base'].join('|');
   }
   const copies=[];
   for(const group of groups){
@@ -37,10 +38,20 @@ export function createContinuousDriving(world,{schedule=cb=>requestAnimationFram
     if(group.kind==='lawn')world.lawns?.push(clone);
     copied.items.push(record(clone));
    }
-   copied.z-=210;copies.push(copied);
+   copied.z-=210;copied.identity=group.identity.replace(/base$/,'copy');copies.push(copied);
   }
   groups.push(...copies);distance=carry?priorDistance:0;
-  if(carry){const used=new Set();for(const group of groups){const index=priorGroups.findIndex((p,i)=>p.kind===group.kind&&!used.has(i));let z;if(index>=0){used.add(index);z=priorGroups[index].z;}else{z=group.z+distance%span;while(z>exit)z-=span;}const offset=z-group.z;group.z=z;for(const item of group.items)item.object.position.z+=offset;}}
+  if(carry)for(const group of groups){
+   const previous=priorGroups.get(group.identity);let z=previous?.z??group.z+distance%span;while(z>exit)z-=span;
+   const offset=z-group.z;group.z=z;
+   for(const [index,item]of group.items.entries()){
+    const prior=previous?.items[index],object=item.object;object.position.z+=offset;
+    if(prior){object.position.z=previous.z+prior.relativeZ;object.scale.copy(item.scale).multiply(prior.scale);object.rotation.copy(prior.rotation);object.position.x+=prior.offset.x;object.position.y+=prior.offset.y;if(prior.baseY!==undefined)object.userData.growthBaseY=prior.baseY;if(prior.height!==undefined)object.userData.growthHeight=prior.height;}
+   }
+  }
+  for(const item of marks)item.object.position.z=item.position.z+distance%10;
+  world.drivingDistance=distance;
+
  }
  function advance(dt){
   if(!['02','09','03'].includes(world.state?.id)||world.suspended||world.initializingScene||world.structureMotion)return false;
@@ -77,5 +88,5 @@ export function createContinuousDriving(world,{schedule=cb=>requestAnimationFram
  function setPlaying(value){if(!value){pause();return;}if(playing)return;playing=true;last=0;if(!hidden())frame=schedule(tick);onFrame();}
  function reset({resume=false}={}){pause();restore();distance=0;recycled=0;if(resume)setPlaying(true);}
  function visibility(){if(frame)cancel(frame);frame=0;last=0;if(playing&&!hidden())frame=schedule(tick);}
- return {setPlaying,pause,reset,advance,visibility,audit(){return {playing,distance,recycled,speed,pooledObjects:groups.reduce((n,g)=>n+g.items.length,0),sceneryGroups:groups.length,clonedObjects:clones.length};}};
+ return {setPlaying,pause,reset,advance,rebind:bind,visibility,audit(){return {playing,distance,recycled,speed,pooledObjects:groups.reduce((n,g)=>n+g.items.length,0),sceneryGroups:groups.length,clonedObjects:clones.length};}};
 }

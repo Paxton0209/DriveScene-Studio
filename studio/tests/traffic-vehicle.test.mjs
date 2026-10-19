@@ -5,16 +5,12 @@ import {createTrafficVehicle,setTrafficAppearance,readyTrafficModel,trafficPlan,
 import {driveIconPoints,interpolateDriveIcon} from '../drive-icon.js';
 import {readFile} from 'node:fs/promises';
 import {gunzipSync} from 'node:zlib';
-for(const type of ['sedan','suv'])await readyTrafficModel(await readFile(new URL(`../engine/assets/generic-${type}.json.gz`,import.meta.url)),type);
-test('two independent opaque car assets retain grounded dimensions, normals and shared immutable geometry',()=>{
- const lengths={sedan:4.72,suv:4.85},sizes=[];
- for(const type of Object.keys(lengths)){
-  const a=createTrafficVehicle(type),b=createTrafficVehicle(type),parts=a.children.filter(o=>!o.material.isShaderMaterial);a.updateMatrixWorld(true);const box=new THREE.Box3();
-  for(const part of parts){box.union(new THREE.Box3().setFromObject(part));assert.equal(part.geometry.attributes.normal.count,part.geometry.attributes.position.count);assert.ok([...part.geometry.attributes.normal.array].every(Number.isFinite));assert.equal(part.material.transparent,false);assert.ok(part.material.transmission<=.05);assert.equal(part.material.emissiveIntensity,1);assert.equal(part.material.emissive.getHex(),0);}
-  assert.ok(Math.abs(box.max.z-box.min.z-lengths[type])<.03);assert.ok(box.min.y>=-.001);assert.ok(parts.length>=4&&parts.length<=5);assert.equal(a.children[0].geometry,b.children[0].geometry);assert.notEqual(a.children[0].material,b.children[0].material);assert.ok(a.userData.triangles<a.userData.originalTriangles*.90);sizes.push(box.getSize(new THREE.Vector3()));
-  setTrafficAppearance(a,false);const light=a.children[0].material.color.clone();setTrafficAppearance(a,true);assert.ok(a.children[0].material.color.r<light.r);
- }
- assert.ok(sizes[1].y>sizes[0].y+.2);
+await readyTrafficModel(await readFile(new URL('../engine/assets/traffic-model-y.json.gz',import.meta.url)));
+test('one opaque Model Y asset retains grounded dimensions, normals and shared immutable geometry',()=>{
+ const a=createTrafficVehicle(),b=createTrafficVehicle(),parts=a.children.filter(o=>!o.material.isShaderMaterial);a.updateMatrixWorld(true);const box=new THREE.Box3();
+ for(const part of parts){box.union(new THREE.Box3().setFromObject(part));assert.equal(part.geometry.attributes.normal.count,part.geometry.attributes.position.count);assert.ok([...part.geometry.attributes.normal.array].every(Number.isFinite));assert.equal(part.material.transparent,false);assert.equal(part.material.transmission,0);assert.equal(part.material.emissive.getHex(),0);assert.ok(part.geometry.index);}
+ assert.equal(a.userData.trafficType,'model-y');assert.ok(Math.abs(box.max.z-box.min.z-4.75)<.03);assert.ok(box.min.y>=-.001);assert.equal(parts.length,5);assert.equal(a.children[0].geometry,b.children[0].geometry);assert.notEqual(a.children[0].material,b.children[0].material);assert.ok(a.userData.triangles<a.userData.originalTriangles*.4);
+ setTrafficAppearance(a,false);const light=a.children[0].material.color.clone();setTrafficAppearance(a,true);assert.ok(a.children[0].material.color.r<light.r);
 });
 test('routes fit narrow roads, divided elevated roads and the actual T-junction branches',()=>{
  assert.ok(trafficPlan({id:'09',laneCount:2}).every(route=>Math.abs(route.x)<=1.85));assert.ok(trafficPlan({id:'03'}).some(route=>route.x< -9));assert.ok(trafficPlan({id:'08'}).every(route=>route.axis==='x'));assert.deepEqual(trafficPlan({id:'10'}),[]);
@@ -59,17 +55,10 @@ test('long elevated traffic keeps separate same-direction vehicles at least ten 
  for(let i=0;i<3000;i++){time+=100;traffic.update(true,16.8);const a=traffic.audit();for(let j=0;j<a.lanes.length;j++)for(let k=j+1;k<a.lanes.length;k++)if(a.lanes[j].x===a.lanes[k].x&&a.lanes[j].direction===a.lanes[k].direction)assert.ok(Math.abs(a.positions[j][2]-a.positions[k][2])>=9.999);}
 });
 
-test('each model retains a closed opaque core after simplification and rounded asset serialization',async()=>{
- for(const type of ['sedan','suv']){
-  const data=JSON.parse(gunzipSync(await readFile(new URL(`../engine/assets/generic-${type}.json.gz`,import.meta.url))));
-  const core=data.parts.find(p=>p.name==='sealed-body-core');assert.ok(core);
-  const p=core.attributes.position,edges=new Map();let volume=0;
-  const key=i=>p.slice(i,i+3).join(',');
-  for(let i=0;i<p.length;i+=9){const v=[key(i),key(i+3),key(i+6)];if(new Set(v).size<3)continue;
-   const a=new THREE.Vector3().fromArray(p,i),b=new THREE.Vector3().fromArray(p,i+3),c=new THREE.Vector3().fromArray(p,i+6);volume+=a.dot(b.cross(c))/6;
-   for(let j=0;j<3;j++){const edge=[v[j],v[(j+1)%3]].sort().join('|');edges.set(edge,(edges.get(edge)||0)+1);}
-  }
-  assert.ok([...edges.values()].every(count=>count===2),type+' core has a boundary or non-manifold edge');assert.ok(volume>1);
-  const car=createTrafficVehicle(type),sealed=car.children.find(c=>c.name==='sealed-body-core');assert.equal(sealed.material.transmission,0);assert.equal(sealed.material.transparent,false);
- }
+test('visible Model Y body and glazing preserve source triangles without an inner filler core',async()=>{
+ const data=JSON.parse(gunzipSync(await readFile(new URL('../engine/assets/traffic-model-y.json.gz',import.meta.url))));
+ assert.equal(data.exteriorPreserved,true);assert.equal(data.components.find(c=>c.node===70).sourceTriangles,33156);
+ for(const c of data.components.filter(c=>c.role==='paint'||c.role==='window'))assert.equal(c.triangles,c.sourceTriangles);
+ assert.ok(!data.parts.some(p=>p.name==='sealed-body-core'));
+ for(const part of data.parts)for(const index of part.indices)assert.ok(index>=0&&index<part.attributes.position.length/3);
 });

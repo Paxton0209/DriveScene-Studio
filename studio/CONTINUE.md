@@ -97,3 +97,13 @@ python3 -m http.server 8034 --bind 127.0.0.1
 倒影：车/建筑独立通道，连续13点高斯模糊、真实车位轮廓范围约束；浅色、深色、深色雨天未见先前离车杂块。贴地阴影保留。左右建筑实际均可见；雪斑采用局部坐标多层噪声、屋顶与树冠向上法线覆盖，已看到不规则雪斑。Roadworks仍禁用。Assist图文实际中心误差<1px，布局间距6px，取消图文下压/缩放；开启才播放底层像素，关闭无粒子；选中淡蓝底无常驻亮边。
 
 声音：/studio/sound-review/final/现有钢琴3音560ms、4音650ms以及Tesla参考。用户还没选，默认08K不被擅自替换。素材署名见SOURCES.md；主场景通过localStorage监听选择，异步解码有请求代际保护。页面可用“使用这个音效”选择。113项全仓测试通过，主场景控制台无error/warn。反馈逐项状态见feedback-progress/status.json；主观动效与音色等待用户回来评估，不能伪称用户已验收。
+
+## 2026-10-20 morning / finish-110 corrective pass
+
+The user rejected finish-109: the A7/Tucson exterior skin visibly broke despite a closed inner core. That acceptance was wrong. The user explicitly chose a single Model Y as traffic, then requested simplification of mergeable details and all 2/4/6 lane permutations.
+
+Runtime now loads traffic-model-y.json.gz only (135054 indexed triangles, five shared material roles). Source is the already archived Nieve5677 Model Y, CC BY 4.0, source digest validated by prepare-model-y.mjs. Visible body/glazing retain original triangles/normals; emblems/interior mechanical assemblies are omitted; lower grille has a closed smooth outline hull, tires have continuous smooth sidewalls, rims reduced independently. Former generic-sedan/suv runtime assets removed. No hidden core. Front, rear, sides and underside inspected in the enlarged review, including dark light. User-facing appearance remains subject to their review. Do not confuse geometric checks with appearance acceptance again. An experimental rear hull and broad normal smoothing produced unwanted shading and were discarded before delivery.
+
+Lane fixes: rigid road surface resize and curb/shoulder translation eliminate intermediate broad white strips; scenery rebind occurs after target state is installed and before its first draw, preserving recycled depth/scale/rotation/growth heights; departing dashes retain longitudinal phase; departing line materials are independent and disposed after transition. Six directed pairs tested in-browser: 2→4, 4→6, 6→2, 2→6, 6→4, 4→2. Rapid 2→6→4→2→6→2 tested. Dark High 2↔6 tested with Assist and Traffic on. Recorded completed cases retain ego [1.85,.02,0], correct widths 7.4/14.8/22.2 and playing=true. Setup measured .9–1.9 ms in these samples; these numbers do not establish every display frame's timing. Evidence outputs/model-y-finish-110.png and outputs/lane-switch-finish-110.json live outside the repo in the sibling outputs directory. 121 tests passed. The user interacted with the main page while checking; do not interpret unrelated scene changes as a continuity test.
+
+Remaining prior subjective choices: sound candidate selection and activation lattice feel. Do not mark these accepted on the user's behalf.

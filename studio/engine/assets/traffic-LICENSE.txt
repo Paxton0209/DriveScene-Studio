@@ -45,3 +45,13 @@ https://creativecommons.org/licenses/by/4.0/
 Changes: baked transforms, dequantization, normalized dimensions, geometry simplification,
 removal/flattening of brand trim and details, closed neutral fascia, opaque sealed core,
 new neutral materials and reduced reflectivity. No manufacturer endorsement implied.
+
+ACTIVE TRAFFIC ASSET (2026-10-20 / finish-110)
+Tesla Model Y — Nieve5677
+https://sketchfab.com/3d-models/tesla-model-y-bc8ac22c744b4d11b92f2f31ab0297d0
+https://sketchfab.com/niev
+License: Creative Commons Attribution 4.0
+https://creativecommons.org/licenses/by/4.0/
+Changes: orientation, scale, neutral opaque materials, omitted emblem/interior details,
+smooth closed lower grille and tire sidewalls, independently simplified rims.
+Original visible body and glazing surfaces retained. No manufacturer endorsement implied.

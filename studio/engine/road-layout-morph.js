@@ -3,7 +3,7 @@ import * as THREE from 'three';
 export function prepareRoadLayout(root,vegetation,mat){
  root.traverse(o=>{
   if(!o.isMesh||!o.geometry||o.userData.sharedVehicleGeometry)return;
-  const role=o.userData.construction||o.userData.constructionContact?0:o.userData.roadEdge?2:o.userData.buildingOwned||vegetation.children.includes(o.parent)?1:o.userData.laneOffset!==undefined||[mat.yellow,mat.yellowPaint].includes(o.material)?3:4;
+  const role=o.userData.construction||o.userData.constructionContact||[mat.road,mat.curb,mat.pavement,mat.ground].includes(o.material)?0:o.userData.roadEdge?2:o.userData.buildingOwned||vegetation.children.includes(o.parent)?1:o.userData.laneOffset!==undefined||[mat.yellow,mat.yellowPaint].includes(o.material)?3:4;
   if(o.geometry.userData.roadLayoutRole===role)return;
   // Shared template geometry may be used by both a road edge and a body.
   if(o.geometry.userData.roadLayoutRole!==undefined){o.geometry=o.geometry.clone();o.geometry.userData={...o.geometry.userData};}

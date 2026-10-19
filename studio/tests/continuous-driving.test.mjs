@@ -62,3 +62,18 @@ test('switching cached road widths keeps accumulated driving phase and scenery d
  f.world.root=next;f.world.vegetation=vegetation;f.world.state={id:'09',laneCount:2};f.drive.advance(.05);
  assert.ok(Math.abs(f.drive.audit().distance-distance-.84)<1e-6);assert.ok(Math.abs(building.position.z-z-.84)<1e-6);f.drive.reset();
 });
+
+test('a width rebind preserves recycled building scale and depth before the first transition draw',()=>{
+ const f=fixture();f.world.root.userData.trafficScene='02';for(let i=0;i<80;i++)f.drive.advance(.1);
+ const distance=f.drive.audit().distance,z=f.building.position.z,scale=f.building.scale.clone(),rotation=f.tree.rotation.clone();
+ const next=new THREE.Group(),vegetation=new THREE.Group(),building=new THREE.Mesh(f.building.geometry,f.building.material),tree=new THREE.Group();
+ building.position.set(22,6,-20);building.userData={...f.building.userData};next.add(vegetation,building);tree.position.set(-11,0,-10);vegetation.add(tree);
+ f.world.root=next;f.world.vegetation=vegetation;f.world.state={id:'02',laneCount:4};f.drive.rebind();
+ assert.equal(f.drive.audit().distance,distance);assert.equal(building.position.z,z);assert.deepEqual(building.scale,scale);assert.deepEqual(tree.rotation.toArray(),rotation.toArray());
+ next.userData.trafficScene='02';f.drive.advance(.05);assert.ok(Math.abs(f.drive.audit().distance-distance-.84)<1e-6);assert.ok(Math.abs(building.position.z-z-.84)<1e-6);f.drive.reset();
+});
+test('departing lane dashes keep their current longitudinal phase when width changes',()=>{
+ const f=fixture();f.world.root.userData.trafficScene='02';for(let i=0;i<23;i++)f.drive.advance(.1);
+ const z=f.mark.position.z,next=new THREE.Group(),vegetation=new THREE.Group(),line=f.mark.clone();line.userData.departingLane=true;next.add(vegetation,line);
+ f.world.root=next;f.world.vegetation=vegetation;f.world.state={id:'02',laneCount:4};f.drive.rebind();assert.equal(line.position.z,z);f.drive.reset();
+});

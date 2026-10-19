@@ -26,12 +26,12 @@ export function createTrafficSystem(world,{enabled=true,now=()=>performance.now(
    slot.car.position.z=route.direction<0?(route.egoLane?-175-n*45-random()*40:((world.state?.cameraView==='high'?24:12)+(Math.abs(route.x)>7?15:0)+n*30+random()*2)):-105-random()*8-n*42;
   }
   if(recycled&&modelsReady){
-   const type=['sedan','suv'][Math.floor(random()*2)],fresh=createTrafficVehicle(type);
+   const type='model-y',fresh=createTrafficVehicle(type);
    for(const child of [...slot.car.children]){slot.car.remove(child);child.material?.dispose();}
    for(const child of [...fresh.children])slot.car.add(child);Object.assign(slot.car.userData,fresh.userData);
   }
  }
- const ready=load?Promise.all(['sedan','suv'].map(type=>readyTrafficModel(null,type))).then(()=>{for(const [index,slot] of slots.entries()){const fresh=createTrafficVehicle(['sedan','suv'][index%2]);while(slot.car.children.length)slot.car.remove(slot.car.children[0]);for(const child of [...fresh.children])slot.car.add(child);Object.assign(slot.car.userData,fresh.userData);}modelsReady=true;for(const slot of slots)if(slot.route)enter(slot);if(world.state)world.renderFrame();}).catch(error=>{modelError=error.message;console.error(error);}):Promise.resolve();
+ const ready=load?readyTrafficModel(null,'model-y').then(()=>{for(const [index,slot] of slots.entries()){const fresh=createTrafficVehicle('model-y');while(slot.car.children.length)slot.car.remove(slot.car.children[0]);for(const child of [...fresh.children])slot.car.add(child);Object.assign(slot.car.userData,fresh.userData);}modelsReady=true;for(const slot of slots)if(slot.route)enter(slot);if(world.state)world.renderFrame();}).catch(error=>{modelError=error.message;console.error(error);}):Promise.resolve();
  const identities=routes=>{const count=new Map();return routes.map(route=>{const lane=[route.axis||'z',route.x,route.direction].join(':'),n=count.get(lane)||0;count.set(lane,n+1);return {...route,id:lane+':'+n};});};
  function update(playing=false,egoSpeed=0){
   const state=world.state;if(!state)return;const time=now(),dt=last?Math.min(.1,Math.max(0,(time-last)/1000)):0;last=time;
@@ -81,5 +81,5 @@ export function createTrafficSystem(world,{enabled=true,now=()=>performance.now(
  }
  return {group,ready,update,setEnabled(value){const entering=!!value&&!enabled;enabled=!!value;
   if(entering)for(const slot of slots)if(slot.route&&slot.target)enter(slot);
-  group.visible=enabled&&modelsReady&&slots.some(s=>s.route);},audit(){const visible=slots.filter(s=>s.car.visible&&group.visible);return {enabled,visible:group.visible,count:visible.length,elapsed,model:'neutral-modern-closed',types:[...new Set(visible.map(s=>s.car.userData.trafficType))],modelReady:slots.every(s=>s.car.userData.modelReady),modelError,positions:visible.map(s=>s.car.position.toArray()),lanes:visible.map(s=>({id:s.id,alpha:s.alpha,retiring:!s.target,x:s.car.position.x,direction:s.route.direction,speed:s.speed,spawns:s.spawns})),spawnSerial:slots.reduce((n,s)=>n+s.spawns,0),waiting:slots.filter(s=>s.cooldown>0).length,poolSize:pool.length};}};
+  group.visible=enabled&&modelsReady&&slots.some(s=>s.route);},audit(){const visible=slots.filter(s=>s.car.visible&&group.visible);return {enabled,visible:group.visible,count:visible.length,elapsed,model:'model-y-original-surfaces',types:[...new Set(visible.map(s=>s.car.userData.trafficType))],modelReady:slots.every(s=>s.car.userData.modelReady),modelError,positions:visible.map(s=>s.car.position.toArray()),lanes:visible.map(s=>({id:s.id,alpha:s.alpha,retiring:!s.target,x:s.car.position.x,direction:s.route.direction,speed:s.speed,spawns:s.spawns})),spawnSerial:slots.reduce((n,s)=>n+s.spawns,0),waiting:slots.filter(s=>s.cooldown>0).length,poolSize:pool.length};}};
 }
