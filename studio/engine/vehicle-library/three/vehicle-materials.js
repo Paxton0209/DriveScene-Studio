@@ -1,3 +1,4 @@
+import {softenXc90Glazing} from '../../xc90-glass-highlight.js';
 import * as THREE from 'three';
 import {deinterleaveGeometry,toCreasedNormals} from 'three/addons/utils/BufferGeometryUtils.js';
 import {createModel3Reflections} from './model3-reflections.js';
@@ -89,7 +90,7 @@ export function prepareVehicleMaterials(model,id,length){
      if(role==='glass'){m.color.set('#202b35');m.metalness=0;m.roughness=.4;m.envMapIntensity=.5;}
      if(role==='original'&&/cockpit/i.test(original.name)){m.emissive.set(0);m.emissiveIntensity=0;}
     }
-    if(id==='xc90'&&role==='glass'){m.normalMap=null;m.bumpMap=null;m.flatShading=false;}
+    if(id==='xc90'&&role==='glass'){m.normalMap=null;m.bumpMap=null;m.flatShading=false;softenXc90Glazing(m);}
     if(['ix','xc90'].includes(id)){
      if(role==='paint'){m.color.set('#e3e7ed');m.metalness=.46;m.roughness=.22;m.clearcoat=1;m.clearcoatRoughness=.19;m.envMap=createModel3Reflections();m.envMapIntensity=1.05;m.normalMap=null;m.bumpMap=null;}
      if(role==='glass'){m.color.set('#17232f');m.metalness=.05;m.roughness=.3;m.envMapIntensity=.65;}

@@ -1,5 +1,5 @@
 import {initExportControls} from './export-controls.js';
-import {createVehicleMorph,glideIndicator,morphSegment,reducedMotion,initToggleMotion,animateToggle} from './ui-motion.js?v=finish-64';
+import {createVehicleMorph,glideIndicator,morphSegment,reducedMotion,initToggleMotion,animateToggle} from './ui-motion.js?v=finish-106';
 const $=id=>document.getElementById(id),product=$('product'),frame=$('engine');
 const scenes=[['road','Road','Driving','02-6'],['elevated','Elevated','Driving','03-0'],['junction','Junction','Driving','05-0'],['ramp','Ramp','Driving','06-0'],['parking','Indoor parking','Parking','10-0'],['outdoor','Outdoor parking','Parking','17-0']];
 const vehicles=[['x6','BMW X6'],['model-3','Tesla Model 3'],['ix','BMW iX'],['xc90','Volvo XC90']];
@@ -46,6 +46,16 @@ function renderControls(){
 function fitVehicleOptions(){
  if(vehicleOpen)vehicleMorph.place();
 }
+
+function finishVehicleRequest(){
+ if(!requestedModel||!ready)return;const state=api().get();if(state.busy)return;
+ const success=state.vehicle===requestedModel;requestedModel=null;saved.model=state.vehicle;persistState();feedback(success?'':'Couldn’t load vehicle. Try again.');renderControls();
+}
+let vehicleIntentTimer=0;
+const warmVehicleIntent=event=>{const choice=event.target.closest('[data-param="model"]');clearTimeout(vehicleIntentTimer);if(!choice||!vehicleOpen||requestedModel||choice.dataset.value===saved.model)return;const id=choice.dataset.value;vehicleIntentTimer=setTimeout(()=>{if(vehicleOpen)void api().warmVehicle(id);},80);};
+$('vehicle-options').addEventListener('pointerover',warmVehicleIntent);
+$('vehicle-options').addEventListener('focusin',warmVehicleIntent);
+$('vehicle-options').addEventListener('pointerleave',()=>clearTimeout(vehicleIntentTimer));
 $('vehicle-options').addEventListener('toggle',e=>{if(e.newState==='closed'&&vehicleOpen){vehicleOpen=false;product.dataset.vehicleOpen='false';$('vehicle-entry').querySelector('button')?.setAttribute('aria-expanded','false')}});
 $('vehicle-options').addEventListener('keydown',e=>{const cards=[...$('vehicle-options').querySelectorAll('.vehicle-card')],index=cards.indexOf(document.activeElement),delta={ArrowRight:1,ArrowLeft:-1,ArrowDown:2,ArrowUp:-2}[e.key];if(index>=0&&(delta||['Home','End'].includes(e.key))){e.preventDefault();cards[e.key==='Home'?0:e.key==='End'?cards.length-1:Math.max(0,Math.min(cards.length-1,index+delta))].focus()}});
 
@@ -134,8 +144,8 @@ const bootStarted=performance.now();
 const slowStartup=setTimeout(()=>{if(!ready)$('loading').hidden=false},5000);
 function finishStartup(){if(ready||!api()?.get().ready)return;api().restoreFeatures({path:!!saved.path,weather:saved.weather});ready=true;$('controls').inert=false;syncState();persistState();clearInterval(startup);clearTimeout(slowStartup);$('loading').hidden=true;product.dataset.ready='true';product.dataset.firstFrame=api().get().firstFrame||'';product.dataset.cachedPreview=String(api().get().cachedPreview);product.dataset.engineAudit=api().get().audit||'';product.dataset.engineInitMs=String(Math.round(performance.now()-bootStarted));product.dataset.startupMs=String(Math.round(performance.now()));renderControls();scheduleGeometry()}
 const startup=setInterval(()=>{try{finishStartup()}catch{}},100);
-frame.addEventListener('load',()=>{frame.contentWindow.addEventListener('studio:ready',finishStartup,{once:true});finishStartup()});
-setInterval(()=>{if(!ready||document.hidden)return;scheduleTransportSync();const s=api().get();if(s.sound){const sound=JSON.stringify(s.sound);if(product.dataset.pathSound!==sound)product.dataset.pathSound=sound;}if(s.featureAudit)product.dataset.versionFeatures=s.featureAudit;$('download').disabled=!s.exportReady||s.exporting||exportBusy;if(requestedModel){if(s.busy){if(Date.now()-busySince>300)feedback('Loading vehicle…')}else if(Date.now()-busySince>150){const success=s.vehicle===requestedModel;requestedModel=null;saved.model=s.vehicle;persistState();feedback(success?'':'Couldn’t load vehicle. Try again.');renderControls()}}},200);
+frame.addEventListener('load',()=>{frame.contentWindow.addEventListener('studio:ready',finishStartup,{once:true});frame.contentWindow.addEventListener('vehicle:change',finishVehicleRequest);finishStartup()});
+setInterval(()=>{if(!ready||document.hidden)return;scheduleTransportSync();const s=api().get();if(s.sound){const sound=JSON.stringify(s.sound);if(product.dataset.pathSound!==sound)product.dataset.pathSound=sound;}if(s.featureAudit)product.dataset.versionFeatures=s.featureAudit;$('download').disabled=!s.exportReady||s.exporting||exportBusy;if(requestedModel){if(s.busy){if(Date.now()-busySince>300)feedback('Loading vehicle…')}else finishVehicleRequest()}},200);
 
 // Mirror the original transport outline and progress on the same animation frames.
 let transportFrame=0;

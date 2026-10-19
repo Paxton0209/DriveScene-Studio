@@ -1,3 +1,4 @@
+import {createActivationSweep} from './activation-sweep.js';
 import * as THREE from 'three';
 import {createPrecipitation,WEATHER_STRENGTH} from './precipitation.js';
 import {PATH_MOTION_KEY,readPathMotion,savePathMotion,normalizePathMotion,pathMotionDuration,pathMotionTimeline,pathMotionFrame} from './path-motion.js';
@@ -15,7 +16,7 @@ export const weatherOptions=Object.freeze(['default','overcast','rain','snow']);
 
 // Match study.css --accent after the world's ACES output pass. Information
 // color uses display-referred tokens; road/vehicle materials keep their lighting.
-const PATH_THEME={light:'#168aef',dark:'#279df5'};
+const PATH_THEME={light:'#1e91f2',dark:'#2689d8'};
 function accentRadiance(hex){
  const c=new THREE.Color(hex),input=new THREE.Matrix3().set(.59719,.35458,.04823,.076,.90834,.01566,.0284,.13383,.83777),output=new THREE.Matrix3().set(1.60475,-.53108,-.07367,-.10208,1.10813,-.00605,-.00327,-.07276,1.07602);
  const v=new THREE.Vector3(c.r,c.g,c.b).applyMatrix3(output.invert());
@@ -25,7 +26,7 @@ function accentRadiance(hex){
  return new THREE.Color().setRGB(v.x,v.y,v.z,THREE.LinearSRGBColorSpace);
 }
 const PATH_COLOR=Object.fromEntries(Object.entries(PATH_THEME).map(([tone,hex])=>[tone,accentRadiance(hex)])),PATH_OPACITY={light:1,dark:1};
-const PATH_PALETTE={light:{nearColor:'#2876dc',midColor:'#168aef',farColor:'#477fc5',edgeColor:'#95c8ff',sweepColor:'#65b2ff'},dark:{nearColor:'#2d6ed0',midColor:'#279df5',farColor:'#477fc5',edgeColor:'#62aaf6',sweepColor:'#65b2ff'}};
+const PATH_PALETTE={light:{nearColor:'#2d7fe1',midColor:'#1e91f2',farColor:'#4b86ce',edgeColor:'#9bcfff',sweepColor:'#70b9ff'},dark:{nearColor:'#2865ba',midColor:'#2689d8',farColor:'#4272aa',edgeColor:'#548fcd',sweepColor:'#579bdf'}};
 const PATH_RADIANCE=Object.fromEntries(Object.entries(PATH_PALETTE).map(([tone,palette])=>[tone,Object.fromEntries(Object.entries(palette).map(([key,hex])=>[key,accentRadiance(hex)]))]));
 const PATH_RETRACT_MS=180*MOTION_TIME_SCALE,PATH_EDGE_WIDTH=.045,PATH_PARTICLE_SPACING=.96;
 const PATH_SWEEP_KEYS=[[240,0],[280,.10],[320,.267],[360,.369],[400,.513],[440,.559],[480,.605],[520,.641],[560,.672],[600,.728],[640,.749],[680,.774],[720,.790],[760,.805],[800,.831],[840,.841],[880,.851],[920,.862],[1040,.900],[1160,.940],[1320,1]];
@@ -53,7 +54,7 @@ const WEATHER={
 const pathVertex='attribute float pathS;attribute float pathSide;varying float vS;varying float vSide;\n'+THREE.ShaderLib.shadow.vertexShader.replace('void main() {','void main() {vS=pathS;vSide=pathSide;');
 const pathFragment=THREE.ShaderLib.shadow.fragmentShader.replace('void main() {',`uniform float startS;uniform float endS;uniform float farRatio;uniform float contactMin;uniform vec3 edgeColor;uniform vec3 nearColor;uniform vec3 midColor;uniform vec3 farColor;uniform vec3 sweepColor;uniform float activation;uniform float nearDepth;uniform float farDepth;varying float vS;varying float vSide;
 float pathEase(float value){return 1.-pow(1.-clamp(value,0.,1.),3.);}
-uniform float sweepProgress;
+uniform float sweepProgress;uniform float singleLayer;
 uniform float edgeBlend;uniform float motionElapsed;uniform float motionPreset;uniform float motionAppearance;uniform float motionOutline;uniform float motionFill;uniform float motionFeather;uniform float motionHandoff;uniform float motionParticles;uniform float motionBandLength;uniform float motionBandBlend;
 void main() {`).replace('gl_FragColor = vec4( color, opacity * ( 1.0 - getShadowMask() ) );',`
  float t=(vS-startS)/max(endS-startS,.001);if(t<0.||t>1.)discard;
@@ -86,6 +87,12 @@ void main() {`).replace('gl_FragColor = vec4( color, opacity * ( 1.0 - getShadow
  surface*=1.+min(particleShade,0.)*dots*particles;
  float foundation=outline*.21;
  float coverage=max(mix(foundation,.92,fill),max(rim*outline*.38,dots*particles*.7));
+ if(singleLayer>.5){
+  coverage=(1.-smoothstep(sweep-.075,sweep+.075,t))*.98;
+  surface=mix(nearColor,midColor,smoothstep(.02,.52,projected));
+  surface=mix(surface,farColor,smoothstep(.56,1.,projected));
+  surface=mix(surface,edgeColor,rim*edgeBlend*(1.-smoothstep(.65,1.,projected)));
+ }
  gl_FragColor=vec4(surface*contact*shadow,opacity*edge*head*tail*coverage);
 `).replace('#include <tonemapping_fragment>','').replace('#include <fog_fragment>','');
 const skyVertex='varying vec3 v;void main(){v=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}';
@@ -162,7 +169,7 @@ function buildPath(world,id){
  geometry.setAttribute('pathS',new THREE.Float32BufferAttribute(s,1));geometry.setAttribute('pathSide',new THREE.Float32BufferAttribute(side,1));geometry.setIndex(index);
  const material=new THREE.ShaderMaterial({uniforms:THREE.UniformsUtils.merge([THREE.ShaderLib.shadow.uniforms,{color:{value:new THREE.Color()},...Object.fromEntries(Object.entries(PATH_RADIANCE.light).map(([key,value])=>[key,{value:value.clone()}])),activation:{value:1},nearDepth:{value:1},farDepth:{value:80},opacity:{value:PATH_OPACITY.light},startS:{value:0},endS:{value:1},farRatio:{value:PATH_FAR_RATIO},contactMin:{value:.72}}]),vertexShader:pathVertex,fragmentShader:pathFragment,lights:true,toneMapped:false,transparent:true,depthWrite:false,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-2});
  const mesh=new THREE.Mesh(geometry,material);
- material.uniforms.sweepProgress={value:1};
+ material.uniforms.sweepProgress={value:1};material.uniforms.singleLayer={value:0};
  material.uniforms.edgeBlend={value:.52};
  for(const [key,value]of Object.entries({motionElapsed:1320,motionPreset:0,motionAppearance:1,motionOutline:1,motionFill:1,motionFeather:.06,motionHandoff:.085,motionParticles:1,motionBandLength:.60,motionBandBlend:0}))material.uniforms[key]={value};
  // Information ribbon sits above road paint; vehicle depth and contact remain above it.
@@ -244,6 +251,7 @@ function revealEase(x){
 export function installVersionFeatures(world){
  if(world.versionFeatures)return world.versionFeatures;
  const precipitation=createPrecipitation(world);
+ const activationSweep=new URLSearchParams(globalThis.location?.search||'').get('review')==='material-draft'?createActivationSweep(world):null;world.activationSweep=activationSweep;
  const params={path:false,weather:'default'},roots=new WeakMap(),counts={created:0,released:0};
  const originalRender=world.renderFrame,originalPrepared=world.renderPreparedFrame;
  const weatherUniforms=()=>({top:{value:new THREE.Color()},bottom:{value:new THREE.Color()},range:{value:.2},weatherTop:{value:new THREE.Color()},cloudLight:{value:new THREE.Color()},cloudShade:{value:new THREE.Color()},amount:{value:0},coverage:{value:0},cloudOpacity:{value:0}});
@@ -251,7 +259,8 @@ export function installVersionFeatures(world){
  const weatherMaterial=skyMaterial(weatherUniforms()),warmMaterial=skyMaterial(weatherUniforms());
  let lastError=null,lastWeather='default',animationFrame=0,lastTick=0;
  const pathReveal={value:0,from:0,to:0,start:0,duration:0,closingActivation:1};
- let pathMotion=readPathMotion();
+ let pathMotion=readPathMotion(),previewDurationMs=null;
+ const revealDuration=()=>activationSweep?350:(previewDurationMs??pathMotionDuration(pathMotion));
  const motionFrame={};
  const pathDepthPoint=new THREE.Vector3();
  const reduced=()=>globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -264,7 +273,7 @@ export function installVersionFeatures(world){
  };
  const queueFrame=()=>{
   if(!world.state||world.initializingScene||animationFrame||globalThis.document?.hidden||world.suspended||reduced())return;
-  if(!pathReveal.duration&&!['rain','snow'].includes(effectiveWeather(sceneId())))return;
+  if(!pathReveal.duration&&!activationSweep?.active()&&!['rain','snow'].includes(effectiveWeather(sceneId())))return;
   animationFrame=requestAnimationFrame(time=>{animationFrame=0;if(!world.state||world.initializingScene)return;if(pathReveal.duration||time-lastTick>=1000/30){lastTick=time;if(!world.cameraMotion&&!world.layoutMotion&&!world.environmentMotion&&!world.structureMotion)world.renderFrame();}queueFrame();});
  };
 
@@ -291,6 +300,7 @@ export function installVersionFeatures(world){
  };
  const refresh=()=>{
   const state=world.state,id=sceneId();if(!state||!world.root||!id)return null;
+  activationSweep?.update(performance.now());
   const data=ensure(id),tone=state.mode==='dark'?'dark':'light';
   world.egoContact?.traverse(o=>{if(o.isMesh)o.renderOrder=6;});
   precipitation.update(effectiveWeather(id));precipitation.beforeRender(performance.now());queueFrame();
@@ -305,11 +315,11 @@ export function installVersionFeatures(world){
    if(path.blocked)end=Math.min(end,locate(path.points,path.cum,path.plan.x,zone.front+.5));
    path.endS=end;
    const reveal=revealAt(performance.now()),u=path.material.uniforms,closing=pathReveal.to===0;
-   const retraction=closing?reveal/Math.max(pathReveal.from,.001):1;
-   u.startS.value=path.startS;u.endS.value=path.startS+(end-path.startS)*retraction;u.color.value.copy(PATH_COLOR[tone]);u.opacity.value=PATH_OPACITY[tone];u.contactMin.value=.86;u.activation.value=closing?pathReveal.closingActivation:reveal;
+   const retraction=1;
+   u.startS.value=path.startS;u.endS.value=path.startS+(end-path.startS)*retraction;u.color.value.copy(PATH_COLOR[tone]);u.opacity.value=PATH_OPACITY[tone]*(closing?reveal/Math.max(pathReveal.from,.001):1);u.contactMin.value=.86;u.activation.value=closing?pathReveal.closingActivation:reveal;
    const elapsed=u.activation.value*pathMotionDuration(pathMotion),motion=pathMotionFrame(elapsed,pathMotion,motionFrame);
    u.motionPreset.value=motion?1:0;u.motionElapsed.value=motion?motion.elapsed:pathMotionTimeline(elapsed,pathMotion);
-   u.sweepProgress.value=motion?motion.front:referenceSweep(u.motionElapsed.value+160);
+   u.sweepProgress.value=activationSweep?u.activation.value:(motion?motion.front:referenceSweep(u.motionElapsed.value+160));u.singleLayer.value=activationSweep?1:0;
    u.motionAppearance.value=motion?.appearance??1;u.motionOutline.value=motion?.outline??1;u.motionFill.value=motion?.fill??1;
    u.motionFeather.value=motion?.feather??.06;u.motionHandoff.value=motion?.handoff??.085;u.motionParticles.value=motion?.particles??1;
    u.motionBandLength.value=motion?.bandLength??.60;u.motionBandBlend.value=motion?.bandBlend??0;
@@ -361,6 +371,7 @@ export function installVersionFeatures(world){
  const idle=()=>!world.cameraMotion&&!world.layoutMotion&&!world.environmentMotion&&!world.structureMotion;
  const api={
   getPathMotion(){return {...pathMotion};},
+  setPathPreviewDuration(value){if(value!==null&&(!Number.isFinite(value)||value<100||value>2000))throw new RangeError("Invalid preview duration");previewDurationMs=value;return revealDuration();},
   setPathMotion(value,{save=false,elapsedMs=null}={}){pathMotion=save?savePathMotion(value):normalizePathMotion(value);if(elapsedMs!==null&&Number.isFinite(elapsedMs)&&location.hostname==='127.0.0.1'&&new URLSearchParams(location.search).has('qa')){params.path=true;pathReveal.value=THREE.MathUtils.clamp(elapsedMs/pathMotionDuration(pathMotion),0,1);pathReveal.from=pathReveal.value;pathReveal.to=1;pathReveal.duration=0;}if(world.state&&idle())world.renderFrame();return {...pathMotion};},
   set(patch={},{render=true,animate=true}={}){
    for(const [key,value]of Object.entries(patch)){
@@ -369,7 +380,8 @@ export function installVersionFeatures(world){
     else throw new TypeError(`unknown version feature: ${key}`);
    }
    if('path' in patch&&patch.path!==params.path){
-    const now=performance.now();revealAt(now);pathReveal.from=pathReveal.value;if(!patch.path)pathReveal.closingActivation=pathReveal.value;pathReveal.to=patch.path?1:0;pathReveal.start=now;pathReveal.duration=(!animate||reduced())?0:(patch.path?pathMotionDuration(pathMotion)*(1-pathReveal.value):PATH_RETRACT_MS);
+    if(patch.path&&!reduced())activationSweep?.start();else activationSweep?.cancel();
+    const now=performance.now();revealAt(now);pathReveal.from=pathReveal.value;if(!patch.path)pathReveal.closingActivation=pathReveal.value;pathReveal.to=patch.path?1:0;pathReveal.start=now+(patch.path&&activationSweep&&animate&&!reduced()?150:0);pathReveal.duration=(!animate||reduced())?0:(patch.path?revealDuration()*(1-pathReveal.value):PATH_RETRACT_MS);
     if(!pathReveal.duration)pathReveal.value=pathReveal.to;
    }
    Object.assign(params,patch);queueFrame();
@@ -393,8 +405,8 @@ export function installVersionFeatures(world){
      for(const k of [-1,0,1]){ray.set(new THREE.Vector3(p.x+p.nx*half*k,path.plan.y+5,p.z+p.nz*half*k),down);ray.far=10;samples++;if(!ray.intersectObjects(roads,false).length)misses++;}
     }
     const start=sample(path.points,path.cum,path.startS),end=sample(path.points,path.cum,path.endS);
-    result.path={kind:path.plan.kind,visible:path.mesh.visible,reveal:pathReveal.value,revealing:!!pathReveal.duration,themeColor:PATH_THEME[world.state?.mode==='dark'?'dark':'light'],gradient:['nearColor','midColor','farColor'].map(key=>PATH_PALETTE[world.state?.mode==='dark'?'dark':'light'][key]),nearWidth:PATH_HALF_WIDTH*2*PATH_NEAR_RATIO,width:PATH_HALF_WIDTH*2,fadeStart:.38,revealMs:pathMotionDuration(pathMotion),retractMs:PATH_RETRACT_MS,retractReferenceVerified:false,timingMs:{outline:[0,200],baseFill:[80,564],sweep:[80,564],particleFade:[80,564]},sweepEase:'monotone cubic interpolation of 25fps reference front samples',sweepKeyframes:PATH_SWEEP_KEYS,sweepAdvanceMs:160,tailStartMs:400,tailDurationScale:pathMotion.tailMs?pathMotion.tailMs/920:null,sharedFillSweepFront:true,sweepBand:{trailingFalloff:.60,frontFeather:.06,blend:.25},particles:'three-column surface dots handed off locally to the shared fill front without a global fade delay',particleSpacing:PATH_PARTICLE_SPACING,nearContactShade:path.material.uniforms.contactMin.value,edgeColor:PATH_PALETTE[world.state?.mode==='dark'?'dark':'light'].edgeColor,edgeBlend:path.material.uniforms.edgeBlend.value,edgeWidth:PATH_EDGE_WIDTH,receivesDirectionalShadow:true,startS:path.startS,endS:path.endS,length:span,start:[start.x,start.z],end:[end.x,end.z],y:path.plan.y,exit:path.plan.exit||null,blockedByRoadworks:path.blocked,onRoad:{samples,misses},informationOverlay:path.mesh.userData.informationOverlay===true};
-    Object.assign(result.path,{motion:{...pathMotion},sweepEase:pathMotion.preset?'single full-duration cubic-bezier front':'reference front with adjustable tail time remapping',sweepAdvanceMs:pathMotion.preset?0:160,tailStartMs:pathMotion.preset?null:400,timingMs:{outline:[0,pathMotion.preset?48:200],baseFill:[0,pathMotionDuration(pathMotion)],sweep:[0,pathMotionDuration(pathMotion)],particleFade:[0,pathMotionDuration(pathMotion)]},motionFrame:pathMotionFrame(pathReveal.value*pathMotionDuration(pathMotion),pathMotion)});
+    result.path={kind:path.plan.kind,visible:path.mesh.visible,reveal:pathReveal.value,revealing:!!pathReveal.duration,themeColor:PATH_THEME[world.state?.mode==='dark'?'dark':'light'],gradient:['nearColor','midColor','farColor'].map(key=>PATH_PALETTE[world.state?.mode==='dark'?'dark':'light'][key]),nearWidth:PATH_HALF_WIDTH*2*PATH_NEAR_RATIO,width:PATH_HALF_WIDTH*2,fadeStart:.38,revealMs:revealDuration(),retractMs:PATH_RETRACT_MS,retractReferenceVerified:false,timingMs:{outline:[0,200],baseFill:[80,564],sweep:[80,564],particleFade:[80,564]},sweepEase:'monotone cubic interpolation of 25fps reference front samples',sweepKeyframes:PATH_SWEEP_KEYS,sweepAdvanceMs:160,tailStartMs:400,tailDurationScale:pathMotion.tailMs?pathMotion.tailMs/920:null,sharedFillSweepFront:true,sweepBand:{trailingFalloff:.60,frontFeather:.06,blend:.25},particles:'three-column surface dots handed off locally to the shared fill front without a global fade delay',particleSpacing:PATH_PARTICLE_SPACING,nearContactShade:path.material.uniforms.contactMin.value,edgeColor:PATH_PALETTE[world.state?.mode==='dark'?'dark':'light'].edgeColor,edgeBlend:path.material.uniforms.edgeBlend.value,edgeWidth:PATH_EDGE_WIDTH,receivesDirectionalShadow:true,startS:path.startS,endS:path.endS,length:span,start:[start.x,start.z],end:[end.x,end.z],y:path.plan.y,exit:path.plan.exit||null,blockedByRoadworks:path.blocked,onRoad:{samples,misses},informationOverlay:path.mesh.userData.informationOverlay===true};
+    Object.assign(result.path,{motion:{...pathMotion},sweepEase:pathMotion.preset?'single full-duration cubic-bezier front':'reference front with adjustable tail time remapping',sweepAdvanceMs:pathMotion.preset?0:160,tailStartMs:pathMotion.preset?null:400,timingMs:{outline:[0,pathMotion.preset?48:200],baseFill:[0,revealDuration()],sweep:[0,revealDuration()],particleFade:[0,revealDuration()]},motionFrame:pathMotionFrame(pathReveal.value*pathMotionDuration(pathMotion),pathMotion)});if(activationSweep)Object.assign(result.path,{singleLayer:true,particles:false,pathDelayMs:150,revealMs:350,totalActivationMs:850,sweepBand:null,timingMs:{baseFill:[150,500]},exit:"opacity fade"});
    }else result.path={kind:null,visible:false,reason:PARKING_IDS.includes(id)?'parking':'scene without path'};
    if(data?.arrows){
     const box=new THREE.Box3().setFromObject(world.car),dims=world.junctionDimensions||{},width=(dims.crosswalkCount||14)*(dims.crosswalkSpacing||1.5),depth=dims.crosswalkLength||2.5,nearZ=dims.nearCrosswalk??-27,sideX=JUNCTION_HALF+1.7;

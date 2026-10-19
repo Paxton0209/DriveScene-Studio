@@ -1,14 +1,18 @@
 // Original single-syllable cue: rounded harmonics and a short directional bend.
 // One onset per action; dark settles downward, light opens upward.
 let context,voice;
-let pathBuffer=null,pathLoading=null,pathVoice=null,pathPlays=0,pathFailures=0;
+let pathBuffer=null,pathLoading=null,pathVoice=null,pathPlays=0,pathFailures=0,pathCue='08K',pathRequest=0;
+const soundChoices={'piano-3':'../sound-review/final/audio/piano-3.wav','piano-4':'../sound-review/final/audio/piano-4.wav','assist-a':'../sound-review/final/audio/assist-a.wav','assist-b':'../sound-review/final/audio/assist-b.wav',tesla:'../sound-review/final/audio/tesla-engage.wav','apple-soft':'../sound-review/final/audio/apple-soft.wav','apple-clear':'../sound-review/final/audio/apple-clear.wav'};
+function chosenSound(){try{return localStorage.getItem('drivescene-assist-sound');}catch{return null;}}
+window.addEventListener('storage',event=>{if(event.key==='drivescene-assist-sound'){pathRequest++;pathLoading=null;pathBuffer=null;preparePathSound();}});
 function audioContext(){const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return null;context??=new Audio();return context;}
-export function pathSoundStatus(){return {ready:!!pathBuffer,plays:pathPlays,failures:pathFailures,state:context?.state||'unavailable'};}
+export function pathSoundStatus(){return {ready:!!pathBuffer,plays:pathPlays,failures:pathFailures,state:context?.state||'unavailable',durationMs:pathBuffer?Math.round(pathBuffer.duration*1000):null,cue:pathCue};}
 export function preparePathSound(){
  try{
  if(pathLoading)return pathLoading;
  const audio=audioContext();if(!audio)return Promise.resolve();
- pathLoading=fetch(new URL('./assets/sounds/path-enable.wav',import.meta.url)).then(response=>{if(!response.ok)throw Error('sound unavailable');return response.arrayBuffer();}).then(data=>audio.decodeAudioData(data)).then(buffer=>{pathBuffer=buffer;}).catch(()=>{pathFailures++;});
+ const request=++pathRequest,choice=chosenSound();pathCue=soundChoices[choice]?choice:'08K';
+ pathLoading=fetch(new URL(soundChoices[choice]||'./assets/sounds/path-enable.wav?v=08k-400',import.meta.url)).then(response=>{if(!response.ok)throw Error('sound unavailable');return response.arrayBuffer();}).then(data=>audio.decodeAudioData(data)).then(buffer=>{if(request===pathRequest)pathBuffer=buffer;}).catch(()=>{if(request===pathRequest){pathFailures++;pathLoading=null;}});
  return pathLoading;
  }catch{pathFailures++;return Promise.resolve();}
 }
@@ -19,8 +23,8 @@ export function playPathSound(){
   const now=audio.currentTime,gain=audio.createGain();gain.connect(audio.destination);gain.gain.setValueAtTime(.40,now);
   let source;
   if(pathBuffer){source=audio.createBufferSource();source.buffer=pathBuffer;}
-  else{preparePathSound();source=audio.createOscillator();source.type='sine';source.frequency.setValueAtTime(330,now);source.frequency.exponentialRampToValueAtTime(990,now+.18);gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(.055,now+.018);gain.gain.exponentialRampToValueAtTime(.0001,now+.30);}
-  source.connect(gain);source.start(now);if(!pathBuffer)source.stop(now+.32);pathPlays++;document.documentElement.dataset.pathSound=JSON.stringify(pathSoundStatus());const active=pathVoice={source,gain};
+  else{preparePathSound();return;}
+  source.connect(gain);source.start(now);pathPlays++;document.documentElement.dataset.pathSound=JSON.stringify(pathSoundStatus());const active=pathVoice={source,gain};
   source.onended=()=>{source.disconnect();gain.disconnect();if(pathVoice===active)pathVoice=null;};
  }catch{pathFailures++;}
 }

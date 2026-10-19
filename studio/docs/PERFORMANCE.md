@@ -36,3 +36,23 @@ Each preset is checked against a high-precision reference at 10,001 positions, w
 The 14 Node tests pass in both the source workspace and a clean package installation. A further 26 light/dark scene, lane-count and environment-visibility sequences reported no internal feature errors or invalid/ghost contact bounds. A real activation confirmed the decoded audio buffer, running audio context and one playback with no audio failures.
 
 In one matched light-mode road patch, the screenshot mean RGB values were approximately (96.4, 106.4, 118.4) in clear weather and (89.9, 99.9, 111.9) in rain. This confirms the intended darker rain relationship without a lateral brightness gradient.
+
+## Finish-73 validation (supersedes historic ground/sound notes)
+
+Desktop vehicle warm-up reuses the four-entry 128MiB cache, serial preparation and the existing rollback path. It also primes framing bounds, previously paid during replacement. In one same-browser sequence the BMW iX / XC90 / X6 totals changed from 135.8 / 169.4 / 201.0ms (cold) to 17.4 / 15.9 / 6.6ms (idle-warmed). The warmed cache estimated 126125727 of 134217728 bytes. This moves work to idle time; it is not a guarantee for cold networks or lower-end hardware. Pointer/focus intent warms are deduplicated. Completion now reaches the outer workbench through vehicle:change rather than waiting for its polling interval.
+
+Dark ground now follows the user's supplied cool-gray v0.18 reference. The earlier equal-channel grayscale correction is superseded. Correction runs after lighting, building reflections, rain/snow and fog on road, ground, pavement and curb materials; paint, route, water and buildings are excluded. Dark reflection strength is 18% of the previous value, and rain no longer adds random puddle islands in dark mode. Light mode keeps its palette and interpolates selected material/atmosphere parameters 50% toward the supplied reference's texture qualities.
+
+The accepted 08K cue is installed in the workbench: 450ms, 48kHz stereo, no clipped samples and silent endpoints, byte-identical to its audition asset. Path flow is now 450ms. Browser checks observed a ready buffer, one playback, zero failures and revealMs=450. These are technical playback checks; they do not imply Apple review or a car-cabin listening test.
+
+38 studio tests and 16 targeted vehicle tests pass. Both renderer bundles build successfully. UI density changes live in an independent /studio/ui-draft/ page; the original workbench has no compact-layout styles or switcher.
+
+## Finish-84 road-only draft (supersedes prior 50% material notes)
+
+The first parameter-only material variant was rejected as visually indistinguishable, and the later facade treatment was rejected too. Facade detail, changed building bevels/shadows, global lighting and aerial changes are removed. Main-workbench material parameters are back at baseline. Only the isolated material draft changes the asphalt, using a physical clearcoat/roughness response plus a continuous neutral sky lobe and a darker bitumen foundation.
+
+The existing reflection render includes the ego in the material draft and excludes architecture from that texture, removing hard rectangular road ghosts. Its plane matches the .015m road; lower-contrast blurred reflection fades by reflected height. Cache keys include the reflected model identity, pose and visibility. Tesla→BMW X6 was checked to produce a different reflected vehicle identity, and low/high camera plus light rain checks completed without fresh renderer errors. No new reflection pass is added; ego draw calls enter the existing pass in this draft only.
+
+Two sampled road rectangles in completed same-camera screenshots differ by approximately 25–28 RGB levels from baseline, versus the rejected variant's 1–2 levels. The sampled building face is identical. This validates visible separation and scope, not user approval of perceived material quality. The static comparison modal supports a keyboard-accessible split slider. Preview cache identities distinguish baseline and the current draft.
+
+Path palette calibration is applied to the actual workbench: light mid #1e91f2, dark mid #2689d8, with corresponding near/far/edge/sweep values. Runtime checks retain a 450ms reveal and accepted 450ms 08K sound. Forty-one studio and sixteen targeted vehicle tests pass.

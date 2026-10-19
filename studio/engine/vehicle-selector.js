@@ -10,6 +10,10 @@ export function initVehicleSelector({selected,onChange,onPreview=()=>{}}){
  header.append(title,close);panel.append(header,grid,feedback);document.body.append(panel);
  let switching=false,current=selected,ready=false,openingFrame=0,previousOverflow='',intentTimer=0,openEpoch=0,focusId=selected,pendingId='';
  const enhanced=()=>document.documentElement?.dataset.review==='after';
+ let usingKeyboard=false;
+ const inputMode=value=>{usingKeyboard=value;document.documentElement.dataset.vehicleInput=value?'keyboard':'pointer';};
+ document.addEventListener?.('pointerdown',()=>inputMode(false));
+ document.addEventListener?.('keydown',event=>{if(['Tab','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Enter',' '].includes(event.key))inputMode(true);});
  grid.setAttribute('role','group');grid.setAttribute('aria-label','Vehicle models');
  const cards=new Map();
  function update(){
@@ -47,7 +51,7 @@ export function initVehicleSelector({selected,onChange,onPreview=()=>{}}){
  trigger.addEventListener('click',()=>{
   if(panel.open||trigger.disabled)return;
   openEpoch++;focusId=current;if(enhanced()&&!switching){feedback.hidden=true;panel.append(feedback);}update();
-  previousOverflow=document.documentElement.style.overflow;document.documentElement.style.overflow='hidden';panel.dataset.state='entering';panel.showModal();trigger.setAttribute('aria-expanded','true');cards.get(current).focus({preventScroll:true});panel.getBoundingClientRect();
+  previousOverflow=document.documentElement.style.overflow;document.documentElement.style.overflow='hidden';panel.dataset.state='entering';panel.showModal();trigger.setAttribute('aria-expanded','true');if(usingKeyboard)cards.get(current).focus({preventScroll:true});else{panel.tabIndex=-1;panel.focus({preventScroll:true});}panel.getBoundingClientRect();
   openingFrame=requestAnimationFrame(()=>{if(panel.open&&panel.dataset.state==='entering')panel.dataset.state='open';});
  });
  close.addEventListener('click',dismiss);

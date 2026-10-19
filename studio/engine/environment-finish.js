@@ -1,3 +1,4 @@
+import {lightQuality} from './sr-quality.js';
 import {Box3,Vector3,Vector4} from 'three';
 
 export function installEnvironmentFinish(world,strength=.4){
@@ -6,7 +7,7 @@ export function installEnvironmentFinish(world,strength=.4){
  const blockMin={value:Array.from({length:32},()=>new Vector4())},blockMax={value:Array.from({length:32},()=>new Vector4())},blockCount={value:0},bounds=new Box3(),layoutOffset=new Vector3();
  let contactRoot=null,contactKey='',contactSyncs=0,contactCacheHits=0;
  world.environmentFinish={amount,strength,audit(){return {strength:amount.value,warmth:0,localWarmth:0,environmentOccluders:blockCount.value,contactTrees:treeCount.value,contactSyncs,contactCacheHits};},contacts(){return {blocks:blockMin.value.slice(0,blockCount.value).map((point,index)=>({min:point.toArray(),max:blockMax.value[index].toArray()})),trees:treeContacts.value.slice(0,treeCount.value).map(point=>point.toArray())};},syncContacts(){
-  const key=[world.environmentSignature,world.layoutBlend.value,world.layoutVisual?.width,world.environmentGrowth.buildings.value,world.environmentGrowth.trees.value,world.structureMotion?.environmentReveal??1,world.root.children.length,world.vegetation.children.length,world.vegetation.visible].join('|');
+  const key=[world.environmentSignature,world.layoutBlend.value,world.layoutVisual?.width,world.environmentGrowth.buildings.value,world.environmentGrowth.trees.value,world.structureMotion?.environmentReveal??1,world.root.children.length,world.vegetation.children.length,world.vegetation.visible,world.drivingDistance].join('|');
   if(contactRoot===world.root&&contactKey===key){contactCacheHits++;return;}
   contactRoot=world.root;contactKey=key;contactSyncs++;world.scene.updateMatrixWorld(true);
   const blocks=world.root.children.filter(object=>object.userData.buildingOwned&&object.visible);
@@ -49,27 +50,26 @@ export function installEnvironmentFinish(world,strength=.4){
    shader.vertexShader=shader.vertexShader.replace('#include <project_vertex>','#include <project_vertex>\nvFinishPosition=(modelMatrix*vec4(transformed,1.)).xyz;vFinishNormal=normalize(mat3(modelMatrix)*normal);');
    shader.fragmentShader='uniform float environmentFinishAmount;uniform float finishTone;uniform vec4 finishTreeContacts[32];uniform int finishTreeCount;uniform vec4 finishBlockMin[32];uniform vec4 finishBlockMax[32];uniform int finishBlockCount;varying vec3 vFinishPosition;varying vec3 vFinishNormal;\n'+shader.fragmentShader;
    if(surface)shader.fragmentShader=shader.fragmentShader.replace('#include <roughnessmap_fragment>',`#include <roughnessmap_fragment>
-    roughnessFactor=mix(roughnessFactor,${kind==='road'?'.52':kind==='ground'?'.67':'.48'},environmentFinishAmount);
+    roughnessFactor=mix(roughnessFactor,${kind==='road'?String(lightQuality.roadRoughness):kind==='ground'?'.67':'.48'},finishStrength);
    `);
    if(surface)shader.fragmentShader=shader.fragmentShader.replace('#include <lights_fragment_end>',`#include <lights_fragment_end>
     float finishSpecularLuma=dot(reflectedLight.indirectSpecular,vec3(.2126,.7152,.0722));
-    reflectedLight.indirectSpecular=mix(reflectedLight.indirectSpecular,vec3(finishSpecularLuma),environmentFinishAmount*.85)*(1.+environmentFinishAmount*3.4);
+    reflectedLight.indirectSpecular=mix(reflectedLight.indirectSpecular,vec3(finishSpecularLuma),finishStrength*.85)*(1.+finishStrength*${lightQuality.surfaceSpecularBoost.toFixed(2)});
    `);
-   if(kind==='building')shader.fragmentShader=shader.fragmentShader.replace('#include <lights_fragment_end>','#include <lights_fragment_end>\nreflectedLight.directDiffuse*=1.-environmentFinishAmount*.35;reflectedLight.indirectDiffuse*=1.+environmentFinishAmount*.45;');
+   if(kind==='building')shader.fragmentShader=shader.fragmentShader.replace('#include <lights_fragment_end>','#include <lights_fragment_end>\nreflectedLight.directDiffuse*=1.-finishStrength*.35;reflectedLight.indirectDiffuse*=1.+finishStrength*.45;');
    const shaping=surface?`
-    float finishBase=${kind==='road'?'mix(.48,.40,finishTone)':kind==='ground'?'.82':'.95'};
+    float finishBase=${kind==='road'?`mix(${lightQuality.roadFinishBase.toFixed(2)},.40,finishTone)`:kind==='ground'?String(lightQuality.groundFinishBase):'.95'};
     vec3 finishSatin=outgoingLight*finishBase;
-    outgoingLight=mix(outgoingLight,finishSatin,environmentFinishAmount);
+    outgoingLight=mix(outgoingLight,finishSatin,finishStrength);
    `:kind==='building'?`
     float finishBase=exp(-max(vFinishPosition.y,0.)/2.4);
     float finishUpper=1.-exp(-max(vFinishPosition.y,0.)/12.);
     float finishVolume=.94+.08*finishUpper-.05*finishBase;
-    outgoingLight*=mix(1.,finishVolume,environmentFinishAmount);
-   `:`outgoingLight*=mix(1.,.82+.22*max(finishNormal.y,0.),environmentFinishAmount);`;
+    outgoingLight*=mix(1.,finishVolume,finishStrength);
+   `:`outgoingLight*=mix(1.,.82+.22*max(finishNormal.y,0.),finishStrength);`;
    shader.fragmentShader=shader.fragmentShader.replace('#include <opaque_fragment>',`
     vec3 finishNormal=normalize(vFinishNormal);
     ${shaping}
-    ${surface?'outgoingLight=mix(outgoingLight,vec3(dot(outgoingLight,vec3(.2126,.7152,.0722))),finishTone);':''}
     ${surface||kind==='grass'?`
     float finishContact=0.;
     for(int contactIndex=0;contactIndex<32;contactIndex++){
@@ -86,10 +86,11 @@ export function installEnvironmentFinish(world,strength=.4){
      vec2 offset=(vFinishPosition.xz-tree.xy)/max(.4,tree.z);
      finishContact=max(finishContact,.32*exp(-dot(offset,offset)/.65)*tree.w);
     }
-    outgoingLight*=1.-finishContact*clamp(environmentFinishAmount*2.,0.,1.)*max(finishNormal.y,0.);
+    outgoingLight*=1.-finishContact*clamp(finishStrength*2.,0.,1.)*max(finishNormal.y,0.);
     `:''}
     #include <opaque_fragment>`);
+   shader.fragmentShader=shader.fragmentShader.replace('#include <roughnessmap_fragment>',`#include <roughnessmap_fragment>\nfloat finishStrength=environmentFinishAmount*${surface||kind==='building'?'(1.-finishTone)':'1.'};`);
   };
-  material.customProgramCacheKey=()=>cacheKey+'-environment-finish-64-'+kind;
+  material.customProgramCacheKey=()=>cacheKey+'-environment-finish-68-'+kind;
  }
 }

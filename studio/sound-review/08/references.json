@@ -1,0 +1,14 @@
+[
+  {
+    "id": "ref-tesla",
+    "brand": "特斯拉",
+    "status": "社区录音 · 版本未注明",
+    "description": "2021年上传的独立开启音片段；车型和软件版本未注明，归属待实车核验。",
+    "src": "references/tesla-community.wav",
+    "durationMs": 750,
+    "url": "https://www.youtube.com/watch?v=mp5MaTyXnV4&t=0",
+    "sourceLabel": "查看原始上传 · 0.54–1.29s",
+    "referenceOnly": true,
+    "cueTitle": "社区标注的开启音"
+  }
+]

@@ -8,13 +8,13 @@
 // the original output, and root changes restore their original shader hooks.
 
 const SHARED=['road','ground','pavement','curb','grass','building','environmentBuilding','leaf','leaf2','trunk'];
-const KEY='-weather-ground-5';
+const KEY='-weather-ground-7';
 
 const overlay=`uniform float weatherAmount;uniform float weatherKind;uniform float weatherTone;uniform vec4 weatherRoad;
 float weatherHash(vec2 q){return fract(sin(dot(q,vec2(127.1,311.7)))*43758.5453);}
 float weatherNoise(vec2 q){vec2 i=floor(q),f=fract(q);f=f*f*(3.-2.*f);return mix(mix(weatherHash(i),weatherHash(i+vec2(1.,0.)),f.x),mix(weatherHash(i+vec2(0.,1.)),weatherHash(i+vec2(1.)),f.x),f.y);}
 // up: surface normal against world up; facing: normal against the view direction.
-vec3 weatherGround(vec3 color,vec3 world,float up,float facing,float roof){
+vec3 weatherGround(vec3 color,vec3 world,float up,float facing,float roof,vec3 local){
  if(weatherAmount<=0.)return color;
  vec2 drainageUV=vec2((world.x-weatherRoad.x)*11.1/max(weatherRoad.y,1.),world.z);
  float level=smoothstep(.55,.92,up),broad=weatherNoise(world.xz*.11);
@@ -33,23 +33,30 @@ vec3 weatherGround(vec3 color,vec3 world,float up,float facing,float roof){
   float basin=weatherNoise(drainageUV*vec2(.12,.045)+7.3);
   float pockets=smoothstep(.62,.79,basin);
   float drainage=mix(.28,edge,weatherRoad.z);
-  float wet=level*(.45+.22*broad),pool=level*drainage*pockets;
+  // Dark mode uses an even wet film; random puddle islands read as dirt.
+  float wet=level*mix(.45+.22*broad,.56,weatherTone);
+  float pool=level*drainage*pockets*(1.-weatherTone);
 
   color*=1.-weatherAmount*(mix(3.2,.55,weatherTone)*wet+.18*pool);
   float sheen=weatherAmount*pool*(.25+.75*pow(1.-clamp(facing,0.,1.),4.))*.6;
-  return mix(color,mix(vec3(.82,.86,.9),vec3(.3,.33,.36),weatherTone),sheen);
+  return mix(color,mix(vec3(.82,.86,.9),vec3(.33),weatherTone),sheen);
  }
  // Thin settling snow favours horizontal roofs, verges and broad quiet patches.
  float distSnow=abs(world.x-weatherRoad.x)/max(weatherRoad.y,1.);
  float edgeSnow=smoothstep(.55,1.,distSnow);
  float settling=mix(.3+.7*edgeSnow,1.,max(clamp(roof,0.,1.),1.-weatherRoad.z));
  color*=1.-weatherAmount*level*(1.-settling)*1.6;
- float cover=level*settling*(.82+.18*broad);
- float accumulation=roof>1.5?12.:roof>.5?10.:1.;
- vec3 snowColor=mix(vec3(.9,.92,.95),vec3(.47,.50,.54),weatherTone);
- // On the mild wet-snow roadway, traffic areas stay dark; roofs/crowns retain a dusting.
+ float coarse=weatherNoise(local.xz*.43+local.y*.17);
+ float fine=weatherNoise(local.xz*1.7+vec2(local.y*.5,3.7));
+ float drift=.68*coarse+.32*fine;
+ float crown=roof>1.5?1.:0.;
+ float snowUp=smoothstep(mix(.54,.16,crown),mix(.92,.85,crown),up);
+ float patches=smoothstep(.25,.72,drift);
+ float cover=roof>.5?snowUp*(.12+.78*patches):level*settling*(.82+.18*broad);
+ float accumulation=roof>1.5?18.:roof>.5?16.:1.;
+ vec3 snowColor=mix(vec3(.90,.92,.95),vec3(.47,.50,.54),weatherTone);
  float roadClear=mix(1.,edgeSnow,weatherRoad.z*(1.-step(.5,roof)));
- return mix(color,snowColor,weatherAmount*cover*.9*accumulation*roadClear);
+ return mix(color,snowColor,min(.90,weatherAmount*cover*.9*accumulation*roadClear));
 }
 `;
 
@@ -58,11 +65,11 @@ function inject(shader,uniforms,custom,roof=false){
  if(custom){
   const out='gl_FragColor=vec4(surface,1.);';
   if(!shader.fragmentShader.includes(out))return false;
-  shader.fragmentShader=overlay+shader.fragmentShader.replace(out,'surface=weatherGround(surface,p,1.,normalize(cameraPosition-p).y,0.);'+out);
+  shader.fragmentShader=overlay+shader.fragmentShader.replace(out,'surface=weatherGround(surface,p,1.,normalize(cameraPosition-p).y,0.,p);'+out);
  }else{
   if(!shader.vertexShader.includes('#include <project_vertex>')||!shader.fragmentShader.includes('#include <opaque_fragment>'))return false;
-  shader.vertexShader='varying vec3 vWeatherWorld;\n'+shader.vertexShader.replace('#include <project_vertex>','#include <project_vertex>\nvWeatherWorld=(modelMatrix*vec4(transformed,1.)).xyz;');
-  shader.fragmentShader=overlay+'varying vec3 vWeatherWorld;\n'+shader.fragmentShader.replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\nfloat wetRoughness=weatherAmount*float(weatherKind<1.5);roughnessFactor=max(.28,roughnessFactor-wetRoughness*2.2);').replace('#include <opaque_fragment>','outgoingLight=weatherGround(outgoingLight,vWeatherWorld,dot(normal,normalize((viewMatrix*vec4(0.,1.,0.,0.)).xyz)),dot(normal,normalize(vViewPosition)),ROOF_FLAG);\n#include <opaque_fragment>');
+  shader.vertexShader='varying vec3 vWeatherWorld;varying vec3 vWeatherLocal;\n'+shader.vertexShader.replace('#include <project_vertex>','#include <project_vertex>\nvWeatherWorld=(modelMatrix*vec4(transformed,1.)).xyz;vWeatherLocal=position+vec3(modelMatrix[3].x*.37,length(modelMatrix[1].xyz)*7.,0.);');
+  shader.fragmentShader=overlay+'varying vec3 vWeatherWorld;varying vec3 vWeatherLocal;\n'+shader.fragmentShader.replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\nfloat wetRoughness=weatherAmount*float(weatherKind<1.5);roughnessFactor=max(.28,roughnessFactor-wetRoughness*2.2);').replace('#include <opaque_fragment>','outgoingLight=weatherGround(outgoingLight,vWeatherWorld,dot(normal,normalize((viewMatrix*vec4(0.,1.,0.,0.)).xyz)),dot(normal,normalize(vViewPosition)),ROOF_FLAG,vWeatherLocal);\n#include <opaque_fragment>');
  }
  shader.fragmentShader=shader.fragmentShader.replace('ROOF_FLAG',strRoof(roof));Object.assign(shader.uniforms,uniforms);return true;
 }
@@ -104,7 +111,7 @@ export function createWeatherGround(world){
    const root=world.root,materials=[...shared.keys()];let meshes=0;
    root?.traverse(o=>{if(o.isMesh&&o.visible&&materials.includes(o.material))meshes++;});
    const floorCount=rootPatch&&rootPatch.root===root?rootPatch.materials.length:0;
-   return {active:!!state.kind&&uniforms.weatherAmount.value>0&&meshes+floorCount>0,kind:state.kind,distribution:'animated road-width drainage; upward roof and crown settling',amount:uniforms.weatherAmount.value,tone:uniforms.weatherTone.value?'dark':'light',
+   return {active:!!state.kind&&uniforms.weatherAmount.value>0&&meshes+floorCount>0,kind:state.kind,distribution:'animated road-width drainage; stable irregular roof and crown snow patches',amount:uniforms.weatherAmount.value,tone:uniforms.weatherTone.value?'dark':'light',
     shared:{installed:SHARED.filter(k=>shared.has(world.mat?.[k])),gatedByAmount:true,meshesInRoot:meshes},
     rootFloors:{patched:floorCount,pendingRestore:!!rootPatch&&rootPatch.root!==root},compiles:{...stats},disposed,
     untouched:{lanePaint:true,paths:true,lights:true,fog:true,glass:true,vehicles:true,reflectionPasses:true}};

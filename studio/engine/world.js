@@ -1,3 +1,7 @@
+import {prepareRoadLayout,patchRoadLayout} from './road-layout-morph.js';
+import {installSrRoadSheen} from './sr-road-sheen.js';
+import {installNeutralDarkSurfaces} from './neutral-surfaces.js';
+import {lightQuality,SR_QUALITY_MIX} from './sr-quality.js';
 import {laneRetireTiming,junctionApproachTiming,previewMotionSettings} from './motion-settings.js';
 import {MOTION_TIME_SCALE} from '../motion-config.js';
 import {createStudioEnvironment} from './studio-environment.js';
@@ -45,7 +49,7 @@ export class World {
   this.performanceStats=measure?{frames:0,compiles:0,groundPasses:0,waterPasses:0,times:[],drawCalls:0}:null;
   this.palette=palette;this.width=width;this.height=height;this.sceneCache=new Map();this.preparedRoots=new WeakSet();this.geometryTemplates=new Map();this.laneMaterials=new Map();
   this.environmentGrowth={buildings:{value:1,velocity:0},trees:{value:0,velocity:0},waterfront:{value:0,velocity:0},roadworks:{value:0,velocity:0}};
-  this.layoutBlend={value:1};this.structurePaintOpacity={value:1};this.waterMix={value:0};this.roadCameraCache=new Map();
+  this.roadLayoutActive={value:0};this.roadLayoutWidths={value:new THREE.Vector2(11.1,11.1)};this.layoutBlend={value:1};this.structurePaintOpacity={value:1};this.waterMix={value:0};this.roadCameraCache=new Map();
   // Scene edges are antialiased in the composer's multisampled render target.
   this.renderer=renderer||new THREE.WebGLRenderer({canvas,antialias:false,preserveDrawingBuffer:true,alpha});
   this.renderer.setPixelRatio(1);this.renderer.setSize(width,height,false);
@@ -53,13 +57,17 @@ export class World {
   this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1;
   this.scene=new THREE.Scene();this.camera=new THREE.PerspectiveCamera(38,16/9,1,2000);
   this.mat={};this.colors={
-   road:['#505967','#262729'],ground:['#b4c3d6','#373a3e'],pavement:['#d1dbee','#3c4045'],
-   curb:['#d6e1ef','#5a6068'],building:['#d3d7dd','#55585d'],glass:['#a6bed0','#606a72'],
+   road:['#505967','#303031'],ground:['#b4c3d6','#373a3e'],pavement:['#d1dbee','#3c4045'],
+   curb:['#d6e1ef','#5a6068'],building:['#d3d7dd','#817d7d'],glass:['#a6bed0','#606a72'],
    white:['#d6e0e9','#a7adb2'],yellow:['#bbaa6f','#99864e'],grass:['#809c68','#3e4d3d'],
    leaf:['#82a68b','#45584c'],leaf2:['#99ad80','#52614a'],trunk:['#776956','#4b463e'],cone:['#ff5109','#ff590c'],water:['#7695ae','#304146'],parkingFloor:['#7c8b9e','#17181b'],parkingBay:['#aebdce','#393c41'],parkingEdge:['#98a9bc','#34383e']
   };
   for(const [key,pair]of Object.entries(this.colors))this.mat[key]=new THREE.MeshStandardMaterial({color:pair[0],roughness:key==='glass'?.35:.86,metalness:key==='glass'?.1:0});
   this.mat.trunk.flatShading=true;for(const k of ['leaf','leaf2']){this.mat[k].flatShading=false;this.mat[k].roughness=.9;}
+  if(SR_QUALITY_MIX>0){
+   this.mat.road.dispose();
+   this.mat.road=new THREE.MeshPhysicalMaterial({color:this.colors.road[0],roughness:.32,metalness:0,clearcoat:.42,clearcoatRoughness:.24,specularIntensity:.9,envMapIntensity:1.25});
+  }
   this.mat.road.roughness=.54;this.mat.road.metalness=0;this.mat.building.roughness=.36;this.mat.glass.dispose();
   this.mat.glass=new THREE.MeshPhysicalMaterial({color:this.colors.glass[0],roughness:.30,metalness:0,clearcoat:.72,clearcoatRoughness:.25,envMapIntensity:.8});
   this.mat.glass.onBeforeCompile=shader=>{
@@ -76,8 +84,26 @@ export class World {
    shader.vertexShader='varying float vBuildingHeight;varying vec3 vBuildingNormal;\n'+shader.vertexShader;
    shader.vertexShader=shader.vertexShader.replace('#include <project_vertex>','#include <project_vertex>\nvBuildingHeight=(modelMatrix*vec4(transformed,1.0)).y;vBuildingNormal=normalize(mat3(modelMatrix)*normal);');
    shader.fragmentShader='uniform float buildingTint;varying float vBuildingHeight;varying vec3 vBuildingNormal;\n'+shader.fragmentShader;
-   shader.fragmentShader=shader.fragmentShader.replace('#include <opaque_fragment>','float shaded=1.-smoothstep(-.3,.7,dot(normalize(vBuildingNormal),normalize(vec3(-38.,55.,48.))));vec3 lightFace=mix(vec3(.94,.97,1.0),vec3(.90,.93,.98),shaded);vec3 darkFace=mix(vec3(.88,.91,.94),vec3(.85,.88,.91),shaded);outgoingLight*=mix(darkFace,lightFace,buildingTint);outgoingLight*=.90+.10*(1.-exp(-max(0.,vBuildingHeight)/4.));\n#include <opaque_fragment>');
+   shader.fragmentShader=shader.fragmentShader.replace('#include <opaque_fragment>','float shaded=1.-smoothstep(-.3,.7,dot(normalize(vBuildingNormal),normalize(vec3(-38.,55.,48.))));vec3 lightFace=mix(vec3(.94,.97,1.0),vec3(.90,.93,.98),shaded);vec3 darkFace=mix(vec3(.78,.85,.92),vec3(.67,.72,.77),shaded);outgoingLight*=mix(darkFace,lightFace,buildingTint);outgoingLight*=.90+.10*(1.-exp(-max(0.,vBuildingHeight)/4.));\n#include <opaque_fragment>');
   };
+  if(SR_QUALITY_MIX>0){
+   const compile=this.mat.building.onBeforeCompile;
+   this.mat.building.onBeforeCompile=shader=>{
+    compile.call(this.mat.building,shader);
+    shader.fragmentShader=shader.fragmentShader.replace('#include <opaque_fragment>',`
+     float srFacadeShade=1.-smoothstep(-.3,.7,dot(normalize(vBuildingNormal),normalize(vec3(-38.,55.,48.))));
+     float srFacadeLuma=dot(outgoingLight,vec3(.2126,.7152,.0722));
+     vec3 srFacade=mix(outgoingLight,vec3(srFacadeLuma),.25);
+     srFacade*=mix(vec3(.97,1.,1.035),vec3(.90,.995,1.09),srFacadeShade);
+     srFacade*=mix(1.05,.78,srFacadeShade);
+     srFacade*=.74+.14*(1.-exp(-max(0.,vBuildingHeight)/6.));
+     float srFacadeRim=pow(1.-clamp(dot(normal,normalize(vViewPosition)),0.,1.),4.);
+     srFacade+=vec3(srFacadeLuma*.10*srFacadeRim);
+     outgoingLight=mix(outgoingLight,srFacade,buildingTint);
+     #include <opaque_fragment>`);
+   };
+   this.mat.building.customProgramCacheKey=()=> 'sr-cool-satin-facade-3';
+  }
   this.mat.white.polygonOffset=true;this.mat.white.polygonOffsetFactor=-2;this.mat.white.polygonOffsetUnits=-2;
   this.mat.yellow.polygonOffset=true;this.mat.yellow.polygonOffsetFactor=-2;this.mat.yellow.polygonOffsetUnits=-2;
   this.mat.grass.transparent=true;this.mat.grass.depthWrite=false;
@@ -103,7 +129,7 @@ export class World {
   // A smooth analytic sky gradient has no cloud texture or luminous horizon stripe.
   this.sky=new THREE.Mesh(new THREE.SphereGeometry(1000,32,16),new THREE.ShaderMaterial({side:THREE.BackSide,depthWrite:false,uniforms:{range:{value:.12},top:{value:new THREE.Color('#72afe0')},bottom:{value:new THREE.Color('#c4ddec')}},vertexShader:'varying vec3 v;void main(){v=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',fragmentShader:'varying vec3 v;uniform vec3 top;uniform vec3 bottom;uniform float range;void main(){float t=smoothstep(0.,range,normalize(v).y);gl_FragColor=vec4(mix(bottom,top,t),1.0);#include <colorspace_fragment> }'.replace(';#include',';\n#include').replace('fragment> }','fragment>\n}') }));
   this.tailReflection=createTailLight();this.scene.add(this.tailReflection);
-  this.scene.add(this.sky);this.scene.fog=new THREE.Fog('#c9dbea',85,280);this.car=car;this.scene.add(this.car);this.egoContact=createContactShadows(this.car);this.scene.add(this.egoContact);this.current=null;
+  this.scene.add(this.sky);this.scene.fog=new THREE.Fog('#c9dbea',85,280);this.car=car;this.scene.add(this.car);this.egoContact=createContactShadows(this.car,{softBody:SR_QUALITY_MIX>0});this.scene.add(this.egoContact);this.current=null;
   const target=new THREE.WebGLRenderTarget(width,height,{type:THREE.HalfFloatType,samples:width<=960?2:4});
   this.composer=new EffectComposer(this.renderer,target);this.composer.addPass(new RenderPass(this.scene,this.camera));
   this.composer.addPass(new OutputPass());
@@ -116,6 +142,16 @@ export class World {
   this.blurTargets=[0,1].map(()=>new THREE.WebGLRenderTarget(Math.ceil(width/2),Math.ceil(height/2),{type:THREE.HalfFloatType}));
   this.blurMaterial=new THREE.ShaderMaterial({depthTest:false,depthWrite:false,uniforms:{source:{value:null},direction:{value:new THREE.Vector2()}},vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}',fragmentShader:'uniform sampler2D source;uniform vec2 direction;varying vec2 vUv;void main(){vec4 c=texture2D(source,vUv)*.227027; c+=(texture2D(source,vUv+direction*1.384615)+texture2D(source,vUv-direction*1.384615))*.316216;c+=(texture2D(source,vUv+direction*3.230769)+texture2D(source,vUv-direction*3.230769))*.070270;gl_FragColor=c;}'});
   this.blurQuad=new FullScreenQuad(this.blurMaterial);this.reflectionTexture={value:this.blurTargets[1].texture};
+  // Asphalt receives only ego reflection; building captures stay on the surrounds.
+  if(SR_QUALITY_MIX>0){
+   this.carMirror=new Reflector(new THREE.PlaneGeometry(1,1),{textureWidth:Math.ceil(width/2),textureHeight:Math.ceil(height/2),multisample:0});this.carMirror.rotation.x=-Math.PI/2;
+   this.carMirror.getRenderTarget().depthTexture=new THREE.DepthTexture(Math.ceil(width/2),Math.ceil(height/2));
+   this.carReflectionDepth={value:this.carMirror.getRenderTarget().depthTexture};this.carReflectionInverse={value:new THREE.Matrix4()};this.carReflectionSharp={value:this.carMirror.getRenderTarget().texture};this.carReflectionMatrix={value:new THREE.Matrix4()};
+   this.carBlurTargets=[0,1].map(()=>new THREE.WebGLRenderTarget(Math.ceil(width/2),Math.ceil(height/2),{type:THREE.HalfFloatType}));this.carReflectionTexture={value:this.carBlurTargets[1].texture};
+   this.vehicleFootprints={value:Array.from({length:12},()=>new THREE.Vector4())};this.vehicleReflectionCount={value:0};
+   this.carBlurMaterial=this.blurMaterial.clone();this.carBlurMaterial.fragmentShader='uniform sampler2D source;uniform vec2 direction;varying vec2 vUv;void main(){vec4 c=vec4(0.);float total=0.;for(int i=-6;i<=6;i++){float weight=exp(-float(i*i)/8.);c+=texture2D(source,vUv+direction*float(i))*weight;total+=weight;}gl_FragColor=c/total;}';this.carBlurQuad=new FullScreenQuad(this.carBlurMaterial);
+
+  }
   this.waterReflectionTarget=new THREE.WebGLRenderTarget(Math.ceil(width/2),Math.ceil(height/2),{type:THREE.HalfFloatType});this.waterReflectionTexture={value:this.waterReflectionTarget.texture};
   for(const kind of ['water']){const material=this.mat[kind],strength=kind==='water'?.43:.025;
    const previousCompile=material.onBeforeCompile;
@@ -150,20 +186,27 @@ export class World {
   attachGroundReflection(this.mat.water,this);
   const coastCompile=this.mat.water.onBeforeCompile;
   this.mat.water.onBeforeCompile=shader=>{coastCompile.call(this.mat.water,shader);shader.fragmentShader=shader.fragmentShader.replace('proximity*valid*reflectionStrength','proximity*valid*reflectionStrength*(1.-waterMix)');};
+  installSrRoadSheen(this);
   for(const kind of ['road','ground','pavement','parkingFloor']){attachGroundReflection(this.mat[kind],this);this.mat[kind].customProgramCacheKey=()=>kind+'-localized-reflection-r15';}
   installEnvironmentFinish(this,environmentFinish);
+  installNeutralDarkSurfaces(this);
   // Gradual aerial perspective starts in the middle distance; all far surfaces
   // reach the same horizon color before the geometry ends.
   for(const material of Object.values(this.mat)){
    const compile=material.onBeforeCompile;
    material.onBeforeCompile=shader=>{compile.call(material,shader);shader.uniforms.darkAerialPerspective=this.darkAerialPerspective;shader.fragmentShader='uniform float darkAerialPerspective;\n'+shader.fragmentShader;shader.fragmentShader=shader.fragmentShader.replace('#include <fog_fragment>',`#ifdef USE_FOG
-    float t=clamp((vFogDepth-55.)/225.,0.,1.);
+    float t=clamp((vFogDepth-${lightQuality.aerialStart.toFixed(1)})/${lightQuality.aerialSpan.toFixed(1)},0.,1.);
     // In dark scenes a shared distance curve joins sky and ground gradually.
     if(darkAerialPerspective>.5)t=clamp((vFogDepth-65.)/235.,0.,1.);
     float aerial=t*t*t*(t*(t*6.-15.)+10.);
     float fogFactor=fogNear>10000.?0.:aerial;
     gl_FragColor.rgb=mix(gl_FragColor.rgb,fogColor,fogFactor);
     #endif`);};
+  }
+  if(SR_QUALITY_MIX>0)for(const key of ['road','ground','pavement']){
+   const material=this.mat[key],compile=material.onBeforeCompile,cache=material.customProgramCacheKey();
+   material.onBeforeCompile=shader=>{compile.call(material,shader);shader.uniforms.sharedHorizon=this.sky.material.uniforms.bottom;shader.fragmentShader='uniform vec3 sharedHorizon;\n'+shader.fragmentShader;shader.fragmentShader=shader.fragmentShader.replace('#include <opaque_fragment>',`float horizonDistance=length(vGroundWorld.xz-cameraPosition.xz);float horizonAerial=smoothstep(70.,280.,horizonDistance)*darkAerialPerspective;outgoingLight=mix(outgoingLight,sharedHorizon,horizonAerial);\n#include <opaque_fragment>`);};
+   material.customProgramCacheKey=()=>cache+'-shared-linear-horizon-1';
   }
   const building=this.mat.building;
   this.mat.environmentBuilding=building.clone();this.mat.environmentBuilding.onBeforeCompile=building.onBeforeCompile;
@@ -204,15 +247,15 @@ export class World {
   }
   for(const material of Object.values(this.mat)){
    const compile=material.onBeforeCompile,cacheKey=material.customProgramCacheKey();
-   material.defaultAttributeValues={...material.defaultAttributeValues,layoutOffset:[0,0,0]};
-   material.onBeforeCompile=shader=>{compile.call(material,shader);if(shader.uniforms.layoutBlend)return;shader.uniforms.layoutBlend=this.layoutBlend;shader.vertexShader='attribute vec3 layoutOffset;uniform float layoutBlend;\n'+shader.vertexShader;shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\ntransformed+=layoutOffset*(1.-layoutBlend);');};
-   material.customProgramCacheKey=()=>cacheKey+'-layout-morph-1';
+   material.defaultAttributeValues={...material.defaultAttributeValues,layoutOffset:[0,0,0],roadLayoutRole:[0]};
+   material.onBeforeCompile=shader=>{compile.call(material,shader);if(shader.uniforms.layoutBlend)return;patchRoadLayout(shader,this);};
+   material.customProgramCacheKey=()=>cacheKey+'-layout-morph-2';
   }
   // Shadow geometry follows the same road deformation as the visible mesh.
   this.layoutDepth=new THREE.MeshDepthMaterial({depthPacking:THREE.RGBADepthPacking});
-  this.layoutDepth.defaultAttributeValues={...this.layoutDepth.defaultAttributeValues,layoutOffset:[0,0,0]};
-  this.layoutDepth.onBeforeCompile=shader=>{shader.uniforms.layoutBlend=this.layoutBlend;shader.vertexShader='attribute vec3 layoutOffset;uniform float layoutBlend;\n'+shader.vertexShader;shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\ntransformed+=layoutOffset*(1.-layoutBlend);');};
-  this.layoutDepth.customProgramCacheKey=()=> 'layout-depth-1';
+  this.layoutDepth.defaultAttributeValues={...this.layoutDepth.defaultAttributeValues,layoutOffset:[0,0,0],roadLayoutRole:[0]};
+  this.layoutDepth.onBeforeCompile=shader=>{patchRoadLayout(shader,this);};
+  this.layoutDepth.customProgramCacheKey=()=> 'layout-depth-2';
   this.receiverDepth=new THREE.MeshDepthMaterial({depthPacking:THREE.RGBADepthPacking});this.receiverDepth.onBeforeCompile=shader=>{shader.fragmentShader=shader.fragmentShader.replace('void main() {','void main() { discard;');};this.receiverDepth.customProgramCacheKey=()=> 'receiver-only-depth';
   this.mat.water.transparent=true;this.mat.water.depthWrite=false;
   this.mat.junctionGrass=this.mat.grass.clone();this.mat.junctionGrass.onBeforeCompile=this.mat.grass.onBeforeCompile;this.mat.junctionGrass.customProgramCacheKey=this.mat.grass.customProgramCacheKey;this.mat.junctionGrass.defaultAttributeValues=this.mat.grass.defaultAttributeValues;
@@ -320,13 +363,13 @@ export class World {
   const approachPaint=(hx,hz,stop)=>{
    const rect=(offset,d,width,length,mat='white')=>this.plane(hx?length:width,hx?width:length,-hx*d-hz*offset,-40-hz*d+hx*offset,.032,mat);
    const solidEnd=stop+45,limit=hx?150:hz<0?110:220;
-   // GB 5768.3-2025 6.4.3 / fig.75: butt against the near yellow edge.
+   // Share the stop/yellow boundary without overlapping paint.
    const yellowWidth=.15,yellowOffset=.15,start=yellowOffset+yellowWidth/2,end=half-.25+.065;
-   rect((start+end)/2,stop,end-start,.4);
+   rect((start+end)/2,stop,end-start,.18);
    for(const off of [3.7,7.4]){rect(off,(stop+solidEnd)/2,.13,solidEnd-stop);for(let d=solidEnd;d<limit-2;d+=6)rect(off,d+1,.13,2);}
    for(const off of [-3.7,-7.4])for(let d=half+4;d<limit-2;d+=6)rect(off,d+1,.13,2);
    // Share the forward edge, with no overlap or half-depth step in the seam.
-   for(const off of [-yellowOffset,yellowOffset])rect(off,(stop-.2+limit)/2,yellowWidth,limit-stop+.2,'yellow');
+   for(const off of [-yellowOffset,yellowOffset])rect(off,(stop-.09+limit)/2,yellowWidth,limit-stop+.09,'yellow');
   };
   approachPaint(0,-1,17.45);approachPaint(-1,0,17.25);approachPaint(1,0,17.25);if(crossroad)approachPaint(0,1,17.45);
   for(const side of [-1,1]){
@@ -353,16 +396,17 @@ export class World {
   this.curbs(w,70,near+r);if(crossroad)this.curbs(w,far-r,-260);
   else{this.box(w,.18,1.6,0,-.02,far-.8,'pavement');this.box(w,.20,.20,0,0,far-.1,'curb');this.plane(w,.13,0,far+.25,.028,'white');}
   this.prepareStructurePaint('junction');
-  this.junctionDimensions={crosswalkCount,crosswalkSpacing,crosswalkLength,crosswalkStripeWidth,stripeOffsets,camera:'high-angle',roadSurface:'disjoint shared boundaries',cornerRadius:r,corners:crossroad?4:2,edgePaint:'continuous shared curve endpoints',nearCrosswalk:-27,markingEnd:-22.55,stopLineVisible:true,stopLineCount:crossroad?4:3,inboundSolidLength:45,stopLineWidth:.4,stopYellowJoint:{type:'shared lateral edge',yellowWidth:.15,yellowGap:.15,stopStart:.225,tipOffset:-.2},outboundCrosswalkGap:.85,dashPattern:[2,4]};
+  this.junctionDimensions={crosswalkCount,crosswalkSpacing,crosswalkLength,crosswalkStripeWidth,stripeOffsets,camera:'high-angle',roadSurface:'disjoint shared boundaries',cornerRadius:r,corners:crossroad?4:2,edgePaint:'continuous shared curve endpoints',nearCrosswalk:-27,markingEnd:-22.55,stopLineVisible:true,stopLineCount:crossroad?4:3,inboundSolidLength:45,stopLineWidth:.18,stopYellowJoint:{type:'shared lateral edge',yellowWidth:.15,yellowGap:.15,stopStart:.225,tipOffset:-.09},outboundCrosswalkGap:.85,dashPattern:[2,4]};
  }
  dividedCarriageway(w,deck){
+  const distantEnd=SR_QUALITY_MIX>0&&this.current==='03'?-480:-260;
   const medianWidth=1.6,oppositeX=-(w+medianWidth),start=this.root.children.length;
-  this.road(0,w,70,-260,deck);this.marks(w,3.7,70,-260,deck,false,false);
-  this.line(-w/2+.25,70,-260,deck);this.line(w/2-.25,70,-260,deck);
+  this.road(0,w,70,distantEnd,deck);this.marks(w,3.7,70,distantEnd,deck,false,false);
+  this.line(-w/2+.25,70,distantEnd,deck);this.line(w/2-.25,70,distantEnd,deck);
   for(const mesh of this.root.children.slice(start))mesh.position.x+=oppositeX;
   const medianX=-(w+medianWidth)/2;
-  this.plane(medianWidth,330,medianX,-95,deck+.025,'pavement');
-  this.box(.68,.62,330,medianX,deck+.31,-95,'curb',.05);
+  this.plane(medianWidth,70-distantEnd,medianX,(70+distantEnd)/2,deck+.025,'pavement');
+  this.box(.68,.62,70-distantEnd,medianX,deck+.31,(70+distantEnd)/2,'curb',.05);
   this.dividedRoad={lanesPerDirection:3,medianWidth,oppositeCenter:oppositeX,egoCenter:0,directions:2};
  }
  ramp(id,w){
@@ -456,13 +500,14 @@ export class World {
   this.dividedRoad=null;this.root=new THREE.Group();this.scene.add(this.root);this.vegetation=new THREE.Group();this.root.add(this.vegetation);this.lawns=[];this.current=id;this.parkingBays=[];this.parkingColumns=[];this.buildingPlacements=[];this.waterBounds=null;this.rampDimensions=null;this.roadworkZone=null;this.pedestrianPassages=[];this.junctionDimensions=null;this.parkingReplica=null;
   const urban=['02','05','08','09','13'].includes(id),w=['02','09','13'].includes(id)&&options.laneCount?options.laneCount*3.7:['04','09'].includes(id)?7.4:urban?22.2:11.1,deck=id==='03'?ELEVATED_DECK_HEIGHT:0;
   if(!parkingIds.includes(id))this.plane(20000,20000,0,-1000,-.14,'ground');
-  let carX=urban||id==='04'?1.85:0;let carZ=0;let roadEnd=-260;
+  let carX=urban||id==='04'?1.85:0;let carZ=0;const distantEnd=SR_QUALITY_MIX>0&&['01','02','03','04','09','12'].includes(id)?-480:-260;
+  let roadEnd=distantEnd;
   if(id==='08'||id==='05'){roadEnd=-40;carZ=id==='05'?-17.5:-10;}
   if(id==='10')roadEnd=-150;
   if(id==='03'){
    const medianWidth=1.6,totalWidth=w*2+medianWidth,deckCenter=-(w+medianWidth)/2;
-   this.box(totalWidth+.6,.95,330,deckCenter,deck-.48,-95,'curb').castShadow=false;
-   for(const side of [-1,1]){const edge=this.box(.24,.28,330,deckCenter+side*(totalWidth/2+.12),deck+.12,-95,'curb',.025);edge.castShadow=false;}
+   this.box(totalWidth+.6,.95,70-distantEnd,deckCenter,deck-.48,(70+distantEnd)/2,'curb').castShadow=false;
+   for(const side of [-1,1]){const edge=this.box(.24,.28,70-distantEnd,deckCenter+side*(totalWidth/2+.12),deck+.12,(70+distantEnd)/2,'curb',.025);edge.castShadow=false;}
    for(const z of [8,-20,-65,-110]){
     this.box(totalWidth-2,.8,2.6,deckCenter,deck-1.3,z,'building',.08).castShadow=false;
     for(const side of [-1,1])this.box(1.65,deck-1.7,1.9,deckCenter+side*6,(deck-1.7)/2,z,'building',.06).castShadow=false;
@@ -477,7 +522,7 @@ export class World {
   }else if(id==='06'||id==='07'){
    this.ramp(id,w);
   }else{
-   this.marks(w,3.7,70,-260,deck,id==='02'||id==='04'||id==='09',id!=='03');if(id==='03'){this.line(w/2-.25,70,-260,deck);this.line(-w/2+.25,70,-260,deck);}if(id!=='03')this.curbs(w,70,-260,deck);
+   this.marks(w,3.7,70,distantEnd,deck,id==='02'||id==='04'||id==='09',id!=='03');if(id==='03'){this.line(w/2-.25,70,-260,deck);this.line(-w/2+.25,70,-260,deck);}if(id!=='03')this.curbs(w,70,distantEnd,deck);
    yield;
    if(!['01'].includes(id))yield* this.environmentSteps(id==='03'?w*2+1.6:w,{small:['04','11','12'].includes(id),elevated:id==='03',residential:false,centerX:id==='03'?-(w+1.6)/2:0});
    if(id==='11'){
@@ -491,7 +536,7 @@ export class World {
   if(['02','09','13','12'].includes(id))this.roadworks(w);
   yield;
   if(['02','09','13'].includes(id)){this.mat.water.roughness=.28;this.mat.water.metalness=.32;this.roundedWater(w);}
-  if(!['05','08',...parkingIds].includes(id)){const farX=id==='13'?18:0;this.road(farX,120,-256,-268,deck);}
+  if(!['05','08',...parkingIds].includes(id)){const farX=id==='13'?18:0;this.road(farX,120,distantEnd+4,distantEnd-8,deck);}
   // Center the ego in its lane. Elevation is added to camera and car together.
   this.car.position.set(carX,deck+.02,carZ);this.car.rotation.set(0,0,0);
   this.configureCamera(id,options);
@@ -508,6 +553,7 @@ export class World {
   this.geometrySignature=signature.toString(16);
   yield;
   this.batchRoadMarkings();
+  if(['02','09','13'].includes(id))prepareRoadLayout(this.root,this.vegetation,this.mat);
   this.root.traverse(o=>{if(o.isMesh&&!o.userData.sharedVehicleGeometry)o.customDepthMaterial=id==='03'&&!o.userData.buildingOwned&&[this.mat.road,this.mat.curb,this.mat.pavement,this.mat.building].includes(o.material)?this.receiverDepth:this.layoutDepth;if(o.userData.laneDash||[this.mat.whitePaint,this.mat.lanePaint,this.mat.yellowPaint,this.mat.crosswalk].includes(o.material)){o.castShadow=false;o.receiveShadow=false;}});
   const fields={};
   for(const key of ['root','vegetation','lawns','current','parkingBays','parkingColumns','buildingPlacements','waterBounds','rampDimensions','roadworkZone','pedestrianPassages','junctionDimensions','parkingReplica','parkedVehicles','parkingTone','parkingShadow','parkingGhostMaterials','environmentSignature','geometrySignature','dividedRoad'])fields[key]=this[key];
@@ -609,8 +655,12 @@ export class World {
   this.environmentFinish.amount.value=isParking?0:this.environmentFinish.strength;
   for(const lawn of this.lawns){lawn.material=lawn.userData.junctionPersistent?this.mat.junctionGrass:this.waterBounds&&lawn.position.x>0?this.mat.shoreGrass:this.mat.grass;lawn.receiveShadow=this.environmentFinish.amount.value>0;}
   this.buildingTint.value=dark?0:1;
-  this.mat.building.roughness=dark?.5:.62;this.mat.building.clearcoat=dark?.04:.025;this.mat.building.clearcoatRoughness=dark?.56:.6;this.mat.building.specularIntensity=dark?.36:.24;this.mat.building.envMapIntensity=dark?1.5:.55;
+  this.mat.road.metalness=dark?.08:0;this.mat.road.roughness=dark?.54:lightQuality.roadRoughness;
+  (this.reflectionStrength??={value:1}).value=dark?.18:lightQuality.reflectionStrength;
+  this.mat.building.roughness=dark?.5:lightQuality.buildingRoughness;this.mat.building.clearcoat=dark?.04:lightQuality.buildingClearcoat;this.mat.building.clearcoatRoughness=dark?.56:.6;this.mat.building.specularIntensity=dark?.36:.24;this.mat.building.envMapIntensity=dark?1.5:.55;
+  if(SR_QUALITY_MIX>0&&!dark){this.mat.building.clearcoatRoughness=.32;this.mat.building.specularIntensity=.65;this.mat.building.envMapIntensity=1.1;}
   for(const key of ['roughness','clearcoat','clearcoatRoughness','specularIntensity','envMapIntensity'])this.mat.environmentBuilding[key]=this.mat.building[key];
+  if(SR_QUALITY_MIX>0){this.mat.road.clearcoat=dark?0:.42;this.mat.road.clearcoatRoughness=.24;this.mat.road.envMapIntensity=dark?1:1.25;}
   this.mat.glass.roughness=dark?.46:.30;this.mat.glass.clearcoat=dark?.22:.72;this.mat.glass.envMapIntensity=dark?.35:.8;
   if(this.parkingTone)this.parkingTone.value=dark?1:0;if(isParking&&this.parkingShadow)this.parkingShadow.material.opacity=['17','18','19'].includes(id)?(dark?.65:.72):(dark?.16:.22);
   if(isIndoor)for(const m of this.parkingGhostMaterials){const part=m.userData.ghostPart;m.color.set(part==='body'?(dark?'#424243':'#939aa3'):part==='glass'?(dark?'#2e2e30':'#5b626b'):(dark?'#272729':'#575c63'));}
@@ -618,17 +668,16 @@ export class World {
   this.sun.color.set(dark?'#ebebeb':'#fff5e8');this.sun.intensity=dark?1.65:3.0;this.fill.color.set(dark?'#cacaca':'#aacded');this.fill.intensity=dark?.45:.5;
   this.scene.environmentIntensity=isParking?(dark?.28:.42):(dark?.30:.38);
   if(isParking&&!['17','18','19'].includes(id)){this.hemi.color.set(dark?'#e5e5e5':'#d9e2eb');this.hemi.groundColor.set(dark?'#717171':'#91969e');this.hemi.intensity=dark?.65:.85;this.sun.color.set(dark?'#eeeeee':'#fff5e8');this.sun.intensity=dark?1.4:2.6;this.fill.color.set(dark?'#cccccc':'#d7e2eb');this.fill.intensity=.35;}
-  this.sun.position.set(-38,55+(id==='03'?ELEVATED_DECK_HEIGHT:0),48);this.sun.shadow.intensity=dark?.22:.28;
-  const bodyContact=this.egoContact.children[0];bodyContact.scale.y=1;bodyContact.position.z=0;bodyContact.material.uniforms.opacity.value=dark?.30:.38;
+  this.sun.position.set(-38,55+(id==='03'?ELEVATED_DECK_HEIGHT:0),48);this.sun.shadow.intensity=dark?.22:lightQuality.shadowIntensity;this.sun.shadow.radius=dark?3:lightQuality.shadowRadius;
+  const bodyContact=this.egoContact.children[0];bodyContact.scale.y=1;bodyContact.position.z=0;bodyContact.material.uniforms.opacity.value=SR_QUALITY_MIX>0?(dark?.28:.36):(dark?.30:.38);
   this.environmentTone.value=dark?1:0;this.darkAerialPerspective.value=dark?1:0;
-  this.sky.material.uniforms.range.value=dark?.32:.20;this.sky.material.uniforms.top.value.set(dark?'#2d2e30':'#96bde0');this.sky.material.uniforms.bottom.value.set(dark?'#48494b':'#dce5ee');
-  this.scene.fog.color.set(dark?'#48494b':'#dce5ee');this.scene.fog.near=isIndoor?100000:55;this.scene.fog.far=isIndoor?120000:210;this.sky.visible=true;this.scene.background=null;
-  if(dark){
-   this.sky.material.uniforms.range.value=.20;
-   this.sky.material.uniforms.top.value.set('#202225');
-   this.sky.material.uniforms.bottom.value.set('#373a3e');
-   this.scene.fog.color.copy(this.sky.material.uniforms.bottom.value);
-  }
+  // Keep the dark horizon close to the distant asphalt; a wide, low-contrast
+  // sky ramp avoids the former bright gray belt above the vanishing point.
+  this.sky.material.uniforms.range.value=dark?.42:.20;
+  this.sky.material.uniforms.top.value.set(dark?'#202225':'#96bde0');
+  this.sky.material.uniforms.bottom.value.set(dark?'#2b2e32':'#dce5ee');
+  this.scene.fog.color.copy(this.sky.material.uniforms.bottom.value);
+  this.scene.fog.near=isIndoor?100000:55;this.scene.fog.far=isIndoor?120000:210;this.sky.visible=true;this.scene.background=null;
   if(!dark&&this.palette!=='current'){
    const warm=this.palette==='warm';this.hemi.color.set(this.palette==='balanced'?'#cedded':warm?'#ece8e2':'#e2e5e8');this.fill.color.set(this.palette==='balanced'?'#cbdde9':warm?'#e8e4df':'#dfe3e8');
 
@@ -676,6 +725,7 @@ export class World {
   });
  }
  prepareStructureOffsets(family){
+  this.roadLayoutActive.value=0;
   this.root.updateMatrixWorld(true);
   this.root.traverse(o=>{
    if(!o.isMesh||!o.geometry||o.userData.buildingOwned||o.userData.sharedVehicleGeometry||this.vegetation.children.includes(o.parent)||this.lawns.includes(o)||o.material===this.mat.ground)return;
@@ -720,6 +770,7 @@ export class World {
   };transition.frame=requestAnimationFrame(tick);
  }
  beginLaneTransition(target){
+  const setupStarted=performance.now();
   const from={...(this.layoutVisual||this.roadLayout(this.state))},lineAlphas=new Map(),departingLines=[];
   this.root.traverse(o=>{
    if(o.userData.laneOffset===undefined)return;
@@ -731,12 +782,12 @@ export class World {
   });
   this.clearLayoutTransition();this.stopLayoutMotion(false);this.stopEnvironmentMotion();this.stopCameraMotion();
   const transition={target,from,lineAlphas,departingLines,kind:'lanes',phase:'prepare',frame:0,start:0};this.layoutTransition=transition;this.onLayoutFrame?.(true);
-  this.advanceLayoutToRoad(transition);
+  this.advanceLayoutToRoad(transition);this.laneTransitionPerformance={from:Math.round(from.width/3.7),to:target.laneCount,setupMs:performance.now()-setupStarted,maxFrameGapMs:0,frames:0};
  }
  advanceLayoutToRoad(transition){
   if(this.layoutTransition!==transition||transition.phase!=='prepare')return;
   this.stopEnvironmentMotion();transition.frame=0;transition.phase='road';this.mat.lanePaint.opacity=0;
-  this.update(transition.target,{layoutMotion:true,layoutPhase:true});
+  this.update(transition.target,{layoutMotion:true,layoutPhase:true,deferRender:true});
   if(!this.layoutMotion){this.mat.lanePaint.opacity=1;this.completeLayoutTransition(transition);}
  }
  finishLayoutTransition(){
@@ -748,18 +799,7 @@ export class World {
  finishLayoutMotion(){if(!this.layoutMotion)return;this.layoutVisual=this.layoutMotion.to;this.stopLayoutMotion();this.renderFrame();const transition=this.layoutTransition;if(transition)this.completeLayoutTransition(transition);else this.onLayoutFrame?.(false);}
  startLayoutMotion(from,to){
   if(Math.abs(from.width-to.width)<.001&&Math.abs(from.curve-to.curve)<.001){this.layoutVisual=to;return;}
-  const center=(z,curve)=>z>=-30?0:curve*18*(1-Math.exp(-Math.pow((-z-30)/95,3)));
-  this.root.updateMatrixWorld(true);
-  this.root.traverse(o=>{if(!o.isMesh||!o.geometry||o.userData.sharedVehicleGeometry)return;
-   const positions=o.geometry.attributes.position,offsets=new Float32Array(positions.count*3),m=o.matrixWorld.elements,inverse=o.matrixWorld.clone().invert().elements,rigid=o.userData.buildingOwned||this.vegetation.children.includes(o.parent),centerPaint=o.userData.laneOffset!==undefined||[this.mat.yellow,this.mat.yellowPaint].includes(o.material),half=to.width/2;
-   for(let i=0;i<positions.count;i++){
-    const px=positions.getX(i),py=positions.getY(i),pz=positions.getZ(i),wx=m[0]*px+m[4]*py+m[8]*pz+m[12],wz=m[2]*px+m[6]*py+m[10]*pz+m[14],x=wx-center(wz,to.curve);
-    const oldX=o.userData.roadEdge?x+(from.width-to.width)*Math.sign(x)*.5:rigid?x+(from.width-to.width)*Math.sign(m[12])*.5:centerPaint||Math.abs(x)<=.35?x:Math.abs(x)<=half?Math.sign(x)*(.35+(Math.abs(x)-.35)*(from.width/2-.35)/(half-.35)):Math.sign(x)*(Math.abs(x)-half+from.width/2);
-    const dx=oldX+center(wz,from.curve)-wx;offsets[i*3]=inverse[0]*dx;offsets[i*3+1]=inverse[1]*dx;offsets[i*3+2]=inverse[2]*dx;
-   }
-   if(o.userData.construction||o.userData.constructionContact)offsets.fill(0);
-   o.geometry.setAttribute('layoutOffset',new THREE.BufferAttribute(offsets,3));
-  });
+  this.roadLayoutActive.value=1;this.roadLayoutWidths.value.set(from.width/2,to.width/2);
   this.layoutBlend.value=0;this.mat.lanePaint.opacity=0;this.layoutVisual=from;
   const construction=[];for(const o of this.root.children)if(o.userData.constructionAssembly||o.userData.constructionContact){const x=o.userData.layoutBaseX??(o.userData.layoutBaseX=o.position.x);construction.push({o,x});o.position.x=x+(from.width-to.width)/2;}
   this.root.traverse(o=>{if(o.userData.laneOffset!==undefined)o.material.opacity=this.layoutTransition?.lineAlphas.get(o.userData.laneOffset.toFixed(3))||0;});
@@ -767,6 +807,7 @@ export class World {
   const speed=previewMotionSettings.laneSpeed/MOTION_TIME_SCALE,duration=448/speed,lineDelay=58.96/speed,lineDuration=439.57/speed;
   const motion={from,to,frame:0,start:0,addingLines,duration,elapsed:0,paused:false};this.layoutMotion=motion;this.onLayoutFrame?.(true);
   const sample=elapsed=>{
+   const frameAt=performance.now(),perf=this.laneTransitionPerformance;if(perf){if(perf.lastFrame)perf.maxFrameGapMs=Math.max(perf.maxFrameGapMs,frameAt-perf.lastFrame);perf.lastFrame=frameAt;perf.frames++;}
    motion.elapsed=elapsed;const t=Math.min(1,elapsed/duration),omega=6,tail=(1+omega)*Math.exp(-omega),ease=1-(1+omega*t)*Math.exp(-omega*t)+tail*t*t*(3-2*t);
    for(const {o,x}of construction)o.position.x=x+(from.width-to.width)/2*(1-ease);
    this.layoutBlend.value=ease;this.layoutVisual={width:THREE.MathUtils.lerp(from.width,to.width,ease),curve:THREE.MathUtils.lerp(from.curve,to.curve,ease)};
@@ -849,20 +890,25 @@ export class World {
  }
  renderFrame(moving=false){
   if(this.suspended)return;
+  const submittedAt=performance.now();if(this.continuousDrive&&moving&&submittedAt-(this.lastMovingSubmit??-Infinity)<25)return;this.lastMovingSubmit=submittedAt;
   this.environmentFinish.syncContacts();
   const stats=this.performanceStats,started=stats?performance.now():0;if(stats){this.renderer.info.autoReset=false;this.renderer.info.reset();}
   const {id,mode,vehicle}=this.state,dark=mode==='dark',isParking=parkingIds.includes(id);
-  const shadowKey=JSON.stringify([this.car.position.toArray(),this.car.rotation.toArray(),vehicle,this.environmentGrowth.buildings.value,this.environmentGrowth.trees.value,this.environmentGrowth.roadworks.value,this.environmentGrowth.waterfront.value,this.structureMotion?.environmentReveal??1,this.layoutBlend.value,mode,this.weatherSignature]);
+  const shadowKey=JSON.stringify([this.car.position.toArray(),this.car.rotation.toArray(),vehicle,this.environmentGrowth.buildings.value,this.environmentGrowth.trees.value,this.environmentGrowth.roadworks.value,this.environmentGrowth.waterfront.value,this.structureMotion?.environmentReveal??1,this.layoutBlend.value,mode,this.weatherSignature,this.drivingFrame]);
   const shadowChanged=this.shadowSceneRoot!==this.root||this.shadowKey!==shadowKey||this.renderer.shadowMap.needsUpdate;
   const cameraKey=this.camera.matrixWorld.elements.join(',')+'|'+this.camera.projectionMatrix.elements.join(',');
   const baseKey=[cameraKey,mode,this.width,this.height,this.layoutBlend.value,this.structureMotion?.environmentReveal??1,this.weatherSignature].join('|');
-  const groundKey=[baseKey,this.environmentGrowth.buildings.value,this.waterMix.value].join('|');
+  const reflectedCar=SR_QUALITY_MIX>0?[this.car.uuid,this.car.position.toArray(),this.car.rotation.toArray(),vehicle].join('|'):'';
+  const trafficReflectionStamp=this.trafficSystem?.group.visible?this.trafficSystem.group.children.filter(o=>o.visible).map(o=>o.position.toArray().join(',')).join(';'):'none';
+  const groundKey=[trafficReflectionStamp,baseKey,this.environmentGrowth.buildings.value,this.waterMix.value,reflectedCar,this.drivingFrame].join('|');
   const waterKey=[baseKey,this.environmentGrowth.trees.value,this.environmentGrowth.roadworks.value,this.waterMix.value].join('|');
   const rootChanged=this.reflectionSceneRoot!==this.root;
   const waterChanged=this.waterMix.value>0&&(rootChanged||this.waterReflectionKey!==waterKey);
   // The sharp ground texture shares the mirror target with the water pass.
   const groundChanged=rootChanged||this.groundReflectionKey!==groundKey||waterChanged;
   if(groundChanged||waterChanged){
+  const sweepVisible=this.activationSweep?.mesh.visible;if(this.activationSweep)this.activationSweep.mesh.visible=false;
+  const trafficVisible=this.trafficSystem?.group.visible;if(this.trafficSystem)this.trafficSystem.group.visible=false;
   const reflectors=[...this.buildingPlacements,...this.parkingColumns.map(c=>({x:c.position.x,z:c.position.z,width:.68,depth:.68}))];this.buildingCount.value=Math.min(32,reflectors.length);reflectors.slice(0,32).forEach((b,i)=>this.buildingFootprints.value[i].set(b.x+(this.layoutMotion?(this.layoutVisual.width-this.layoutMotion.to.width)*Math.sign(b.x)/2:0),b.z,b.width/2,b.depth/2));
   this.scene.updateMatrixWorld(true);this.mirror.position.y=this.waterBounds?.surfaceHeight??-.14;this.mirror.updateMatrixWorld(true);
   const reflective=[];this.root.traverse(o=>{if(o.isMesh&&(o.userData.reflectiveSurface||['road','ground','pavement','water','parkingFloor','parkingBay'].some(k=>o.material===this.mat[k]))){reflective.push([o,o.visible]);o.visible=false;}});
@@ -879,24 +925,41 @@ export class World {
   if(groundChanged){
   // Building reflection contains no sky; clear areas must not tint the ground.
   if(stats)stats.groundPasses++;
-  this.mirror.position.y=isParking?0:-.14;this.mirror.updateMatrixWorld(true);
+  this.mirror.position.y=SR_QUALITY_MIX>0&&mode==='light'?.015:isParking?0:-.14;this.mirror.updateMatrixWorld(true);
   const priorBackground=this.scene.background,priorSky=this.sky.visible,priorAlpha=this.renderer.getClearAlpha(),priorClear=this.renderer.getClearColor(new THREE.Color());
   this.scene.background=null;this.sky.visible=false;this.renderer.setClearColor(0x000000,0);
-  const reflectionExcluded=[];this.root.traverse(o=>{if(o.isMesh&&!o.userData.buildingOwned&&!this.parkingColumns.includes(o)){reflectionExcluded.push([o,o.visible]);o.visible=false;}});
-  this.groundReflectionAudit={trees:0,buildings:0};this.root.traverse(o=>{if(!o.isMesh||!o.visible)return;if(o.userData.buildingOwned)this.groundReflectionAudit.buildings++;if([this.mat.leaf,this.mat.leaf2,this.mat.trunk].includes(o.material))this.groundReflectionAudit.trees++;});
+  const reflectionExcluded=[];this.root.traverse(o=>{if(o.isMesh&&(!o.userData.buildingOwned&&!this.parkingColumns.includes(o))){reflectionExcluded.push([o,o.visible]);o.visible=false;}});
+  this.groundReflectionAudit={trees:0,buildings:0,surroundBlend:SR_QUALITY_MIX>0?.48:.38,vehicle:!!(SR_QUALITY_MIX>0&&vehicle),vehicleId:SR_QUALITY_MIX>0?this.car.uuid:null};this.root.traverse(o=>{if(!o.isMesh||!o.visible)return;if(o.userData.buildingOwned)this.groundReflectionAudit.buildings++;if([this.mat.leaf,this.mat.leaf2,this.mat.trunk].includes(o.material))this.groundReflectionAudit.trees++;});
+  const carReflectionKey=[baseKey,reflectedCar,trafficReflectionStamp].join('|');
+  if(this.carMirror&&this.carReflectionKey!==carReflectionKey){
+   const hiddenBuildings=[];this.root.traverse(o=>{if(o.isMesh&&o.visible){hiddenBuildings.push(o);o.visible=false;}});
+   this.car.visible=vehicle;
+   const reflectedVehicles=[...(vehicle?[this.car]:[]),...(trafficVisible?this.trafficSystem.group.children.filter(o=>o.visible):[])];this.vehicleReflectionCount.value=Math.min(12,reflectedVehicles.length);
+   reflectedVehicles.slice(0,12).forEach((o,i)=>{const length=o.userData.physicalLength||o.userData.vehicleSpec?.length||4.85,horizontal=Math.abs(Math.sin(o.rotation.y))>.5;this.vehicleFootprints.value[i].set(o.position.x,o.position.z,(horizontal?length/2:1.1)+.5,(horizontal?1.1:length/2)+4.0);});
+   const trafficShadows=[];if(this.trafficSystem){this.trafficSystem.group.visible=trafficVisible;this.trafficSystem.group.traverse(o=>{if(o.userData.trafficShadow){trafficShadows.push([o,o.visible]);o.visible=false;}});}this.carMirror.position.y=this.car.position.y-.005;this.carMirror.updateMatrixWorld(true);
+   this.carMirror.onBeforeRender(this.renderer,this.scene,this.camera);this.car.visible=false;if(this.trafficSystem)this.trafficSystem.group.visible=false;for(const [o,visible]of trafficShadows)o.visible=visible;
+   const carTarget=this.renderer.getRenderTarget();
+   this.carBlurMaterial.uniforms.source.value=this.carMirror.getRenderTarget().texture;this.carBlurMaterial.uniforms.direction.value.set(2/this.width,0);this.renderer.setRenderTarget(this.carBlurTargets[0]);this.carBlurQuad.render(this.renderer);
+   this.carBlurMaterial.uniforms.source.value=this.carBlurTargets[0].texture;this.carBlurMaterial.uniforms.direction.value.set(0,2/this.height);this.renderer.setRenderTarget(this.carBlurTargets[1]);this.carBlurQuad.render(this.renderer);this.renderer.setRenderTarget(carTarget);
+   this.carReflectionInverse.value.copy(this.carMirror.camera.projectionMatrix).multiply(this.carMirror.camera.matrixWorldInverse).invert();
+   this.carReflectionMatrix.value.copy(this.carMirror.material.uniforms.textureMatrix.value).multiply(new THREE.Matrix4().copy(this.carMirror.matrixWorld).invert());this.carReflectionKey=carReflectionKey;
+   for(const o of hiddenBuildings)o.visible=true;
+  }
+  this.groundReflectionAudit.vehiclePassSeparate=!!this.carMirror;
   this.mirror.onBeforeRender(this.renderer,this.scene,this.camera);
+  this.car.visible=false;
   for(const [o,visible]of reflectionExcluded)o.visible=visible;
   this.scene.background=priorBackground;this.sky.visible=priorSky;this.renderer.setClearColor(priorClear,priorAlpha);
   const rt=this.renderer.getRenderTarget();
-  this.blurMaterial.uniforms.source.value=this.mirror.getRenderTarget().texture;this.blurMaterial.uniforms.direction.value.set(4/this.width,0);this.renderer.setRenderTarget(this.blurTargets[0]);this.blurQuad.render(this.renderer);
-  this.blurMaterial.uniforms.source.value=this.blurTargets[0].texture;this.blurMaterial.uniforms.direction.value.set(0,4/this.height);this.renderer.setRenderTarget(this.blurTargets[1]);this.blurQuad.render(this.renderer);this.renderer.setRenderTarget(rt);
+  this.blurMaterial.uniforms.source.value=this.mirror.getRenderTarget().texture;this.blurMaterial.uniforms.direction.value.set((SR_QUALITY_MIX>0&&mode==='light'?12:4)/this.width,0);this.renderer.setRenderTarget(this.blurTargets[0]);this.blurQuad.render(this.renderer);
+  this.blurMaterial.uniforms.source.value=this.blurTargets[0].texture;this.blurMaterial.uniforms.direction.value.set(0,(SR_QUALITY_MIX>0&&mode==='light'?12:4)/this.height);this.renderer.setRenderTarget(this.blurTargets[1]);this.blurQuad.render(this.renderer);this.renderer.setRenderTarget(rt);
   this.reflectionInverse.value.copy(this.mirror.camera.projectionMatrix).multiply(this.mirror.camera.matrixWorldInverse).invert();
   this.reflectionMatrix.value.copy(this.mirror.material.uniforms.textureMatrix.value).multiply(new THREE.Matrix4().copy(this.mirror.matrixWorld).invert());
   this.groundReflectionKey=groundKey;
   }
   for(const [o,visible]of reflective)o.visible=visible;
   for(const column of this.parkingColumns){if(column.userData.glow)column.userData.glow.visible=true;}
-  this.reflectionSceneRoot=this.root;
+  this.reflectionSceneRoot=this.root;if(this.trafficSystem)this.trafficSystem.group.visible=trafficVisible;if(this.activationSweep)this.activationSweep.mesh.visible=sweepVisible;
   }
   this.car.visible=vehicle;this.tailReflection.visible=vehicle;updateTailLight(this.tailReflection,this.car,dark,isParking);this.renderer.shadowMap.needsUpdate=shadowChanged;
   this.egoContact.visible=vehicle;this.egoContact.position.set(this.car.position.x,this.car.position.y-.02,this.car.position.z);
@@ -1000,7 +1063,7 @@ export class World {
   this.roadCameraCache.clear();
   const previous=this.car;car.position.copy(previous.position);car.rotation.copy(previous.rotation);
   previous.removeFromParent();this.egoContact.removeFromParent();if(disposePrevious)disposeVehicle(previous);disposeVehicle(this.egoContact);
-  this.car=car;this.scene.add(car);this.egoContact=createContactShadows(car);this.scene.add(this.egoContact);this.vehicleNeedsFraming=!preserveScene;
+  this.car=car;this.scene.add(car);this.egoContact=createContactShadows(car,{softBody:SR_QUALITY_MIX>0});this.scene.add(this.egoContact);this.vehicleNeedsFraming=!preserveScene;
   this.shadowSceneRoot=null;this.renderer.shadowMap.needsUpdate=true;
   if(preserveScene){this.framing={...this.framing,vehicleFrame:vehicleFrame(car,this.camera)};return;}
   // Parking replicas depend on the car geometry; road geometry can be retained.
@@ -1010,7 +1073,7 @@ export class World {
 
  setResolution(width,height){
   if(this.width===width&&this.height===height)return;
-  this.width=width;this.height=height;this.reflectionSceneRoot=null;const shadowSize=width<=960?1024:2048;if(this.sun.shadow.mapSize.x!==shadowSize){this.sun.shadow.map?.dispose();this.sun.shadow.mapPass?.dispose();this.sun.shadow.map=null;this.sun.shadow.mapPass=null;this.sun.shadow.mapSize.set(shadowSize,shadowSize);this.renderer.shadowMap.needsUpdate=true;}this.renderer.setSize(width,height,false);this.composer.renderTarget1.samples=this.composer.renderTarget2.samples=width<=960?2:4;this.composer.setSize(width,height);this.mirror.getRenderTarget().setSize(Math.ceil(width/2),Math.ceil(height/2));this.blurTargets.forEach(t=>t.setSize(Math.ceil(width/2),Math.ceil(height/2)));this.waterReflectionTarget.setSize(Math.ceil(width/2),Math.ceil(height/2));this.vehicleDetail.uniforms.texel.value.set(1/width,1/height);
+  this.width=width;this.height=height;this.reflectionSceneRoot=null;const shadowSize=width<=960?1024:2048;if(this.sun.shadow.mapSize.x!==shadowSize){this.sun.shadow.map?.dispose();this.sun.shadow.mapPass?.dispose();this.sun.shadow.map=null;this.sun.shadow.mapPass=null;this.sun.shadow.mapSize.set(shadowSize,shadowSize);this.renderer.shadowMap.needsUpdate=true;}this.renderer.setSize(width,height,false);this.composer.renderTarget1.samples=this.composer.renderTarget2.samples=width<=960?2:4;this.composer.setSize(width,height);this.mirror.getRenderTarget().setSize(Math.ceil(width/2),Math.ceil(height/2));this.blurTargets.forEach(t=>t.setSize(Math.ceil(width/2),Math.ceil(height/2)));this.waterReflectionTarget.setSize(Math.ceil(width/2),Math.ceil(height/2));if(this.carMirror){this.carMirror.getRenderTarget().setSize(Math.ceil(width/2),Math.ceil(height/2));this.carBlurTargets.forEach(t=>t.setSize(Math.ceil(width/2),Math.ceil(height/2)));this.carReflectionKey=null;}this.vehicleDetail.uniforms.texel.value.set(1/width,1/height);
  }
  audit(){
   const center=this.car.position.clone().add(new THREE.Vector3(0,.9,0)).project(this.camera);
@@ -1019,6 +1082,6 @@ export class World {
   const minX=Math.min(...pts.map(p=>p.x)),maxX=Math.max(...pts.map(p=>p.x)),minY=Math.min(...pts.map(p=>p.y)),maxY=Math.max(...pts.map(p=>p.y));
   const glass=[];let exhaustCount=0;this.car.traverse(o=>{if(!o.isMesh)return;if(o.name==='Object_39')exhaustCount++;for(const m of (Array.isArray(o.material)?o.material:[o.material]))if(m.name==='glass')glass.push({opacity:m.opacity,transparent:m.transparent,transmission:m.transmission||0,roughness:m.roughness,envMapIntensity:m.envMapIntensity});});
   const junctionFrame=['05','08'].includes(this.current)?[-1,1].flatMap(x=>[-28.9,-51.1].map(z=>{const p=new THREE.Vector3(x*11.1,0,z).project(this.camera);return {x:(p.x+1)/2,y:(1-p.y)/2};})):null;
-  return {...this.state,environmentFinish:this.environmentFinish.audit(),performance:this.performanceAudit(),renderQuality:{resolution:[this.width,this.height],shadowSize:this.sun.shadow.mapSize.x,samples:this.composer.renderTarget1.samples},dividedRoad:this.dividedRoad,groundReflection:this.groundReflectionAudit,shadow:this.shadowFrameAudit,environmentGrowth:Object.fromEntries(Object.entries(this.environmentGrowth).map(([key,ch])=>[key,ch.value])),palette:this.palette,roadColor:this.mat.road.color.getHexString(),groundColor:this.mat.ground.color.getHexString(),lightIntensity:[this.hemi.intensity,this.sun.intensity,this.fill.intensity],framing:this.framing,environmentSignature:this.environmentSignature,glass,exhaustCount,contactPatches:this.egoContact.children.length,junctionFrame,vehicleSpec:this.car.userData.vehicleSpec,junctionDimensions:this.junctionDimensions,parkingReplica:this.parkingReplica,parkedVehicles:this.parkedVehicles||[],buildingOwnedCount:this.root.children.filter(o=>o.userData.buildingOwned).length,buildingShadowCasters:this.root.children.filter(o=>o.userData.buildingOwned&&o.castShadow).length,buildingVSMParticipants:this.root.children.filter(o=>o.userData.buildingOwned&&(o.castShadow||o.receiveShadow)).length,roadworkZone:this.roadworkZone,pedestrianPassages:this.pedestrianPassages,rampDimensions:this.rampDimensions,vehicleDimensions:box.getSize(new THREE.Vector3()).toArray(),vehicleBounds:{left:(minX+1)/2,top:(1-maxY)/2,width:(maxX-minX)/2,height:(maxY-minY)/2,bottom:(1-minY)/2},center:{x:(center.x+1)/2,y:(1-center.y)/2},roadElevation:this.car.position.y-.02,roadSlope:0,horizon:this.environmentTone.value?'shared smootherstep from 65m to 300m':'original material-specific smootherstep',treePlacements,buildingsPlaced:this.buildingPlacements,waterBounds:this.waterBounds,parkingBays:this.parkingBays,parkingColumns:this.parkingColumns.map(c=>c.position.toArray()),vehiclePhysicalLength:this.car.userData.vehicleSpec.length||4.85,geometry:this.current,geometrySignature:this.geometrySignature,camera:this.camera.position.toArray(),car:this.car.position.toArray()};
+  return {...this.state,srQualityMix:SR_QUALITY_MIX,laneCacheReady:!!this.laneCacheReady,laneTransitionPerformance:this.laneTransitionPerformance,activationSweep:this.activationSweep?.audit(),driving:this.continuousDrive?.audit(),traffic:this.trafficSystem?.audit(),vehicleMaterialStudy:this.car.userData.materialStudy||null,environmentFinish:this.environmentFinish.audit(),performance:this.performanceAudit(),renderQuality:{resolution:[this.width,this.height],shadowSize:this.sun.shadow.mapSize.x,samples:this.composer.renderTarget1.samples},dividedRoad:this.dividedRoad,groundReflection:this.groundReflectionAudit,shadow:this.shadowFrameAudit,environmentGrowth:Object.fromEntries(Object.entries(this.environmentGrowth).map(([key,ch])=>[key,ch.value])),palette:this.palette,roadColor:this.mat.road.color.getHexString(),groundColor:this.mat.ground.color.getHexString(),lightIntensity:[this.hemi.intensity,this.sun.intensity,this.fill.intensity],framing:this.framing,environmentSignature:this.environmentSignature,glass,exhaustCount,contactPatches:this.egoContact.children.length,junctionFrame,vehicleSpec:this.car.userData.vehicleSpec,junctionDimensions:this.junctionDimensions,parkingReplica:this.parkingReplica,parkedVehicles:this.parkedVehicles||[],visibleBuildingsBySide:{left:this.root.children.filter(o=>o.userData.buildingOwned&&o.visible&&o.position.x<0).length,right:this.root.children.filter(o=>o.userData.buildingOwned&&o.visible&&o.position.x>0).length},buildingOwnedCount:this.root.children.filter(o=>o.userData.buildingOwned).length,buildingShadowCasters:this.root.children.filter(o=>o.userData.buildingOwned&&o.castShadow).length,buildingVSMParticipants:this.root.children.filter(o=>o.userData.buildingOwned&&(o.castShadow||o.receiveShadow)).length,roadworkZone:this.roadworkZone,pedestrianPassages:this.pedestrianPassages,rampDimensions:this.rampDimensions,vehicleDimensions:box.getSize(new THREE.Vector3()).toArray(),vehicleBounds:{left:(minX+1)/2,top:(1-maxY)/2,width:(maxX-minX)/2,height:(maxY-minY)/2,bottom:(1-minY)/2},center:{x:(center.x+1)/2,y:(1-center.y)/2},roadElevation:this.car.position.y-.02,roadSlope:0,horizon:this.environmentTone.value?'shared smootherstep from 65m to 300m':'original material-specific smootherstep',treePlacements,buildingsPlaced:this.buildingPlacements,waterBounds:this.waterBounds,parkingBays:this.parkingBays,parkingColumns:this.parkingColumns.map(c=>c.position.toArray()),vehiclePhysicalLength:this.car.userData.vehicleSpec.length||4.85,geometry:this.current,geometrySignature:this.geometrySignature,camera:this.camera.position.toArray(),car:this.car.position.toArray()};
  }
 }

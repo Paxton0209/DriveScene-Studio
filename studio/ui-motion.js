@@ -22,7 +22,7 @@ export function createSpring(paint,initial=0){
 const indicators=new WeakMap();
 const segmentIndicators=new WeakMap();
 export const MORPH_STRENGTH=1.2;
-export const NAV_MORPH_SCALE=.56;
+export const NAV_MORPH_SCALE=.476;
 export const CONTROL_MORPH_SCALE=.85;
 export const TOGGLE_MORPH_SCALE=CONTROL_MORPH_SCALE*.90;
 function boundedSpring(initial,target,velocity,seconds,duration,visualDuration){
@@ -132,17 +132,16 @@ export function createVehicleMorph(popup,trigger,onClose){
  }
  function close({restoreFocus=true}={}){
   if(!opened||closing)return;closing=true;popup.dataset.closing='true';grid().inert=true;onClose();
-  if(restoreFocus)trigger()?.focus({preventScroll:true});
-  animate(false,()=>{popup.hidePopover();opened=false;closing=false;delete popup.dataset.closing;popup.style.height='';});
+  animate(false,()=>{popup.hidePopover();opened=false;closing=false;delete popup.dataset.closing;delete popup.dataset.morphActive;popup.style.height='';if(restoreFocus)trigger()?.focus({preventScroll:true});});
  }
  popup.addEventListener('keydown',event=>{
   if(event.key==='Escape'){event.preventDefault();close();}
-  if(event.key==='Tab'){event.preventDefault();const anchor=trigger();close();const controls=[...document.querySelectorAll('button:not(:disabled),input:not(:disabled)')].filter(control=>control.getClientRects().length&&!popup.contains(control));const position=controls.indexOf(anchor);controls[Math.max(0,Math.min(controls.length-1,position+(event.shiftKey?-1:1)))]?.focus({preventScroll:true});}
+  if(event.key==='Tab'){event.preventDefault();const anchor=trigger();close({restoreFocus:false});const controls=[...document.querySelectorAll('button:not(:disabled),input:not(:disabled)')].filter(control=>control.getClientRects().length&&!popup.contains(control));const position=controls.indexOf(anchor);controls[Math.max(0,Math.min(controls.length-1,position+(event.shiftKey?-1:1)))]?.focus({preventScroll:true});}
  });
  document.addEventListener('pointerdown',event=>{if(opened&&!popup.contains(event.target)&&!trigger()?.contains(event.target))close({restoreFocus:false});});
  return {close,place,show(){
   if(opened&&!closing){place();return;}
-  closing=false;delete popup.dataset.closing;grid().inert=false;
+  closing=false;delete popup.dataset.closing;popup.dataset.morphActive='true';grid().inert=false;
   if(!opened){popup.style.clipPath='inset(0px 0px 0px 0px round 8px)';popup.showPopover();opened=true;place();popup.style.clipPath=`inset(0px 0px ${Math.max(0,openHeight-44)}px 0px round 8px)`;grid().style.opacity='0';grid().style.transform='translateY(-6px)';}
   else place();
   animate(true);popup.querySelector('[aria-pressed=true]')?.focus({preventScroll:true});

@@ -1,0 +1,84 @@
+/* Optional compact workspace. The default layout remains available alongside it. */
+.workspace-variants{display:flex;align-items:center;gap:2px;margin-left:24px;margin-right:auto;padding:2px;border:1px solid var(--line);border-radius:6px;font-size:11px;line-height:24px}
+.workspace-variants a{padding:0 10px;border-radius:4px;color:var(--muted)}
+.workspace-variants a[aria-current=page]{background:var(--surface);color:var(--text);font-weight:500}
+@media(max-width:760px){.workspace-variants{margin-left:12px}.workspace-variants a{padding:0 6px}}
+@media(min-width:761px){
+ html[data-ui=compact] #product[data-layout=triple]{--bg:#fafafa;--surface:#ececee;--selected:#fff;--line:rgb(0 0 0/.09);--text:#27282b;--muted:#77797f;--accent:#3575de;font-size:12px}
+ html[data-ui=compact] #product[data-layout=triple].dark{--bg:#252628;--surface:#343538;--selected:#48494d;--line:rgb(255 255 255/.09);--text:#eeeef0;--muted:#a3a4aa;--accent:#639af3}
+ html[data-ui=compact] #product[data-layout=triple] .product-header{height:44px;min-height:44px;padding:0 14px;gap:12px;border-bottom:1px solid var(--line);background:var(--bg)}
+ html[data-ui=compact] .brand{font-size:13px;letter-spacing:-.25px;white-space:nowrap}
+ html[data-ui=compact] .workspace-variants{margin:0 auto 0 12px;line-height:22px;border:0;background:var(--surface)}
+ html[data-ui=compact] .workspace-variants a[aria-current=page]{background:var(--selected);box-shadow:0 1px 2px #0001}
+ html[data-ui=compact] #product[data-layout=triple] #workspace{grid-template-columns:174px minmax(0,1fr) 244px;gap:0;padding:0;background:var(--bg)}
+ html[data-ui=compact] #product[data-layout=triple] #scene-nav{height:100%;margin:0;padding:18px 8px;background:var(--bg);border-right:1px solid var(--line);gap:22px;overflow:auto;isolation:isolate}
+ html[data-ui=compact] #product[data-layout=triple] .scene-family-title{height:22px;margin:0 0 6px;padding:0 10px;font-size:11px;line-height:22px;font-weight:600;color:var(--muted)}
+ html[data-ui=compact] #product[data-layout=triple] .scene-items{gap:2px}
+ html[data-ui=compact] #product[data-layout=triple] #scene-nav .scene-choice{height:30px;min-height:30px;padding:5px 10px 5px 22px;border-radius:5px;font-size:12px;line-height:20px}
+ html[data-ui=compact] #product[data-layout=triple] #scene-nav .scene-choice span:before{content:'';display:inline-block;width:9px;height:9px;margin-right:9px;border:1px solid currentColor;opacity:.55;border-radius:2px;vertical-align:0}
+ html[data-ui=compact] #product[data-layout=triple] #scene-nav .scene-choice[data-selected=true]{color:var(--accent);background:color-mix(in srgb,var(--accent) 11%,transparent);font-weight:500}
+ html[data-ui=compact] #scene-nav .scene-indicator{display:none}
+ html[data-ui=compact] #product[data-layout=triple] #stage{position:relative;display:flex;align-items:center;justify-content:center;padding:48px 12px 40px;background-color:#eff0f2;background-image:radial-gradient(#c7c9ce 0.6px,transparent .6px);background-size:16px 16px}
+ html[data-ui=compact] #product[data-layout=triple].dark #stage{background-color:#1c1d1f;background-image:radial-gradient(#383a3e .6px,transparent .6px)}
+ html[data-ui=compact] #product[data-layout=triple] #media{border-radius:0;box-shadow:0 0 0 1px rgb(0 0 0/.10);outline:none}
+ html[data-ui=compact] #product[data-layout=triple].dark #media{box-shadow:0 0 0 1px rgb(255 255 255/.08)}
+ html[data-ui=compact] .canvas-toolbar,html[data-ui=compact] .canvas-footer{position:absolute;left:0;right:0;display:flex;align-items:center;justify-content:space-between;gap:12px;height:32px;padding:0 14px;font-size:11px;color:var(--muted);background:var(--bg);font-variant-numeric:tabular-nums}
+ html[data-ui=compact] .canvas-toolbar{top:0;border-bottom:1px solid var(--line)}
+ html[data-ui=compact] .canvas-toolbar>div{display:flex;align-items:center;gap:7px;color:var(--text);font-weight:500}
+ html[data-ui=compact] .canvas-marker{width:9px;height:9px;border:1px solid currentColor;border-radius:1px}
+ html[data-ui=compact] .canvas-footer{bottom:0;height:26px;border-top:1px solid var(--line);font-size:10px}
+ html[data-ui=compact] #product[data-layout=triple] #controls{height:100%;padding:0;margin:0;background:var(--bg);border-left:1px solid var(--line)}
+ html[data-ui=compact] .inspector-title{height:44px;flex:none;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 14px;border-bottom:1px solid var(--line);font-size:11px}
+ html[data-ui=compact] .inspector-title strong{font-size:12px;font-weight:600}
+ html[data-ui=compact] .inspector-title span{color:var(--muted)}
+ html[data-ui=compact] #product[data-layout=triple] #control-content{overflow:auto;padding:12px 14px}
+ html[data-ui=compact] #product[data-layout=triple] #control-content>.control-unit{margin-bottom:8px;min-height:28px}
+ html[data-ui=compact] #product[data-layout=triple] #control-content>.field{display:grid;grid-template-columns:64px minmax(0,1fr);align-items:center;gap:8px;min-height:28px}
+ html[data-ui=compact] #product[data-layout=triple] #control-content>.field>.field-head{font-size:12px;line-height:20px;margin:0;font-weight:400}
+ html[data-ui=compact] #product[data-layout=triple] #control-content>.path-field{padding-bottom:12px;margin:0 0 12px;border-bottom:1px solid var(--line)}
+ html[data-ui=compact] #product[data-layout=triple] .segments{height:26px;min-height:26px;padding:2px;border-radius:5px;gap:2px;background:var(--surface)}
+ html[data-ui=compact] #product[data-layout=triple] .segments button{height:22px;min-height:22px;padding:0 4px;border-radius:3px;font-size:11px;line-height:22px}
+ html[data-ui=compact] #product[data-layout=triple] .segments .segment-indicator{border-radius:3px;background:var(--selected);box-shadow:0 1px 2px #00000014,0 0 0 .5px #00000008}
+ html[data-ui=compact] #product[data-layout=triple] .segments button[aria-pressed=true]{color:var(--text)}
+ html[data-ui=compact] #product[data-layout=triple] .weather-segments svg{width:15px;height:15px}
+ html[data-ui=compact] #product[data-layout=triple] .surroundings-heading{border-top:1px solid var(--line);padding-top:14px;margin:14px 0 7px;font-weight:600;font-size:11px;line-height:18px;color:var(--text)}
+ html[data-ui=compact] #product[data-layout=triple] .toggle{height:28px;min-height:28px;padding:0;gap:8px;justify-content:flex-start;flex-direction:row-reverse;font-size:12px}
+ html[data-ui=compact] #product[data-layout=triple] .toggle span{flex:1}
+ html[data-ui=compact] #product[data-layout=triple] .toggle input{appearance:none;width:14px;height:14px;border:1px solid #aeb0b6;border-radius:3px;box-shadow:none;position:relative;background:transparent;cursor:pointer;opacity:1}
+ html[data-ui=compact] #product[data-layout=triple] .toggle input:checked{background:var(--accent);border-color:var(--accent)}
+ html[data-ui=compact] #product[data-layout=triple] .toggle input:after{display:none}
+ html[data-ui=compact] #product[data-layout=triple] .toggle input:checked:after{display:block;content:'';width:7px;height:4px;top:2px;left:2px;border-left:1.5px solid #fff;border-bottom:1.5px solid #fff;border-radius:0;transform:rotate(-45deg);box-shadow:none;background:none}
+ html[data-ui=compact] #product[data-layout=triple] .toggle-track{display:none}
+ html[data-ui=compact] #product[data-layout=triple] #vehicle-area{width:220px;flex:none}
+ html[data-ui=compact] #product[data-layout=triple] #vehicle-entry{margin:0;border:0}
+ html[data-ui=compact] #product[data-layout=triple] #vehicle-entry .vehicle-choice{height:28px;min-height:28px;padding:4px 8px;border:1px solid var(--line);border-radius:5px;background:var(--bg)}
+ html[data-ui=compact] #product[data-layout=triple] #vehicle-entry .vehicle-choice>span{font-size:12px;line-height:18px}
+ html[data-ui=compact] #product[data-layout=triple] #vehicle-options{font-size:12px}
+ html[data-ui=compact] #product[data-layout=triple] #feedback{position:static;padding:8px 14px;color:var(--muted);font-size:11px}
+ html[data-ui=compact] #product[data-layout=triple] .global{gap:6px;align-items:center}
+ html[data-ui=compact] #product[data-layout=triple] .global button{position:static;min-height:28px;height:28px;width:28px;border-radius:5px;margin:0;background:transparent;box-shadow:none}
+ html[data-ui=compact] #product[data-layout=triple] .global #download{width:auto;display:flex;gap:6px;padding:0 9px;font-size:11px;background:var(--surface);color:var(--text)}
+ html[data-ui=compact] #product[data-layout=triple] .global svg{width:16px;height:16px}
+ html[data-ui=compact] #product[data-layout=triple] .global #theme{order:-1}
+ html[data-ui=compact] #product[data-layout=triple] .play{min-height:28px;height:28px;padding:0 8px;font-size:12px;grid-column:1/-1;border:1px solid var(--line);border-radius:5px}
+ html[data-ui=compact] #product[data-layout=triple] #control-pager{display:none}
+}
+@media(max-width:760px){
+ html[data-ui=compact] #product[data-layout=triple] .product-header{flex-wrap:wrap;min-height:96px;height:auto;padding:8px 16px;gap:6px}
+ html[data-ui=compact] #vehicle-area{width:calc(100% - 100px);order:3}
+ html[data-ui=compact] #product[data-layout=triple] .global{margin-left:auto}
+ html[data-ui=compact] #product[data-layout=triple] #download{position:static;display:flex;width:auto;gap:4px;padding:6px;background:var(--surface);font-size:11px}
+ html[data-ui=compact] #product[data-layout=triple] #stage{position:relative;padding:20px 0}
+ html[data-ui=compact] .canvas-toolbar,html[data-ui=compact] .canvas-footer,html[data-ui=compact] .inspector-title{display:none}
+ html[data-ui=compact] #control-content{overflow:auto}
+}
+@media(forced-colors:active){html[data-ui=compact] #product[data-layout=triple] .toggle input{appearance:auto}}
+
+@media(min-width:761px){
+ html[data-ui=compact] #product[data-layout=triple] #vehicle-options .vehicle-lid{height:var(--vehicle-lid-height,28px);min-height:var(--vehicle-lid-height,28px);padding:4px 8px}
+ html[data-ui=compact] #product[data-layout=triple] #vehicle-options .vehicle-lid>span{font-size:12px;line-height:18px}
+ html[data-ui=compact] #product[data-layout=triple] #vehicle-options .vehicle-lid svg{width:18px;height:18px}
+ html[data-ui=compact] #product[data-layout=triple] #vehicle-options .vehicle-grid{margin-top:10px}
+}
+/* The original workbench fixes this gap with !important; the draft's toolbar has no gap. */
+html[data-ui=compact] #product[data-layout=triple] #vehicle-entry{margin:0!important}

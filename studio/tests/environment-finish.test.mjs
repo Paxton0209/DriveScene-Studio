@@ -6,11 +6,18 @@ function fixture(){
  const world={mat,environmentTone:{value:1}};installEnvironmentFinish(world);return world;
 }
 function compile(material){const shader={uniforms:{},vertexShader:'#include <project_vertex>',fragmentShader:'#include <roughnessmap_fragment>\n#include <lights_fragment_end>\n#include <opaque_fragment>'};material.onBeforeCompile(shader);return shader;}
-test('dark dry-surface color correction happens after environment reflection and retains theme control',()=>{
- const world=fixture(),correction='outgoingLight=mix(outgoingLight,vec3(dot(outgoingLight,vec3(.2126,.7152,.0722))),finishTone);';
- for(const kind of ['road','ground','pavement','curb']){const shader=compile(world.mat[kind]);assert.ok(shader.fragmentShader.includes(correction));assert.ok(shader.fragmentShader.indexOf(correction)>shader.fragmentShader.indexOf('outgoingLight+=reflectedColor'));assert.equal(shader.uniforms.finishTone,world.environmentTone);}
+test('dry surfaces and buildings bypass the added finish in dark mode while retaining light-mode control',()=>{
+ const world=fixture();
+ for(const kind of ['road','ground','pavement','curb','building']){
+  const shader=compile(world.mat[kind]);
+  assert.ok(shader.fragmentShader.includes('float finishStrength=environmentFinishAmount*(1.-finishTone);'));
+  assert.equal(shader.uniforms.finishTone,world.environmentTone);
+  assert.equal(shader.uniforms.environmentFinishAmount,world.environmentFinish.amount);
+  assert.ok(!shader.fragmentShader.includes('outgoingLight=mix(outgoingLight,vec3(dot(outgoingLight'));
+ }
  world.environmentTone.value=0;assert.equal(compile(world.mat.road).uniforms.finishTone.value,0);
 });
-test('building and vegetation colors do not inherit the neutral dry-surface correction',()=>{
- const world=fixture();for(const kind of ['building','grass','leaf','leaf2','trunk'])assert.ok(!compile(world.mat[kind]).fragmentShader.includes('outgoingLight=mix(outgoingLight,vec3(dot(outgoingLight'));
+test('vegetation retains its finish independently of dark road and building colors',()=>{
+ const world=fixture();
+ for(const kind of ['grass','leaf','leaf2','trunk'])assert.ok(compile(world.mat[kind]).fragmentShader.includes('float finishStrength=environmentFinishAmount*1.;'));
 });

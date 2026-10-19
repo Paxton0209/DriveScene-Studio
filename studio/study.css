@@ -284,7 +284,7 @@
 #product .segments button{font-variant-numeric:tabular-nums;border-radius:6px}
 #product .vehicle-choice{font-variant-numeric:tabular-nums;border-radius:9px}
 #product .vehicle-disclosure{opacity:.8}
-#product #vehicle-options .vehicle-lid{height:44px;border-bottom:1px solid var(--line);border-radius:0}
+#product #vehicle-options .vehicle-lid{height:44px;border:0;box-shadow:inset 0 -1px var(--line);border-radius:0}
 #product #vehicle-options .vehicle-grid{margin-top:10px;gap:8px}
 #product #vehicle-options .vehicle-card:after{border-width:1.5px}
 #product .toggle input{box-shadow:inset 0 0 0 1px #0000000c}
@@ -340,3 +340,14 @@
  #product #scene-nav .scene-choice:not([data-selected=true]):hover{background:transparent;color:var(--text)}
  #product .segments button:not([aria-pressed=true]):hover{background:transparent;color:var(--text)}
 }
+
+/* Keep the lid and trigger on the same text baseline until the closing layer disappears. */
+#product #vehicle-options{border:0}
+#product:has(#vehicle-options[data-morph-active=true]) #vehicle-entry>.vehicle-choice{visibility:hidden}
+#product #vehicle-options[data-closing=true]{box-shadow:none}
+#product #vehicle-options[data-closing=true] .vehicle-lid{box-shadow:none}
+
+#product #vehicle-options .vehicle-card:focus-visible{outline:none}
+:root[data-choice-input=keyboard] #product #vehicle-options .vehicle-card:focus-visible:after{border-color:var(--text)}
+:root[data-choice-input=keyboard] #product #vehicle-options .vehicle-card[aria-pressed=true]:focus-visible:after{border-color:var(--accent)}
+:root[data-choice-input=pointer] #product #vehicle-entry button:focus{outline:none}
