@@ -1,0 +1,38 @@
+[
+  {
+    "candidate": "08",
+    "action": "on",
+    "trimmedMs": 0.0,
+    "leadBelowMinus60DbMs": 1.2708333333333333,
+    "durationMs": 665.0,
+    "peakDbFs": -6.597589026349956,
+    "gainDb": 0.0
+  },
+  {
+    "candidate": "08",
+    "action": "off",
+    "trimmedMs": 0.0,
+    "leadBelowMinus60DbMs": 41.791666666666664,
+    "durationMs": 665.0,
+    "peakDbFs": -6.597589026349956,
+    "gainDb": 0.0
+  },
+  {
+    "candidate": "09",
+    "action": "on",
+    "trimmedMs": 0.0,
+    "leadBelowMinus60DbMs": 0.47916666666666663,
+    "durationMs": 615.0,
+    "peakDbFs": -11.960989340089345,
+    "gainDb": 0.0
+  },
+  {
+    "candidate": "09",
+    "action": "off",
+    "trimmedMs": 0.0,
+    "leadBelowMinus60DbMs": 35.020833333333336,
+    "durationMs": 615.0,
+    "peakDbFs": -10.000126940172311,
+    "gainDb": 1.9609893400893463
+  }
+]

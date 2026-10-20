@@ -1,0 +1,145 @@
+[
+  {
+    "audition": {
+      "cues": [
+        0,
+        220
+      ],
+      "exitAtMs": 1150,
+      "id": "01",
+      "mode": "cycle",
+      "productionSoundUnchanged": true
+    },
+    "finished": true,
+    "skewMs": 8
+  },
+  {
+    "audition": {
+      "cues": [
+        0,
+        240
+      ],
+      "exitAtMs": 1150,
+      "id": "02",
+      "mode": "cycle",
+      "productionSoundUnchanged": true
+    },
+    "finished": true,
+    "skewMs": 7
+  },
+  {
+    "audition": {
+      "cues": [
+        0,
+        190,
+        430
+      ],
+      "exitAtMs": 1150,
+      "id": "03",
+      "mode": "cycle",
+      "productionSoundUnchanged": true
+    },
+    "finished": true,
+    "skewMs": 3
+  },
+  {
+    "audition": {
+      "cues": [
+        0,
+        230
+      ],
+      "exitAtMs": 1150,
+      "id": "04",
+      "mode": "cycle",
+      "productionSoundUnchanged": true
+    },
+    "finished": true,
+    "skewMs": 0
+  },
+  {
+    "audition": {
+      "cues": [
+        0,
+        220
+      ],
+      "exitAtMs": 1150,
+      "id": "05",
+      "mode": "cycle",
+      "productionSoundUnchanged": true
+    },
+    "finished": true,
+    "skewMs": 3
+  },
+  {
+    "audition": {
+      "cues": [
+        0,
+        230
+      ],
+      "exitAtMs": 1150,
+      "id": "06",
+      "mode": "cycle",
+      "productionSoundUnchanged": true
+    },
+    "finished": true,
+    "skewMs": 5
+  },
+  {
+    "audition": {
+      "cues": [
+        0,
+        150,
+        420
+      ],
+      "exitAtMs": 1150,
+      "id": "07",
+      "mode": "cycle",
+      "productionSoundUnchanged": true
+    },
+    "finished": true,
+    "skewMs": 7
+  },
+  {
+    "audition": {
+      "cues": [
+        0,
+        240
+      ],
+      "exitAtMs": 1150,
+      "id": "08",
+      "mode": "cycle",
+      "productionSoundUnchanged": true
+    },
+    "finished": true,
+    "skewMs": 3
+  },
+  {
+    "audition": {
+      "cues": [
+        0,
+        230
+      ],
+      "exitAtMs": 1150,
+      "id": "09",
+      "mode": "cycle",
+      "productionSoundUnchanged": true
+    },
+    "finished": true,
+    "skewMs": 8
+  },
+  {
+    "audition": {
+      "cues": [
+        0,
+        180,
+        420
+      ],
+      "exitAtMs": 1150,
+      "id": "10",
+      "mode": "cycle",
+      "productionSoundUnchanged": true
+    },
+    "finished": true,
+    "skewMs": 8
+  }
+]

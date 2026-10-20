@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DriveScene · 智驾音效对比</title><link rel="stylesheet" href="review.css?v=2"></head>
+<body>
+<header><h1>智驾音效</h1><p>退出声为对应开启声的完整倒放，保留去杂音处理。配合画面继续筛选。</p><a href="https://github.com/Leonxlnx/earshot/" target="_blank" rel="noopener">Earshot 素材来源</a></header>
+<main>
+ <section class="preview" aria-label="声音与智驾动效同步预览">
+  <div class="scene"><iframe id="engine" title="行驶与智驾开启动效"></iframe></div>
+  <div class="transport"><div><h2 id="current">01 · 轻航</h2><p id="phase" role="status" aria-live="polite">正在准备画面与声音…</p></div><button id="theme" aria-pressed="false">深色画面</button></div>
+  <div class="actions"><button data-preview="on" disabled>开启 · 重播</button><button data-preview="off" disabled>退出</button><button data-preview="cycle" class="primary" disabled>完整试听</button><button id="stop" disabled>停止</button></div>
+  <div class="settings"><label>音量<input id="volume" type="range" min="0" max=".8" step=".01" value=".3"></label><button id="save" disabled>保存当前候选</button></div>
+  <p id="saved" role="status" aria-live="polite">试听不改变工作台声音。</p>
+ </section>
+ <section class="candidates" aria-label="音效候选">
+  <div class="list-head"><select id="scope" aria-label="候选范围"><option value="all">全部候选</option><option value="previous" selected>上轮保留</option><option value="new">本轮新增</option></select><span id="count">正在加载…</span><label><input id="show-rejected" type="checkbox">已排除</label></div>
+  <div id="options"></div>
+  <button id="restore" hidden>恢复当前列表</button>
+ </section>
+</main>
+<script type="module" src="review.js?v=5-continuous-exit"></script>
+</body></html>
