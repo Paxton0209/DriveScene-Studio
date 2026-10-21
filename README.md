@@ -6,6 +6,8 @@ An open-source base for designing intelligent-driving SR visualizations and auto
 
 [Open the live tool](https://paxton0209.github.io/DriveScene-Studio/) · Created by Peixin
 
+[![XERJ Corpus Hub contributor](https://hub.xerj.org/contributors/Paxton0209/badge.svg)](https://hub.xerj.org/contributors/Paxton0209)
+
 ![SR background used in a cockpit interface concept, shown inside a vehicle](cockpit-in-context-r39.png)
 
 ## Why this project exists
