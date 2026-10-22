@@ -1,0 +1,214 @@
+{
+  "cases": [
+    {
+      "scene": "road",
+      "weather": "default",
+      "browserFrames": {
+        "count": 301,
+        "mean": 8.333222591362123,
+        "p95": 10.200000000000728,
+        "max": 10.400000000001455,
+        "over50": 0
+      },
+      "renderUpdates": {
+        "count": 75,
+        "mean": 33.44399999999999,
+        "p95": 35,
+        "max": 41.70000000000073,
+        "over50": 0
+      },
+      "runtime": {
+        "ready": true,
+        "playing": true,
+        "requestedPlaying": true,
+        "exporting": false,
+        "distance": 42.000000000000014,
+        "originEpoch": 0,
+        "loopTime": 2.500000000000001,
+        "scene": "road",
+        "features": {
+          "path": false,
+          "weather": "default"
+        },
+        "sound": {
+          "ready": true,
+          "plays": 0,
+          "failures": 0,
+          "state": "suspended",
+          "durationMs": 400,
+          "cue": "08K"
+        },
+        "pooledObjects": 72,
+        "objects": 368,
+        "logicalTime": 14634.933333357263,
+        "raster": {
+          "width": 1376,
+          "height": 774,
+          "cssWidth": 688,
+          "cssHeight": 387,
+          "devicePixelRatio": 2
+        }
+      }
+    },
+    {
+      "scene": "ramp",
+      "weather": "default",
+      "browserFrames": {
+        "count": 301,
+        "mean": 8.333083056478412,
+        "p95": 10,
+        "max": 10.299999999999272,
+        "over50": 0
+      },
+      "renderUpdates": {
+        "count": 75,
+        "mean": 33.443440000000024,
+        "p95": 34.79999999999927,
+        "max": 39.95800000000236,
+        "over50": 0
+      },
+      "runtime": {
+        "ready": true,
+        "playing": true,
+        "requestedPlaying": true,
+        "exporting": false,
+        "distance": 42.000000000000014,
+        "originEpoch": 0,
+        "loopTime": 2.500000000000001,
+        "scene": "ramp",
+        "features": {
+          "path": false,
+          "weather": "default"
+        },
+        "sound": {
+          "ready": true,
+          "plays": 0,
+          "failures": 0,
+          "state": "suspended",
+          "durationMs": 400,
+          "cue": "08K"
+        },
+        "pooledObjects": 0,
+        "objects": 131,
+        "logicalTime": 17134.93333335727,
+        "raster": {
+          "width": 1376,
+          "height": 774,
+          "cssWidth": 688,
+          "cssHeight": 387,
+          "devicePixelRatio": 2
+        }
+      }
+    },
+    {
+      "scene": "parking",
+      "weather": "default",
+      "browserFrames": {
+        "count": 301,
+        "mean": 8.336803986710965,
+        "p95": 10.099999999998545,
+        "max": 10.299999999999272,
+        "over50": 0
+      },
+      "renderUpdates": {
+        "count": 75,
+        "mean": 33.45837333333334,
+        "p95": 34.900000000001455,
+        "max": 43.07800000000134,
+        "over50": 0
+      },
+      "runtime": {
+        "ready": true,
+        "playing": true,
+        "requestedPlaying": true,
+        "exporting": false,
+        "distance": 0,
+        "originEpoch": 0,
+        "loopTime": 2.500000000000001,
+        "scene": "parking",
+        "features": {
+          "path": false,
+          "weather": "default"
+        },
+        "sound": {
+          "ready": true,
+          "plays": 0,
+          "failures": 0,
+          "state": "suspended",
+          "durationMs": 400,
+          "cue": "08K"
+        },
+        "pooledObjects": 0,
+        "objects": 192,
+        "logicalTime": 19634.933333357178,
+        "raster": {
+          "width": 1376,
+          "height": 774,
+          "cssWidth": 688,
+          "cssHeight": 387,
+          "devicePixelRatio": 2
+        }
+      }
+    },
+    {
+      "scene": "road",
+      "weather": "rain",
+      "browserFrames": {
+        "count": 302,
+        "mean": 8.334105960264905,
+        "p95": 10.099999999998545,
+        "max": 10.400000000001455,
+        "over50": 0
+      },
+      "renderUpdates": {
+        "count": 75,
+        "mean": 33.42400000000004,
+        "p95": 34.900000000001455,
+        "max": 42.10000000000218,
+        "over50": 0
+      },
+      "runtime": {
+        "ready": true,
+        "playing": true,
+        "requestedPlaying": true,
+        "exporting": false,
+        "distance": 42.000000000000014,
+        "originEpoch": 0,
+        "loopTime": 2.500000000000001,
+        "scene": "road",
+        "features": {
+          "path": false,
+          "weather": "rain"
+        },
+        "sound": {
+          "ready": true,
+          "plays": 0,
+          "failures": 0,
+          "state": "suspended",
+          "durationMs": 400,
+          "cue": "08K"
+        },
+        "pooledObjects": 72,
+        "objects": 368,
+        "logicalTime": 22134.933333357087,
+        "raster": {
+          "width": 1376,
+          "height": 774,
+          "cssWidth": 688,
+          "cssHeight": 387,
+          "devicePixelRatio": 2
+        }
+      }
+    }
+  ],
+  "longTasks": [
+    {
+      "start": 12573.899999976158,
+      "duration": 72
+    },
+    {
+      "start": 20931.30000001192,
+      "duration": 108
+    }
+  ]
+}

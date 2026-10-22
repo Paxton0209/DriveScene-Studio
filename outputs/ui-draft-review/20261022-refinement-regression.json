@@ -1,0 +1,462 @@
+{
+  "checks": [
+    {
+      "name": "Saved enabled states all start off",
+      "passed": true,
+      "detail": {
+        "sound": {
+          "ready": true,
+          "plays": 0,
+          "failures": 0,
+          "state": "running",
+          "durationMs": 400,
+          "cue": "08K"
+        }
+      }
+    },
+    {
+      "name": "05 starts paused",
+      "passed": true,
+      "detail": [
+        1.85,
+        0.02,
+        14
+      ]
+    },
+    {
+      "name": "05 uses speed times eight",
+      "passed": true,
+      "detail": {
+        "speed": 28.065953654188945,
+        "length": 224.52762923351156
+      }
+    },
+    {
+      "name": "05 stops with zero-length line",
+      "passed": true,
+      "detail": {
+        "speed": 0,
+        "length": 0,
+        "visible": false,
+        "playing": false,
+        "complete": true,
+        "button": "Replay"
+      }
+    },
+    {
+      "name": "08 starts paused",
+      "passed": true,
+      "detail": [
+        1.85,
+        0.02,
+        14
+      ]
+    },
+    {
+      "name": "08 uses speed times eight",
+      "passed": true,
+      "detail": {
+        "speed": 28.065953654188945,
+        "length": 224.52762923351156
+      }
+    },
+    {
+      "name": "08 stops with zero-length line",
+      "passed": true,
+      "detail": {
+        "speed": 0,
+        "length": 0,
+        "visible": false,
+        "playing": false,
+        "complete": true,
+        "button": "Replay"
+      }
+    },
+    {
+      "name": "Paused parking vehicle x6",
+      "passed": true,
+      "detail": {
+        "vehicle": "x6",
+        "busy": false,
+        "playing": false
+      }
+    },
+    {
+      "name": "Paused parking vehicle ix",
+      "passed": true,
+      "detail": {
+        "vehicle": "ix",
+        "busy": false,
+        "playing": false
+      }
+    },
+    {
+      "name": "Paused parking vehicle xc90",
+      "passed": true,
+      "detail": {
+        "vehicle": "xc90",
+        "busy": false,
+        "playing": false
+      }
+    },
+    {
+      "name": "Paused parking vehicle model-3",
+      "passed": true,
+      "detail": {
+        "vehicle": "model-3",
+        "busy": false,
+        "playing": false
+      }
+    },
+    {
+      "name": "Scene restoration stays silent",
+      "passed": true,
+      "detail": {
+        "before": 2,
+        "after": 2
+      }
+    },
+    {
+      "name": "Assist changes require explicit action",
+      "passed": true,
+      "detail": {
+        "sound": {
+          "ready": true,
+          "plays": 2,
+          "failures": 0,
+          "state": "running",
+          "durationMs": 400,
+          "cue": "08K"
+        }
+      }
+    },
+    {
+      "name": "Reload resets previously active Assist",
+      "passed": true,
+      "detail": {
+        "features": {
+          "path": false,
+          "weather": "default"
+        },
+        "sound": {
+          "ready": true,
+          "plays": 0,
+          "failures": 0,
+          "state": "running",
+          "durationMs": 400,
+          "cue": "08K"
+        }
+      }
+    }
+  ],
+  "junctions": [
+    {
+      "layout": "05",
+      "initial": {
+        "speed": 28.065953654188945,
+        "length": 224.52762923351156
+      },
+      "stopped": {
+        "speed": 0,
+        "length": 0,
+        "visible": false,
+        "playing": false,
+        "complete": true,
+        "button": "Replay"
+      }
+    },
+    {
+      "layout": "08",
+      "initial": {
+        "speed": 28.065953654188945,
+        "length": 224.52762923351156
+      },
+      "stopped": {
+        "speed": 0,
+        "length": 0,
+        "visible": false,
+        "playing": false,
+        "complete": true,
+        "button": "Replay"
+      }
+    }
+  ],
+  "scan": [
+    {
+      "frame": 0,
+      "timestampMs": 0,
+      "logicalTime": 4330.933333357165
+    },
+    {
+      "frame": 1,
+      "timestampMs": 16.666666666666668,
+      "logicalTime": 4347.600000023832
+    },
+    {
+      "frame": 2,
+      "timestampMs": 33.333333333333336,
+      "logicalTime": 4364.266666690499
+    },
+    {
+      "frame": 3,
+      "timestampMs": 50,
+      "logicalTime": 4380.933333357166
+    },
+    {
+      "frame": 4,
+      "timestampMs": 66.66666666666667,
+      "logicalTime": 4397.600000023833
+    },
+    {
+      "frame": 5,
+      "timestampMs": 83.33333333333333,
+      "logicalTime": 4414.2666666905
+    },
+    {
+      "frame": 6,
+      "timestampMs": 100,
+      "logicalTime": 4430.933333357167
+    },
+    {
+      "frame": 7,
+      "timestampMs": 116.66666666666667,
+      "logicalTime": 4447.600000023834
+    },
+    {
+      "frame": 8,
+      "timestampMs": 133.33333333333334,
+      "logicalTime": 4464.266666690501
+    },
+    {
+      "frame": 9,
+      "timestampMs": 150,
+      "logicalTime": 4480.933333357168
+    },
+    {
+      "frame": 10,
+      "timestampMs": 166.66666666666666,
+      "logicalTime": 4497.600000023835
+    },
+    {
+      "frame": 11,
+      "timestampMs": 183.33333333333334,
+      "logicalTime": 4514.266666690502
+    },
+    {
+      "frame": 12,
+      "timestampMs": 200,
+      "logicalTime": 4530.9333333571685
+    },
+    {
+      "frame": 13,
+      "timestampMs": 216.66666666666666,
+      "logicalTime": 4547.6000000238355
+    },
+    {
+      "frame": 14,
+      "timestampMs": 233.33333333333334,
+      "logicalTime": 4564.2666666905025
+    },
+    {
+      "frame": 15,
+      "timestampMs": 250,
+      "logicalTime": 4580.933333357169
+    },
+    {
+      "frame": 16,
+      "timestampMs": 266.6666666666667,
+      "logicalTime": 4597.600000023836
+    },
+    {
+      "frame": 17,
+      "timestampMs": 283.3333333333333,
+      "logicalTime": 4614.266666690503
+    },
+    {
+      "frame": 18,
+      "timestampMs": 300,
+      "logicalTime": 4630.93333335717
+    },
+    {
+      "frame": 19,
+      "timestampMs": 316.6666666666667,
+      "logicalTime": 4647.600000023837
+    },
+    {
+      "frame": 20,
+      "timestampMs": 333.3333333333333,
+      "logicalTime": 4664.266666690504
+    },
+    {
+      "frame": 21,
+      "timestampMs": 350,
+      "logicalTime": 4680.933333357171
+    },
+    {
+      "frame": 22,
+      "timestampMs": 366.6666666666667,
+      "logicalTime": 4697.600000023838
+    },
+    {
+      "frame": 23,
+      "timestampMs": 383.3333333333333,
+      "logicalTime": 4714.266666690505
+    },
+    {
+      "frame": 24,
+      "timestampMs": 400,
+      "logicalTime": 4730.933333357172
+    },
+    {
+      "frame": 25,
+      "timestampMs": 416.6666666666667,
+      "logicalTime": 4747.600000023839
+    },
+    {
+      "frame": 26,
+      "timestampMs": 433.3333333333333,
+      "logicalTime": 4764.266666690506
+    },
+    {
+      "frame": 27,
+      "timestampMs": 450,
+      "logicalTime": 4780.933333357173
+    },
+    {
+      "frame": 28,
+      "timestampMs": 466.6666666666667,
+      "logicalTime": 4797.60000002384
+    },
+    {
+      "frame": 29,
+      "timestampMs": 483.3333333333333,
+      "logicalTime": 4814.266666690507
+    },
+    {
+      "frame": 30,
+      "timestampMs": 500,
+      "logicalTime": 4830.933333357174
+    },
+    {
+      "frame": 31,
+      "timestampMs": 516.6666666666666,
+      "logicalTime": 4847.600000023841
+    },
+    {
+      "frame": 32,
+      "timestampMs": 533.3333333333334,
+      "logicalTime": 4864.266666690508
+    },
+    {
+      "frame": 33,
+      "timestampMs": 550,
+      "logicalTime": 4880.933333357175
+    },
+    {
+      "frame": 34,
+      "timestampMs": 566.6666666666666,
+      "logicalTime": 4897.600000023842
+    },
+    {
+      "frame": 35,
+      "timestampMs": 583.3333333333334,
+      "logicalTime": 4914.266666690509
+    },
+    {
+      "frame": 36,
+      "timestampMs": 600,
+      "logicalTime": 4930.933333357176
+    },
+    {
+      "frame": 37,
+      "timestampMs": 616.6666666666666,
+      "logicalTime": 4947.600000023843
+    },
+    {
+      "frame": 38,
+      "timestampMs": 633.3333333333334,
+      "logicalTime": 4964.26666669051
+    },
+    {
+      "frame": 39,
+      "timestampMs": 650,
+      "logicalTime": 4980.933333357177
+    },
+    {
+      "frame": 40,
+      "timestampMs": 666.6666666666666,
+      "logicalTime": 4997.600000023844
+    },
+    {
+      "frame": 41,
+      "timestampMs": 683.3333333333334,
+      "logicalTime": 5014.266666690511
+    },
+    {
+      "frame": 42,
+      "timestampMs": 700,
+      "logicalTime": 5030.933333357178
+    },
+    {
+      "frame": 43,
+      "timestampMs": 716.6666666666666,
+      "logicalTime": 5047.600000023845
+    },
+    {
+      "frame": 44,
+      "timestampMs": 733.3333333333334,
+      "logicalTime": 5064.266666690512
+    },
+    {
+      "frame": 45,
+      "timestampMs": 750,
+      "logicalTime": 5080.9333333571785
+    },
+    {
+      "frame": 46,
+      "timestampMs": 766.6666666666666,
+      "logicalTime": 5097.6000000238455
+    },
+    {
+      "frame": 47,
+      "timestampMs": 783.3333333333334,
+      "logicalTime": 5114.2666666905125
+    },
+    {
+      "frame": 48,
+      "timestampMs": 800,
+      "logicalTime": 5130.933333357179
+    },
+    {
+      "frame": 49,
+      "timestampMs": 816.6666666666666,
+      "logicalTime": 5147.600000023846
+    },
+    {
+      "frame": 50,
+      "timestampMs": 833.3333333333334,
+      "logicalTime": 5164.266666690513
+    },
+    {
+      "frame": 51,
+      "timestampMs": 850,
+      "logicalTime": 5180.93333335718
+    },
+    {
+      "frame": 52,
+      "timestampMs": 866.6666666666666,
+      "logicalTime": 5197.600000023847
+    },
+    {
+      "frame": 53,
+      "timestampMs": 883.3333333333334,
+      "logicalTime": 5214.266666690514
+    },
+    {
+      "frame": 54,
+      "timestampMs": 900,
+      "logicalTime": 5230.933333357181
+    }
+  ],
+  "errors": []
+}

@@ -1,0 +1,559 @@
+{
+  "checks": [
+    {
+      "name": "Vehicle x6 #0",
+      "passed": true
+    },
+    {
+      "name": "Vehicle ix #0",
+      "passed": true
+    },
+    {
+      "name": "Vehicle xc90 #0",
+      "passed": true
+    },
+    {
+      "name": "Vehicle model-3 #0",
+      "passed": true
+    },
+    {
+      "name": "Assist plays one enable cue #0",
+      "passed": true
+    },
+    {
+      "name": "Vehicle x6 #1",
+      "passed": true
+    },
+    {
+      "name": "Vehicle ix #1",
+      "passed": true
+    },
+    {
+      "name": "Vehicle xc90 #1",
+      "passed": true
+    },
+    {
+      "name": "Vehicle model-3 #1",
+      "passed": true
+    },
+    {
+      "name": "Assist plays one enable cue #1",
+      "passed": true
+    },
+    {
+      "name": "Vehicle x6 #2",
+      "passed": true
+    },
+    {
+      "name": "Vehicle ix #2",
+      "passed": true
+    },
+    {
+      "name": "Vehicle xc90 #2",
+      "passed": true
+    },
+    {
+      "name": "Vehicle model-3 #2",
+      "passed": true
+    },
+    {
+      "name": "Assist plays one enable cue #2",
+      "passed": true
+    },
+    {
+      "name": "Layout 1280",
+      "passed": true,
+      "detail": {
+        "documentWidth": 1280,
+        "width": 704,
+        "height": 396
+      }
+    },
+    {
+      "name": "Layout 1440",
+      "passed": true,
+      "detail": {
+        "documentWidth": 1440,
+        "width": 864,
+        "height": 486
+      }
+    },
+    {
+      "name": "Layout 1680",
+      "passed": true,
+      "detail": {
+        "documentWidth": 1680,
+        "width": 1104,
+        "height": 621
+      }
+    },
+    {
+      "name": "Layout 800",
+      "passed": true,
+      "detail": {
+        "documentWidth": 800,
+        "width": 656,
+        "height": 369
+      }
+    },
+    {
+      "name": "Layout 390",
+      "passed": true,
+      "detail": {
+        "documentWidth": 390,
+        "width": 240,
+        "height": 135
+      }
+    },
+    {
+      "name": "10Hz scene switching settles coherently",
+      "passed": true,
+      "detail": {
+        "ui": "elevated",
+        "engine": "elevated"
+      }
+    },
+    {
+      "name": "10Hz vehicle switching settles coherently",
+      "passed": true,
+      "detail": {
+        "ui": "ix",
+        "engine": "ix"
+      }
+    },
+    {
+      "name": "10Hz lane switching settles coherently",
+      "passed": true,
+      "detail": {
+        "ui": 2,
+        "engine": 2
+      }
+    },
+    {
+      "name": "Encoding locks theme and scene UI",
+      "passed": true
+    },
+    {
+      "name": "Cancel restores UI and selected scene",
+      "passed": true,
+      "detail": {
+        "feedback": "Export cancelled"
+      }
+    },
+    {
+      "name": "Playback resumes after export cancellation",
+      "passed": true
+    }
+  ],
+  "operations": [
+    {
+      "name": "scene road #0",
+      "durationMs": 0.20000004768371582
+    },
+    {
+      "name": "scene elevated #0",
+      "durationMs": 578.7999999523163
+    },
+    {
+      "name": "scene ramp #0",
+      "durationMs": 722.7000000476837
+    },
+    {
+      "name": "scene junction #0",
+      "durationMs": 716.2999999523163
+    },
+    {
+      "name": "scene parking #0",
+      "durationMs": 483.60000002384186
+    },
+    {
+      "name": "scene outdoor #0",
+      "durationMs": 550.3999999761581
+    },
+    {
+      "name": "lanes 2 #0",
+      "durationMs": 21.90000009536743
+    },
+    {
+      "name": "lanes 4 #0",
+      "durationMs": 22.59999990463257
+    },
+    {
+      "name": "lanes 6 #0",
+      "durationMs": 7.5
+    },
+    {
+      "name": "camera high #0",
+      "durationMs": 15.700000047683716
+    },
+    {
+      "name": "camera low #0",
+      "durationMs": 17
+    },
+    {
+      "name": "weather overcast #0",
+      "durationMs": 201.20000004768372
+    },
+    {
+      "name": "weather rain #0",
+      "durationMs": 201.5
+    },
+    {
+      "name": "weather snow #0",
+      "durationMs": 204.79999995231628
+    },
+    {
+      "name": "weather default #0",
+      "durationMs": 204
+    },
+    {
+      "name": "traffic false #0",
+      "durationMs": 2
+    },
+    {
+      "name": "traffic true #0",
+      "durationMs": 1.6999999284744263
+    },
+    {
+      "name": "buildings false #0",
+      "durationMs": 8.100000023841858
+    },
+    {
+      "name": "buildings true #0",
+      "durationMs": 17.899999976158142
+    },
+    {
+      "name": "trees false #0",
+      "durationMs": 18
+    },
+    {
+      "name": "trees true #0",
+      "durationMs": 15.400000095367432
+    },
+    {
+      "name": "waterfront false #0",
+      "durationMs": 14.799999952316284
+    },
+    {
+      "name": "waterfront true #0",
+      "durationMs": 16.899999976158142
+    },
+    {
+      "name": "vehicle x6 #0",
+      "durationMs": 134.20000004768372
+    },
+    {
+      "name": "vehicle ix #0",
+      "durationMs": 32
+    },
+    {
+      "name": "vehicle xc90 #0",
+      "durationMs": 32.10000002384186
+    },
+    {
+      "name": "vehicle model-3 #0",
+      "durationMs": 32.199999928474426
+    },
+    {
+      "name": "theme roundtrip #0",
+      "durationMs": 1304.2000000476837
+    },
+    {
+      "name": "scene road #1",
+      "durationMs": 0
+    },
+    {
+      "name": "scene elevated #1",
+      "durationMs": 467.7999999523163
+    },
+    {
+      "name": "scene ramp #1",
+      "durationMs": 473.10000002384186
+    },
+    {
+      "name": "scene junction #1",
+      "durationMs": 393.7000000476837
+    },
+    {
+      "name": "scene parking #1",
+      "durationMs": 306
+    },
+    {
+      "name": "scene outdoor #1",
+      "durationMs": 328
+    },
+    {
+      "name": "lanes 2 #1",
+      "durationMs": 15.700000047683716
+    },
+    {
+      "name": "lanes 4 #1",
+      "durationMs": 13
+    },
+    {
+      "name": "lanes 6 #1",
+      "durationMs": 16.59999990463257
+    },
+    {
+      "name": "camera high #1",
+      "durationMs": 15.400000095367432
+    },
+    {
+      "name": "camera low #1",
+      "durationMs": 17
+    },
+    {
+      "name": "weather overcast #1",
+      "durationMs": 200.59999990463257
+    },
+    {
+      "name": "weather rain #1",
+      "durationMs": 201
+    },
+    {
+      "name": "weather snow #1",
+      "durationMs": 203.60000002384186
+    },
+    {
+      "name": "weather default #1",
+      "durationMs": 202.20000004768372
+    },
+    {
+      "name": "traffic false #1",
+      "durationMs": 1.100000023841858
+    },
+    {
+      "name": "traffic true #1",
+      "durationMs": 0.5999999046325684
+    },
+    {
+      "name": "buildings false #1",
+      "durationMs": 14.900000095367432
+    },
+    {
+      "name": "buildings true #1",
+      "durationMs": 16.199999928474426
+    },
+    {
+      "name": "trees false #1",
+      "durationMs": 17.300000071525574
+    },
+    {
+      "name": "trees true #1",
+      "durationMs": 16.59999990463257
+    },
+    {
+      "name": "waterfront false #1",
+      "durationMs": 16.800000071525574
+    },
+    {
+      "name": "waterfront true #1",
+      "durationMs": 16.899999976158142
+    },
+    {
+      "name": "vehicle x6 #1",
+      "durationMs": 32.60000002384186
+    },
+    {
+      "name": "vehicle ix #1",
+      "durationMs": 33.699999928474426
+    },
+    {
+      "name": "vehicle xc90 #1",
+      "durationMs": 33.300000071525574
+    },
+    {
+      "name": "vehicle model-3 #1",
+      "durationMs": 31.899999976158142
+    },
+    {
+      "name": "theme roundtrip #1",
+      "durationMs": 1303.7000000476837
+    },
+    {
+      "name": "scene road #2",
+      "durationMs": 0
+    },
+    {
+      "name": "scene elevated #2",
+      "durationMs": 340.5
+    },
+    {
+      "name": "scene ramp #2",
+      "durationMs": 383.1999999284744
+    },
+    {
+      "name": "scene junction #2",
+      "durationMs": 333.3000000715256
+    },
+    {
+      "name": "scene parking #2",
+      "durationMs": 327.6999999284744
+    },
+    {
+      "name": "scene outdoor #2",
+      "durationMs": 322.60000002384186
+    },
+    {
+      "name": "lanes 2 #2",
+      "durationMs": 11.099999904632568
+    },
+    {
+      "name": "lanes 4 #2",
+      "durationMs": 13.200000047683716
+    },
+    {
+      "name": "lanes 6 #2",
+      "durationMs": 16.5
+    },
+    {
+      "name": "camera high #2",
+      "durationMs": 16.100000023841858
+    },
+    {
+      "name": "camera low #2",
+      "durationMs": 16.399999976158142
+    },
+    {
+      "name": "weather overcast #2",
+      "durationMs": 201.39999997615814
+    },
+    {
+      "name": "weather rain #2",
+      "durationMs": 201.10000002384186
+    },
+    {
+      "name": "weather snow #2",
+      "durationMs": 203.19999992847443
+    },
+    {
+      "name": "weather default #2",
+      "durationMs": 203
+    },
+    {
+      "name": "traffic false #2",
+      "durationMs": 1
+    },
+    {
+      "name": "traffic true #2",
+      "durationMs": 0.8999999761581421
+    },
+    {
+      "name": "buildings false #2",
+      "durationMs": 15.300000071525574
+    },
+    {
+      "name": "buildings true #2",
+      "durationMs": 17.199999928474426
+    },
+    {
+      "name": "trees false #2",
+      "durationMs": 17.100000023841858
+    },
+    {
+      "name": "trees true #2",
+      "durationMs": 16.399999976158142
+    },
+    {
+      "name": "waterfront false #2",
+      "durationMs": 16.5
+    },
+    {
+      "name": "waterfront true #2",
+      "durationMs": 16.600000023841858
+    },
+    {
+      "name": "vehicle x6 #2",
+      "durationMs": 32.700000047683716
+    },
+    {
+      "name": "vehicle ix #2",
+      "durationMs": 31.5
+    },
+    {
+      "name": "vehicle xc90 #2",
+      "durationMs": 31.899999976158142
+    },
+    {
+      "name": "vehicle model-3 #2",
+      "durationMs": 31.700000047683716
+    },
+    {
+      "name": "theme roundtrip #2",
+      "durationMs": 1305.3999999761581
+    }
+  ],
+  "longTasks": [
+    {
+      "operation": "scene elevated #0",
+      "durationMs": 74,
+      "start": 11377.399999976158
+    },
+    {
+      "operation": "scene elevated #0",
+      "durationMs": 83,
+      "start": 11457.5
+    },
+    {
+      "operation": "scene elevated #0",
+      "durationMs": 72,
+      "start": 11543.5
+    },
+    {
+      "operation": "scene ramp #0",
+      "durationMs": 130,
+      "start": 11952.600000023842
+    },
+    {
+      "operation": "scene ramp #0",
+      "durationMs": 80,
+      "start": 12252.5
+    },
+    {
+      "operation": "scene junction #0",
+      "durationMs": 68,
+      "start": 12890.299999952316
+    },
+    {
+      "operation": "scene junction #0",
+      "durationMs": 52,
+      "start": 12963.199999928474
+    },
+    {
+      "operation": "theme roundtrip #0",
+      "durationMs": 163,
+      "start": 17012.100000023842
+    },
+    {
+      "operation": "scene ramp #1",
+      "durationMs": 90,
+      "start": 18785
+    },
+    {
+      "operation": "scene ramp #2",
+      "durationMs": 56,
+      "start": 24296.899999976158
+    },
+    {
+      "operation": "theme roundtrip #2",
+      "durationMs": 63,
+      "start": 32285.600000023842
+    },
+    {
+      "operation": "theme roundtrip #2",
+      "durationMs": 61,
+      "start": 32385.799999952316
+    },
+    {
+      "operation": "theme roundtrip #2",
+      "durationMs": 58,
+      "start": 32796.299999952316
+    },
+    {
+      "operation": "theme roundtrip #2",
+      "durationMs": 62,
+      "start": 32895.799999952316
+    }
+  ],
+  "errors": []
+}

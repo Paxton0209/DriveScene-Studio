@@ -1,0 +1,20 @@
+{
+  "alphaThreshold": 8,
+  "padding": 12,
+  "jointCrop": [
+    261,
+    72,
+    1223,
+    700
+  ],
+  "outputSize": [
+    440,
+    287
+  ],
+  "models": {
+    "model-3": "Tesla-Model-3",
+    "x6": "BMW-X6",
+    "ix": "BMW-iX",
+    "xc90": "Volvo-XC90"
+  }
+}

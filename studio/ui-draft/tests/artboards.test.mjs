@@ -19,3 +19,13 @@ test('Saved board properties survive normalization independently',()=>{
  assert.equal(project.boards.road.params.path,false);
  assert.equal(project.boards.ramp.params.layout,'07');
 });
+
+test('Every page load resets Assist without discarding saved scene preferences',()=>{
+ const saved={active:'ramp',boards:Object.fromEntries(['road','elevated','ramp','junction','parking','outdoor'].map(id=>[id,{params:{path:true,weather:'rain',model:'ix'}}]))};
+ const project=createProject(saved);
+ assert.equal(project.active,'ramp');
+ for(const board of Object.values(project.boards)){assert.equal(board.params.path,false);assert.equal(board.params.weather,'rain');assert.equal(board.params.model,'ix')}
+ assert.equal(saved.boards.ramp.params.path,true);
+ project.boards.ramp.params.path=true;
+ assert.equal(createProject(project).boards.ramp.params.path,false);
+});
