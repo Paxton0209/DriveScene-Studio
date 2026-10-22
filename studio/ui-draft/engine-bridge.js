@@ -4,6 +4,7 @@ import {canvasPng,depthPng,zipFiles} from '../engine/export-files.js';
 import {previewPixels} from './pixel-resolution.js';
 import {pathSoundStatus} from '../engine/theme-sound.js';
 import {frameStep} from './frame-clock.js';
+import {appearanceSnapshot,createAppearanceBlend} from './theme-blend.js';
 
 export function makeRandom(seed){
  let value=seed>>>0;
@@ -15,6 +16,8 @@ export function installDraftBridge({world,features,drive,traffic,api,current,upd
  let playing=['road','elevated','ramp'].includes(current())&&!matchMedia('(prefers-reduced-motion: reduce)').matches,frame=0,last=0,accumulator=0,exporting=false,cancelled=false,idlePaused=false,lastInput=performance.now(),loopTime=0,junctionPoses=null,origin=null,originRoot=null,themeHeld=false;
  const query=new URLSearchParams(location.search);if(query.get('paused')==='1')playing=false;
  world.draftManaged=true;world.draftTime=performance.now();drive.pause();
+ const appearance=createAppearanceBlend(),draw=world.renderFrame;let renderedFrames=0;world.draftThemeTone={value:(world.state?.mode||query.get('mode'))==='dark'?1:0};
+ world.renderFrame=function(...args){if(!world.suspended&&!document.hidden){appearance.sample(performance.now());renderedFrames++}return draw.apply(this,args)};
  const get=({audit=true}={})=>({ready:!!world.root&&!world.initializingScene,playing:playing&&!document.hidden,requestedPlaying:playing,exporting,distance:drive.audit().distance,originEpoch:Math.floor(drive.audit().distance/1000),loopTime,scene:current(),features:features.get(),...(audit?{path:features.audit().path,objects:world.scene.getObjectsByProperty('isObject3D',true).length}:{}),junction:current()==='junction'?{complete:!!junctionPoses&&loopTime*1000>=junctionPoses.motion.duration,speed:world.draftSpeed??0}:null,sound:pathSoundStatus(),pooledObjects:drive.audit().pooledObjects,logicalTime:world.draftTime,raster:{width:world.renderer.domElement.width,height:world.renderer.domElement.height,cssWidth:world.renderer.domElement.clientWidth,cssHeight:world.renderer.domElement.clientHeight,devicePixelRatio}});
  function publish(){window.parent.postMessage({type:'ui-draft-status',value:get({audit:false})},location.origin)}
  function settle(){world.finishLayoutTransition();world.finishCameraMotion();world.finishEnvironmentMotion();world.finishLayoutMotion()}
@@ -31,7 +34,7 @@ export function installDraftBridge({world,features,drive,traffic,api,current,upd
  function setPlaying(value){playing=!!value;idlePaused=false;lastInput=performance.now();sync();schedule()}
  function seekJunction(){
   if(current()!=='junction')return;
-  const key=[world.state.id,world.state.mode,world.state.laneCount].join('|');
+  const key=[world.state.id,world.state.laneCount].join('|');
   if(!junctionPoses||junctionPoses.key!==key){
    const state={...world.state};world.update({...state,junctionPosition:'approaching',cameraView:'low'},{deferRender:true});const from=world.captureCamera();world.update({...state,junctionPosition:'near',cameraView:'high'},{deferRender:true});world.startCameraMotion(from);
    const motion=world.cameraMotion;cancelAnimationFrame(motion.frame);motion.paused=true;world.cameraMotion=null;junctionPoses={key,motion};
@@ -42,7 +45,7 @@ export function installDraftBridge({world,features,drive,traffic,api,current,upd
   if(complete&&playing){playing=false;sync()}
  }
  function step(seconds){if(!world.state||!world.root||world.initializingScene)return;world.draftTime+=seconds*1000;loopTime+=seconds;drive.advance(seconds);if(current()==='junction')seekJunction();else if(!world.cameraMotion&&!world.layoutMotion&&!world.environmentMotion&&!world.structureMotion)world.renderFrame()}
- const visualMotion=()=>features.animating()||world.activationSweep?.active();
+ const visualMotion=()=>appearance.active()||features.animating()||world.activationSweep?.active();
  function schedule(){if(frame||!playing&&!visualMotion()||document.hidden||exporting||themeHeld)return;frame=requestAnimationFrame(tick)}
  let lastPublish=0;
  function tick(now){
@@ -85,10 +88,11 @@ export function installDraftBridge({world,features,drive,traffic,api,current,upd
   if(!playing)settle();
   if(current()==='junction')seekJunction();else if(!playing)renderOnce();
   publish();schedule();
- },async scene(key,seed){settle();drive.reset();playing=['road','elevated','ramp'].includes(key)&&!matchMedia('(prefers-reduced-motion: reduce)').matches;world.draftSceneryRandom.reset(seed);world.draftTrafficRandom.reset(Number.isFinite(seed)?seed+1:undefined);junctionPoses=null;loopTime=0;world.suspended=false;api.scene(key);await waitForRender();if(key==='junction')seekJunction();sync();schedule()},
+ },async scene(key,seed){appearance.finish();settle();drive.reset();playing=['road','elevated','ramp'].includes(key)&&!matchMedia('(prefers-reduced-motion: reduce)').matches;world.draftSceneryRandom.reset(seed);world.draftTrafficRandom.reset(Number.isFinite(seed)?seed+1:undefined);junctionPoses=null;loopTime=0;world.suspended=false;api.scene(key);await waitForRender();if(key==='junction')seekJunction();sync();schedule()},
  beginTheme(){themeHeld=true;cancelAnimationFrame(frame);frame=0;sync()},
  endTheme(){themeHeld=false;last=0;sync();schedule()},
- async theme(value){const held=world.suspended;world.suspended=false;try{await api.theme(value);if(!themeHeld)renderOnce()}finally{world.suspended=held}publish()},
+ async theme(value,{animate=false}={}){if(!animate)appearance.finish();const from=animate?appearanceSnapshot(world):null,held=world.suspended;world.suspended=true;try{await api.theme(value);world.draftThemeTone.value=value==='dark'?1:0;if(from)appearance.start(from,appearanceSnapshot(world),performance.now())}finally{world.suspended=held}if(!themeHeld)renderOnce();publish();schedule()},
+ themeStatus(){return {blending:appearance.active(),renderedFrames,held:themeHeld}},
  replay(){loopTime=0;junctionPoses=null;const held=world.suspended;world.suspended=false;seekJunction();world.suspended=held;publish()},
  junctionPlay(){if(playing){setPlaying(false);return}if(junctionPoses&&loopTime*1000>=junctionPoses.motion.duration)bridge.replay();setPlaying(true)},
  export:exportScene,async videoFormat(){return (await import('./video.js')).videoType()},cancelExport(){cancelled=true},resize(width){if(exporting)return;const raster=previewPixels(width,devicePixelRatio);if(world.width===raster.width&&world.height===raster.height)return;world.setResolution(raster.width,raster.height);renderOnce();publish()},

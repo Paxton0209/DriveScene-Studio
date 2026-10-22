@@ -5,6 +5,7 @@ export function refineWorld(source){
  source=replace(source,'submittedAt-(this.lastMovingSubmit??-Infinity)<25','submittedAt-(this.lastMovingSubmit??-Infinity)<(this.draftManaged?12:25)');
  source=replace(source,'motion.sample=sample;motion.tick=tick;motion.frame=requestAnimationFrame(tick);','motion.speedAt=elapsed=>approach&&forward?brakingSpeed(elapsed,{speed:vehicleSpeed,cruise:vehicleCruiseTime,brake:vehicleBrakeTime,scale:.969*MOTION_TIME_SCALE}):0;motion.sample=sample;motion.tick=tick;motion.frame=requestAnimationFrame(tick);');
  source=replace(source,'gl_FragColor.rgb=mix(gl_FragColor.rgb,fogColor,fogFactor);','gl_FragColor.rgb=mix(gl_FragColor.rgb,linearToOutputTexel(vec4(fogColor,1.)).rgb,fogFactor);');
+ source=replace(source,'if(darkAerialPerspective>.5)t=clamp((vFogDepth-65.)/235.,0.,1.);','t=mix(t,clamp((vFogDepth-65.)/235.,0.,1.),darkAerialPerspective);');
  source=replace(source,"this.sky.material.uniforms.top.value.set(dark?'#202225':'#96bde0');","this.sky.material.uniforms.top.value.set(dark?'#2e3134':'#96bde0');");
  source=replace(source,"this.sky.material.uniforms.bottom.value.set(dark?'#2b2e32':'#dce5ee');","this.sky.material.uniforms.bottom.value.set(dark?'#35383c':'#dce5ee');");
  source=replace(source,"(dark?.16:.22);","(dark?.34:.40);");
@@ -30,7 +31,8 @@ void main(){
  gl_FragColor=vec4(color,1.);
  #include <colorspace_fragment>
 }\`;`;
- return source.slice(0,start)+fragment+source.slice(end);
+ const result=source.slice(0,start)+fragment+source.slice(end);
+ return replace(result,'u.weatherTop.value.copy(u.top.value).lerp(p.top,1.15);u.cloudLight.value.copy(p.light);u.cloudShade.value.copy(p.shade);u.coverage.value=p.coverage;u.cloudOpacity.value=p.opacity;',"const themeTone=world.draftThemeTone?.value??(dark?1:0),light=WEATHER[weather].light,night=WEATHER[weather].dark;u.weatherTop.value.copy(light.top).lerp(night.top,themeTone).sub(u.top.value).multiplyScalar(1.15).add(u.top.value);u.cloudLight.value.copy(light.light).lerp(night.light,themeTone);u.cloudShade.value.copy(light.shade).lerp(night.shade,themeTone);u.coverage.value=p.coverage;u.cloudOpacity.value=THREE.MathUtils.lerp(light.opacity,night.opacity,themeTone);");
 }
 
 export function refineSnowGround(source){

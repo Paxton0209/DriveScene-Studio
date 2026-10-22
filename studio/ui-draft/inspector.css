@@ -61,6 +61,10 @@ button:focus-visible,select:focus-visible,a:focus-visible{outline-color:var(--ac
 @media(max-width:959px){.workspace{grid-template-columns:56px minmax(0,1fr);grid-template-rows:minmax(220px,1fr) 240px}#inspector{grid-column:1/-1;grid-row:2;display:block}#inspector-scroll{display:grid;grid-template-columns:repeat(2,minmax(240px,1fr));align-content:start}#inspector-scroll>section{grid-column:auto;grid-row:auto}.vehicle-slot{grid-column:auto;grid-row:auto}#export-section h2{display:flex}#export-section{grid-column:auto;grid-row:auto;padding-block:0 20px}.properties{float:none}}
 @media(max-width:639px){#inspector-scroll{display:block}#export{width:100%;margin:12px 0 0}}
 .theme-icon{width:18px;height:18px;overflow:visible;view-transition-name:theme-icon}
+.artboard-clip{view-transition-name:live-scene}
+::view-transition-group(live-scene){animation:none;z-index:3}
+::view-transition-old(live-scene){display:none}
+::view-transition-new(live-scene){animation:none;mix-blend-mode:normal}
 .sun-disc,.sun-rays,.moon-cutout{transform-origin:12px 12px}
 :root[data-theme=dark] .sun-disc{transform:scale(1.65)}
 :root[data-theme=dark] .sun-rays{transform:rotate(45deg) scale(.7);opacity:0}

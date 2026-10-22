@@ -4,7 +4,7 @@ import {fileURLToPath} from 'node:url';
 import {isolatedRuntimePlugin} from './runtime-patches.mjs';
 const root=fileURLToPath(new URL('.',import.meta.url));
 const html=await readFile(new URL('../engine/index.html',import.meta.url),'utf8');
-const embedded=html.replace('<head>','<head><base href="../engine/"><link rel="stylesheet" href="../ui-draft/engine.css?v=1">').replaceAll('drivescene-preview-v15','drivescene-ui-draft-preview-v1').replaceAll('"sr-theme"','"sr-ui-draft-theme"').replace('<script src="startup.js?v=20261019-finish-110"></script>','<script type="module" src="../ui-draft/runtime.bundle.js?v=refine-20261022e"></script>');
+const embedded=html.replace('<head>','<head><base href="../engine/"><link rel="stylesheet" href="../ui-draft/engine.css?v=1">').replaceAll('drivescene-preview-v15','drivescene-ui-draft-preview-v1').replaceAll('"sr-theme"','"sr-ui-draft-theme"').replace('<script src="startup.js?v=20261019-finish-110"></script>','<script type="module" src="../ui-draft/runtime.bundle.js?v=live-theme09-20261022"></script>');
 await writeFile(new URL('./engine.html',import.meta.url),embedded);
 const iconFile=new URL('./icons.json',import.meta.url),iconMissing=await access(iconFile).then(()=>false,()=>true);
 if(iconMissing||process.argv.includes('--sync-icons')){

@@ -28,6 +28,8 @@ export function patchApp(source){
  source=replace(source,"if(key==='path'&&!value&&driveArmTimer)","if(key==='path'&&!value&&driveArmTimer&&!world.draftManaged)");
  source=replace(source,"param(key,value){document.documentElement.dataset.choiceInput='pointer';","param(key,value,{sound=false,animate=true}={}){document.documentElement.dataset.choiceInput='pointer';");
  source=replace(source,"if(key==='path'&&!query.has('qa')","if(sound&&key==='path'&&!query.has('qa')");
+ source=replace(source,'playPathSound,stopPathSound','playPathSound,playPathExitSound,stopPathSound');
+ source=replace(source,'if(value)playPathSound();else stopPathSound();','if(value)playPathSound();else playPathExitSound();');
  source=replace(source,'versionFeatures.set({[key]:value});','versionFeatures.set({[key]:value},{animate});');
  source=replace(source,'scene(key){const button=sceneButtons.get(key);','scene(key){stopPathSound();const button=sceneButtons.get(key);');
  source=replace(source,"preferences.get('junction').junctionPosition=query.get('position')==='approaching'||(first.key==='junction'&&query.get('view')==='low'&&!query.has('position'))?'approaching':'near';","preferences.get('junction').junctionPosition='approaching';");
@@ -43,7 +45,7 @@ export function isolatedRuntimePlugin(){return {name:'isolated-ui-draft',setup(b
  if(name==='app.js')source=patchApp(source);
  if(name==='version-features.js')source=patchFeatures(source);
  if(name==='sr-quality.js')source=source.replaceAll("'material-draft'","'ui-draft'");
- if(name==='weather-ground.js')source=refineSnowGround(source);
+ if(name==='weather-ground.js')source=refineSnowGround(source).replace('uniforms.weatherTone.value=dark?1:0;','uniforms.weatherTone.value=world.draftThemeTone?.value??(dark?1:0);');
  if(name==='activation-sweep.js')source=refineActivation(source).replaceAll('performance.now()','(world.draftTime??performance.now())');
  if(name==='parking-reference.js')source=replace(source,'const floor=createParkingSurface(world,tone,true);',"const floor=createParkingSurface(world,tone,true);const floorCompile=floor.onBeforeCompile,floorCache=floor.customProgramCacheKey();floor.onBeforeCompile=function(shader,renderer){floorCompile.call(this,shader,renderer);shader.fragmentShader=shader.fragmentShader.replace('mix(.38,.55,reflectionTone)*proximity*valid*reflectionStrength','mix(.16,.24,reflectionTone)*proximity*valid*reflectionStrength');};floor.customProgramCacheKey=()=>floorCache+'-draft-indoor-matte';");
  if(name==='continuous-driving.js'){
@@ -61,7 +63,7 @@ export function isolatedRuntimePlugin(){return {name:'isolated-ui-draft',setup(b
  }
  if(name==='preview-snapshot.js')source=source.replaceAll('drivescene-preview-v15','drivescene-ui-draft-preview-v2');
  if(name==='path-motion.js')source=source.replaceAll('drivescene-path-motion','drivescene-ui-draft-path-motion');
- if(name==='theme-sound.js')source=source.replaceAll('drivescene-assist-sound','drivescene-ui-draft-assist-sound');
+ if(name==='theme-sound.js')source="export {preparePathSound,pathSoundStatus,playPathSound,playPathExitSound,stopPathSound,playThemeSound} from '../ui-draft/assist-sound.js';";
  source=source.replaceAll('import.meta.url',`new URL('../engine/${name}',import.meta.url).href`);
  return {contents:source,loader:'js',resolveDir:args.path.slice(0,args.path.lastIndexOf('/'))};
  });}}}

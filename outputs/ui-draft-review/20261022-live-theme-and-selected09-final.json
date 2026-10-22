@@ -1,0 +1,5570 @@
+{
+  "checks": [
+    {
+      "name": "road live rendering #0",
+      "passed": true,
+      "detail": {
+        "samples": 44,
+        "frames": 21
+      }
+    },
+    {
+      "name": "road playback state #0",
+      "passed": true,
+      "detail": {
+        "before": 0.09999999999999999,
+        "after": 0.4666666666666666
+      }
+    },
+    {
+      "name": "road live rendering #1",
+      "passed": true,
+      "detail": {
+        "samples": 45,
+        "frames": 23
+      }
+    },
+    {
+      "name": "road playback state #1",
+      "passed": true,
+      "detail": {
+        "before": 0.8000000000000008,
+        "after": 1.1666666666666674
+      }
+    },
+    {
+      "name": "ramp live rendering #0",
+      "passed": true,
+      "detail": {
+        "samples": 41,
+        "frames": 21
+      }
+    },
+    {
+      "name": "ramp playback state #0",
+      "passed": true,
+      "detail": {
+        "before": 0.6166666666666669,
+        "after": 1.0666666666666673
+      }
+    },
+    {
+      "name": "ramp live rendering #1",
+      "passed": true,
+      "detail": {
+        "samples": 44,
+        "frames": 23
+      }
+    },
+    {
+      "name": "ramp playback state #1",
+      "passed": true,
+      "detail": {
+        "before": 1.2333333333333334,
+        "after": 1.5999999999999988
+      }
+    },
+    {
+      "name": "junction live rendering #0",
+      "passed": true,
+      "detail": {
+        "samples": 44,
+        "frames": 21
+      }
+    },
+    {
+      "name": "junction playback state #0",
+      "passed": true,
+      "detail": {
+        "before": 0,
+        "after": 0.35
+      }
+    },
+    {
+      "name": "junction live rendering #1",
+      "passed": true,
+      "detail": {
+        "samples": 45,
+        "frames": 23
+      }
+    },
+    {
+      "name": "junction playback state #1",
+      "passed": true,
+      "detail": {
+        "before": 0.7000000000000005,
+        "after": 1.0666666666666678
+      }
+    },
+    {
+      "name": "parking live rendering #0",
+      "passed": true,
+      "detail": {
+        "samples": 44,
+        "frames": 21
+      }
+    },
+    {
+      "name": "parking playback state #0",
+      "passed": true,
+      "detail": {
+        "before": 0,
+        "after": 0
+      }
+    },
+    {
+      "name": "parking live rendering #1",
+      "passed": true,
+      "detail": {
+        "samples": 44,
+        "frames": 22
+      }
+    },
+    {
+      "name": "parking playback state #1",
+      "passed": true,
+      "detail": {
+        "before": 0,
+        "after": 0
+      }
+    },
+    {
+      "name": "09 chosen enable and first-note exit",
+      "passed": true,
+      "detail": {
+        "before": {
+          "ready": true,
+          "plays": 0,
+          "exitPlays": 0,
+          "failures": 0,
+          "state": "running",
+          "durationMs": 615,
+          "exitDurationMs": 230,
+          "cue": "09",
+          "exitCue": "09-first-note-forward"
+        },
+        "enabled": {
+          "ready": true,
+          "plays": 1,
+          "exitPlays": 0,
+          "failures": 0,
+          "state": "running",
+          "durationMs": 615,
+          "exitDurationMs": 230,
+          "cue": "09",
+          "exitCue": "09-first-note-forward"
+        },
+        "disabled": {
+          "ready": true,
+          "plays": 1,
+          "exitPlays": 1,
+          "failures": 0,
+          "state": "running",
+          "durationMs": 615,
+          "exitDurationMs": 230,
+          "cue": "09",
+          "exitCue": "09-first-note-forward"
+        }
+      }
+    },
+    {
+      "name": "Scene restoration plays neither cue",
+      "passed": true,
+      "detail": {
+        "ready": true,
+        "plays": 1,
+        "exitPlays": 1,
+        "failures": 0,
+        "state": "running",
+        "durationMs": 615,
+        "exitDurationMs": 230,
+        "cue": "09",
+        "exitCue": "09-first-note-forward"
+      }
+    }
+  ],
+  "transitions": [
+    {
+      "scene": "road",
+      "trial": 0,
+      "audit": {
+        "target": "light",
+        "started": 801.9000000953674,
+        "method": "live-scene-circle",
+        "duration": 400,
+        "animationStarted": 831.3000000715256,
+        "finished": 1235.1000000238419
+      },
+      "playing": true,
+      "samples": [
+        {
+          "timestamp": 855.3,
+          "distance": 1.6800000000000002,
+          "loopTime": 0.09999999999999999,
+          "blending": false,
+          "renderedFrames": 12,
+          "held": false
+        },
+        {
+          "timestamp": 863.6,
+          "distance": 1.6800000000000002,
+          "loopTime": 0.09999999999999999,
+          "blending": true,
+          "renderedFrames": 13,
+          "held": false
+        },
+        {
+          "timestamp": 871.9,
+          "distance": 1.6800000000000002,
+          "loopTime": 0.09999999999999999,
+          "blending": true,
+          "renderedFrames": 13,
+          "held": false
+        },
+        {
+          "timestamp": 880.2,
+          "distance": 1.6800000000000002,
+          "loopTime": 0.09999999999999999,
+          "blending": true,
+          "renderedFrames": 13,
+          "held": false
+        },
+        {
+          "timestamp": 888.6,
+          "distance": 2.24,
+          "loopTime": 0.13333333333333333,
+          "blending": true,
+          "renderedFrames": 14,
+          "held": false
+        },
+        {
+          "timestamp": 896.9,
+          "distance": 2.24,
+          "loopTime": 0.13333333333333333,
+          "blending": true,
+          "renderedFrames": 14,
+          "held": false
+        },
+        {
+          "timestamp": 905.3,
+          "distance": 2.5200000000000005,
+          "loopTime": 0.15,
+          "blending": true,
+          "renderedFrames": 15,
+          "held": false
+        },
+        {
+          "timestamp": 913.6,
+          "distance": 2.5200000000000005,
+          "loopTime": 0.15,
+          "blending": true,
+          "renderedFrames": 15,
+          "held": false
+        },
+        {
+          "timestamp": 922,
+          "distance": 2.8000000000000007,
+          "loopTime": 0.16666666666666666,
+          "blending": true,
+          "renderedFrames": 16,
+          "held": false
+        },
+        {
+          "timestamp": 930.3,
+          "distance": 2.8000000000000007,
+          "loopTime": 0.16666666666666666,
+          "blending": true,
+          "renderedFrames": 16,
+          "held": false
+        },
+        {
+          "timestamp": 938.6,
+          "distance": 3.080000000000001,
+          "loopTime": 0.18333333333333332,
+          "blending": true,
+          "renderedFrames": 17,
+          "held": false
+        },
+        {
+          "timestamp": 947,
+          "distance": 3.080000000000001,
+          "loopTime": 0.18333333333333332,
+          "blending": true,
+          "renderedFrames": 17,
+          "held": false
+        },
+        {
+          "timestamp": 955.1,
+          "distance": 3.360000000000001,
+          "loopTime": 0.19999999999999998,
+          "blending": true,
+          "renderedFrames": 18,
+          "held": false
+        },
+        {
+          "timestamp": 962.8,
+          "distance": 3.360000000000001,
+          "loopTime": 0.19999999999999998,
+          "blending": true,
+          "renderedFrames": 18,
+          "held": false
+        },
+        {
+          "timestamp": 972,
+          "distance": 3.6400000000000015,
+          "loopTime": 0.21666666666666665,
+          "blending": true,
+          "renderedFrames": 19,
+          "held": false
+        },
+        {
+          "timestamp": 980.3,
+          "distance": 3.6400000000000015,
+          "loopTime": 0.21666666666666665,
+          "blending": true,
+          "renderedFrames": 19,
+          "held": false
+        },
+        {
+          "timestamp": 988.3,
+          "distance": 3.9200000000000017,
+          "loopTime": 0.2333333333333333,
+          "blending": true,
+          "renderedFrames": 20,
+          "held": false
+        },
+        {
+          "timestamp": 997,
+          "distance": 3.9200000000000017,
+          "loopTime": 0.2333333333333333,
+          "blending": true,
+          "renderedFrames": 20,
+          "held": false
+        },
+        {
+          "timestamp": 1005.2,
+          "distance": 4.200000000000002,
+          "loopTime": 0.24999999999999997,
+          "blending": true,
+          "renderedFrames": 21,
+          "held": false
+        },
+        {
+          "timestamp": 1013.7,
+          "distance": 4.200000000000002,
+          "loopTime": 0.24999999999999997,
+          "blending": true,
+          "renderedFrames": 21,
+          "held": false
+        },
+        {
+          "timestamp": 1021.9,
+          "distance": 4.480000000000002,
+          "loopTime": 0.26666666666666666,
+          "blending": true,
+          "renderedFrames": 22,
+          "held": false
+        },
+        {
+          "timestamp": 1030.2,
+          "distance": 4.480000000000002,
+          "loopTime": 0.26666666666666666,
+          "blending": true,
+          "renderedFrames": 22,
+          "held": false
+        },
+        {
+          "timestamp": 1038.6,
+          "distance": 4.7600000000000025,
+          "loopTime": 0.2833333333333333,
+          "blending": true,
+          "renderedFrames": 23,
+          "held": false
+        },
+        {
+          "timestamp": 1046.9,
+          "distance": 4.7600000000000025,
+          "loopTime": 0.2833333333333333,
+          "blending": true,
+          "renderedFrames": 23,
+          "held": false
+        },
+        {
+          "timestamp": 1055.3,
+          "distance": 5.040000000000003,
+          "loopTime": 0.3,
+          "blending": true,
+          "renderedFrames": 24,
+          "held": false
+        },
+        {
+          "timestamp": 1063.6,
+          "distance": 5.040000000000003,
+          "loopTime": 0.3,
+          "blending": true,
+          "renderedFrames": 24,
+          "held": false
+        },
+        {
+          "timestamp": 1071.9,
+          "distance": 5.320000000000003,
+          "loopTime": 0.31666666666666665,
+          "blending": true,
+          "renderedFrames": 25,
+          "held": false
+        },
+        {
+          "timestamp": 1080.2,
+          "distance": 5.320000000000003,
+          "loopTime": 0.31666666666666665,
+          "blending": true,
+          "renderedFrames": 25,
+          "held": false
+        },
+        {
+          "timestamp": 1088.6,
+          "distance": 5.600000000000003,
+          "loopTime": 0.3333333333333333,
+          "blending": true,
+          "renderedFrames": 26,
+          "held": false
+        },
+        {
+          "timestamp": 1096.9,
+          "distance": 5.600000000000003,
+          "loopTime": 0.3333333333333333,
+          "blending": true,
+          "renderedFrames": 26,
+          "held": false
+        },
+        {
+          "timestamp": 1105.2,
+          "distance": 5.8800000000000034,
+          "loopTime": 0.35,
+          "blending": true,
+          "renderedFrames": 27,
+          "held": false
+        },
+        {
+          "timestamp": 1130.3,
+          "distance": 5.8800000000000034,
+          "loopTime": 0.35,
+          "blending": true,
+          "renderedFrames": 27,
+          "held": false
+        },
+        {
+          "timestamp": 1138.6,
+          "distance": 6.440000000000003,
+          "loopTime": 0.3833333333333333,
+          "blending": true,
+          "renderedFrames": 28,
+          "held": false
+        },
+        {
+          "timestamp": 1146.9,
+          "distance": 6.440000000000003,
+          "loopTime": 0.3833333333333333,
+          "blending": true,
+          "renderedFrames": 28,
+          "held": false
+        },
+        {
+          "timestamp": 1154.9,
+          "distance": 6.720000000000003,
+          "loopTime": 0.39999999999999997,
+          "blending": true,
+          "renderedFrames": 29,
+          "held": false
+        },
+        {
+          "timestamp": 1163.6,
+          "distance": 6.720000000000003,
+          "loopTime": 0.39999999999999997,
+          "blending": true,
+          "renderedFrames": 29,
+          "held": false
+        },
+        {
+          "timestamp": 1171.9,
+          "distance": 7.0000000000000036,
+          "loopTime": 0.41666666666666663,
+          "blending": true,
+          "renderedFrames": 30,
+          "held": false
+        },
+        {
+          "timestamp": 1180.3,
+          "distance": 7.0000000000000036,
+          "loopTime": 0.41666666666666663,
+          "blending": true,
+          "renderedFrames": 30,
+          "held": false
+        },
+        {
+          "timestamp": 1188.6,
+          "distance": 7.280000000000004,
+          "loopTime": 0.4333333333333333,
+          "blending": true,
+          "renderedFrames": 31,
+          "held": false
+        },
+        {
+          "timestamp": 1196.9,
+          "distance": 7.280000000000004,
+          "loopTime": 0.4333333333333333,
+          "blending": true,
+          "renderedFrames": 31,
+          "held": false
+        },
+        {
+          "timestamp": 1205.3,
+          "distance": 7.560000000000004,
+          "loopTime": 0.44999999999999996,
+          "blending": true,
+          "renderedFrames": 32,
+          "held": false
+        },
+        {
+          "timestamp": 1213.6,
+          "distance": 7.560000000000004,
+          "loopTime": 0.44999999999999996,
+          "blending": true,
+          "renderedFrames": 32,
+          "held": false
+        },
+        {
+          "timestamp": 1221.9,
+          "distance": 7.840000000000004,
+          "loopTime": 0.4666666666666666,
+          "blending": true,
+          "renderedFrames": 33,
+          "held": false
+        },
+        {
+          "timestamp": 1230.2,
+          "distance": 7.840000000000004,
+          "loopTime": 0.4666666666666666,
+          "blending": true,
+          "renderedFrames": 33,
+          "held": false
+        },
+        {
+          "timestamp": 1238.5,
+          "distance": 8.120000000000005,
+          "loopTime": 0.4833333333333333,
+          "blending": true,
+          "renderedFrames": 34,
+          "held": false
+        },
+        {
+          "timestamp": 1246.9,
+          "distance": 8.120000000000005,
+          "loopTime": 0.4833333333333333,
+          "blending": true,
+          "renderedFrames": 34,
+          "held": false
+        },
+        {
+          "timestamp": 1255.2,
+          "distance": 8.400000000000004,
+          "loopTime": 0.49999999999999994,
+          "blending": true,
+          "renderedFrames": 35,
+          "held": false
+        },
+        {
+          "timestamp": 1263.6,
+          "distance": 8.400000000000004,
+          "loopTime": 0.49999999999999994,
+          "blending": true,
+          "renderedFrames": 35,
+          "held": false
+        },
+        {
+          "timestamp": 1271.9,
+          "distance": 8.680000000000003,
+          "loopTime": 0.5166666666666666,
+          "blending": false,
+          "renderedFrames": 36,
+          "held": false
+        },
+        {
+          "timestamp": 1280.2,
+          "distance": 8.680000000000003,
+          "loopTime": 0.5166666666666666,
+          "blending": false,
+          "renderedFrames": 36,
+          "held": false
+        },
+        {
+          "timestamp": 1288.6,
+          "distance": 8.960000000000003,
+          "loopTime": 0.5333333333333333,
+          "blending": false,
+          "renderedFrames": 37,
+          "held": false
+        },
+        {
+          "timestamp": 1296.9,
+          "distance": 8.960000000000003,
+          "loopTime": 0.5333333333333333,
+          "blending": false,
+          "renderedFrames": 37,
+          "held": false
+        },
+        {
+          "timestamp": 1305.3,
+          "distance": 9.240000000000002,
+          "loopTime": 0.55,
+          "blending": false,
+          "renderedFrames": 38,
+          "held": false
+        },
+        {
+          "timestamp": 1313.6,
+          "distance": 9.240000000000002,
+          "loopTime": 0.55,
+          "blending": false,
+          "renderedFrames": 38,
+          "held": false
+        },
+        {
+          "timestamp": 1322,
+          "distance": 9.520000000000001,
+          "loopTime": 0.5666666666666668,
+          "blending": false,
+          "renderedFrames": 39,
+          "held": false
+        },
+        {
+          "timestamp": 1330.2,
+          "distance": 9.520000000000001,
+          "loopTime": 0.5666666666666668,
+          "blending": false,
+          "renderedFrames": 39,
+          "held": false
+        },
+        {
+          "timestamp": 1338.6,
+          "distance": 9.8,
+          "loopTime": 0.5833333333333335,
+          "blending": false,
+          "renderedFrames": 40,
+          "held": false
+        },
+        {
+          "timestamp": 1346.9,
+          "distance": 9.8,
+          "loopTime": 0.5833333333333335,
+          "blending": false,
+          "renderedFrames": 40,
+          "held": false
+        },
+        {
+          "timestamp": 1354.6,
+          "distance": 10.08,
+          "loopTime": 0.6000000000000002,
+          "blending": false,
+          "renderedFrames": 41,
+          "held": false
+        },
+        {
+          "timestamp": 1363.6,
+          "distance": 10.08,
+          "loopTime": 0.6000000000000002,
+          "blending": false,
+          "renderedFrames": 41,
+          "held": false
+        },
+        {
+          "timestamp": 1371.6,
+          "distance": 10.36,
+          "loopTime": 0.6166666666666669,
+          "blending": false,
+          "renderedFrames": 42,
+          "held": false
+        },
+        {
+          "timestamp": 1380.3,
+          "distance": 10.36,
+          "loopTime": 0.6166666666666669,
+          "blending": false,
+          "renderedFrames": 42,
+          "held": false
+        },
+        {
+          "timestamp": 1388.6,
+          "distance": 10.639999999999999,
+          "loopTime": 0.6333333333333336,
+          "blending": false,
+          "renderedFrames": 43,
+          "held": false
+        },
+        {
+          "timestamp": 1397,
+          "distance": 10.639999999999999,
+          "loopTime": 0.6333333333333336,
+          "blending": false,
+          "renderedFrames": 43,
+          "held": false
+        },
+        {
+          "timestamp": 1405.3,
+          "distance": 10.919999999999998,
+          "loopTime": 0.6500000000000004,
+          "blending": false,
+          "renderedFrames": 44,
+          "held": false
+        },
+        {
+          "timestamp": 1413.6,
+          "distance": 10.919999999999998,
+          "loopTime": 0.6500000000000004,
+          "blending": false,
+          "renderedFrames": 44,
+          "held": false
+        },
+        {
+          "timestamp": 1421.9,
+          "distance": 11.199999999999998,
+          "loopTime": 0.6666666666666671,
+          "blending": false,
+          "renderedFrames": 45,
+          "held": false
+        },
+        {
+          "timestamp": 1430.3,
+          "distance": 11.199999999999998,
+          "loopTime": 0.6666666666666671,
+          "blending": false,
+          "renderedFrames": 45,
+          "held": false
+        },
+        {
+          "timestamp": 1438.6,
+          "distance": 11.479999999999997,
+          "loopTime": 0.6833333333333338,
+          "blending": false,
+          "renderedFrames": 46,
+          "held": false
+        },
+        {
+          "timestamp": 1447,
+          "distance": 11.479999999999997,
+          "loopTime": 0.6833333333333338,
+          "blending": false,
+          "renderedFrames": 46,
+          "held": false
+        },
+        {
+          "timestamp": 1455.2,
+          "distance": 11.759999999999996,
+          "loopTime": 0.7000000000000005,
+          "blending": false,
+          "renderedFrames": 47,
+          "held": false
+        },
+        {
+          "timestamp": 1463.6,
+          "distance": 11.759999999999996,
+          "loopTime": 0.7000000000000005,
+          "blending": false,
+          "renderedFrames": 47,
+          "held": false
+        },
+        {
+          "timestamp": 1471.9,
+          "distance": 12.039999999999996,
+          "loopTime": 0.7166666666666672,
+          "blending": false,
+          "renderedFrames": 48,
+          "held": false
+        },
+        {
+          "timestamp": 1480.3,
+          "distance": 12.039999999999996,
+          "loopTime": 0.7166666666666672,
+          "blending": false,
+          "renderedFrames": 48,
+          "held": false
+        },
+        {
+          "timestamp": 1488.6,
+          "distance": 12.319999999999995,
+          "loopTime": 0.733333333333334,
+          "blending": false,
+          "renderedFrames": 49,
+          "held": false
+        },
+        {
+          "timestamp": 1496.2,
+          "distance": 12.319999999999995,
+          "loopTime": 0.733333333333334,
+          "blending": false,
+          "renderedFrames": 49,
+          "held": false
+        },
+        {
+          "timestamp": 1504.4,
+          "distance": 12.599999999999994,
+          "loopTime": 0.7500000000000007,
+          "blending": false,
+          "renderedFrames": 50,
+          "held": false
+        },
+        {
+          "timestamp": 1513.6,
+          "distance": 12.599999999999994,
+          "loopTime": 0.7500000000000007,
+          "blending": false,
+          "renderedFrames": 50,
+          "held": false
+        },
+        {
+          "timestamp": 1521.9,
+          "distance": 12.879999999999994,
+          "loopTime": 0.7666666666666674,
+          "blending": false,
+          "renderedFrames": 51,
+          "held": false
+        },
+        {
+          "timestamp": 1530.3,
+          "distance": 12.879999999999994,
+          "loopTime": 0.7666666666666674,
+          "blending": false,
+          "renderedFrames": 51,
+          "held": false
+        },
+        {
+          "timestamp": 1538.6,
+          "distance": 13.159999999999993,
+          "loopTime": 0.7833333333333341,
+          "blending": false,
+          "renderedFrames": 52,
+          "held": false
+        },
+        {
+          "timestamp": 1546.9,
+          "distance": 13.159999999999993,
+          "loopTime": 0.7833333333333341,
+          "blending": false,
+          "renderedFrames": 52,
+          "held": false
+        },
+        {
+          "timestamp": 1555.2,
+          "distance": 13.439999999999992,
+          "loopTime": 0.8000000000000008,
+          "blending": false,
+          "renderedFrames": 53,
+          "held": false
+        }
+      ],
+      "longTasks": []
+    },
+    {
+      "scene": "road",
+      "trial": 1,
+      "audit": {
+        "target": "dark",
+        "started": 1502.6000000238419,
+        "method": "live-scene-circle",
+        "duration": 400,
+        "animationStarted": 1515.7000000476837,
+        "finished": 1925.6000000238419
+      },
+      "playing": true,
+      "samples": [
+        {
+          "timestamp": 1555.2,
+          "distance": 13.439999999999992,
+          "loopTime": 0.8000000000000008,
+          "blending": false,
+          "renderedFrames": 53,
+          "held": false
+        },
+        {
+          "timestamp": 1563.6,
+          "distance": 13.439999999999992,
+          "loopTime": 0.8000000000000008,
+          "blending": true,
+          "renderedFrames": 54,
+          "held": false
+        },
+        {
+          "timestamp": 1571.9,
+          "distance": 13.439999999999992,
+          "loopTime": 0.8000000000000008,
+          "blending": true,
+          "renderedFrames": 54,
+          "held": false
+        },
+        {
+          "timestamp": 1580.2,
+          "distance": 13.719999999999992,
+          "loopTime": 0.8166666666666675,
+          "blending": true,
+          "renderedFrames": 55,
+          "held": false
+        },
+        {
+          "timestamp": 1588.6,
+          "distance": 13.999999999999991,
+          "loopTime": 0.8333333333333343,
+          "blending": true,
+          "renderedFrames": 56,
+          "held": false
+        },
+        {
+          "timestamp": 1596.9,
+          "distance": 13.999999999999991,
+          "loopTime": 0.8333333333333343,
+          "blending": true,
+          "renderedFrames": 56,
+          "held": false
+        },
+        {
+          "timestamp": 1605.2,
+          "distance": 14.27999999999999,
+          "loopTime": 0.850000000000001,
+          "blending": true,
+          "renderedFrames": 57,
+          "held": false
+        },
+        {
+          "timestamp": 1613.6,
+          "distance": 14.27999999999999,
+          "loopTime": 0.850000000000001,
+          "blending": true,
+          "renderedFrames": 57,
+          "held": false
+        },
+        {
+          "timestamp": 1622,
+          "distance": 14.55999999999999,
+          "loopTime": 0.8666666666666677,
+          "blending": true,
+          "renderedFrames": 58,
+          "held": false
+        },
+        {
+          "timestamp": 1630.2,
+          "distance": 14.55999999999999,
+          "loopTime": 0.8666666666666677,
+          "blending": true,
+          "renderedFrames": 58,
+          "held": false
+        },
+        {
+          "timestamp": 1638.6,
+          "distance": 14.83999999999999,
+          "loopTime": 0.8833333333333344,
+          "blending": true,
+          "renderedFrames": 59,
+          "held": false
+        },
+        {
+          "timestamp": 1646.9,
+          "distance": 14.83999999999999,
+          "loopTime": 0.8833333333333344,
+          "blending": true,
+          "renderedFrames": 59,
+          "held": false
+        },
+        {
+          "timestamp": 1655.3,
+          "distance": 15.119999999999989,
+          "loopTime": 0.9000000000000011,
+          "blending": true,
+          "renderedFrames": 60,
+          "held": false
+        },
+        {
+          "timestamp": 1663.6,
+          "distance": 15.119999999999989,
+          "loopTime": 0.9000000000000011,
+          "blending": true,
+          "renderedFrames": 60,
+          "held": false
+        },
+        {
+          "timestamp": 1671.9,
+          "distance": 15.399999999999988,
+          "loopTime": 0.9166666666666679,
+          "blending": true,
+          "renderedFrames": 61,
+          "held": false
+        },
+        {
+          "timestamp": 1680.3,
+          "distance": 15.399999999999988,
+          "loopTime": 0.9166666666666679,
+          "blending": true,
+          "renderedFrames": 61,
+          "held": false
+        },
+        {
+          "timestamp": 1688.6,
+          "distance": 15.679999999999987,
+          "loopTime": 0.9333333333333346,
+          "blending": true,
+          "renderedFrames": 62,
+          "held": false
+        },
+        {
+          "timestamp": 1696.9,
+          "distance": 15.679999999999987,
+          "loopTime": 0.9333333333333346,
+          "blending": true,
+          "renderedFrames": 62,
+          "held": false
+        },
+        {
+          "timestamp": 1705.3,
+          "distance": 15.959999999999987,
+          "loopTime": 0.9500000000000013,
+          "blending": true,
+          "renderedFrames": 63,
+          "held": false
+        },
+        {
+          "timestamp": 1713.6,
+          "distance": 15.959999999999987,
+          "loopTime": 0.9500000000000013,
+          "blending": true,
+          "renderedFrames": 63,
+          "held": false
+        },
+        {
+          "timestamp": 1721.9,
+          "distance": 16.239999999999988,
+          "loopTime": 0.966666666666668,
+          "blending": true,
+          "renderedFrames": 64,
+          "held": false
+        },
+        {
+          "timestamp": 1730.3,
+          "distance": 16.239999999999988,
+          "loopTime": 0.966666666666668,
+          "blending": true,
+          "renderedFrames": 64,
+          "held": false
+        },
+        {
+          "timestamp": 1738.6,
+          "distance": 16.51999999999999,
+          "loopTime": 0.9833333333333347,
+          "blending": true,
+          "renderedFrames": 65,
+          "held": false
+        },
+        {
+          "timestamp": 1746.8,
+          "distance": 16.51999999999999,
+          "loopTime": 0.9833333333333347,
+          "blending": true,
+          "renderedFrames": 65,
+          "held": false
+        },
+        {
+          "timestamp": 1755.3,
+          "distance": 16.79999999999999,
+          "loopTime": 1.0000000000000013,
+          "blending": true,
+          "renderedFrames": 66,
+          "held": false
+        },
+        {
+          "timestamp": 1763.6,
+          "distance": 16.79999999999999,
+          "loopTime": 1.0000000000000013,
+          "blending": true,
+          "renderedFrames": 66,
+          "held": false
+        },
+        {
+          "timestamp": 1771.9,
+          "distance": 17.07999999999999,
+          "loopTime": 1.016666666666668,
+          "blending": true,
+          "renderedFrames": 67,
+          "held": false
+        },
+        {
+          "timestamp": 1780.2,
+          "distance": 17.07999999999999,
+          "loopTime": 1.016666666666668,
+          "blending": true,
+          "renderedFrames": 67,
+          "held": false
+        },
+        {
+          "timestamp": 1788.6,
+          "distance": 17.359999999999992,
+          "loopTime": 1.0333333333333345,
+          "blending": true,
+          "renderedFrames": 68,
+          "held": false
+        },
+        {
+          "timestamp": 1796.9,
+          "distance": 17.359999999999992,
+          "loopTime": 1.0333333333333345,
+          "blending": true,
+          "renderedFrames": 68,
+          "held": false
+        },
+        {
+          "timestamp": 1805.3,
+          "distance": 17.639999999999993,
+          "loopTime": 1.0500000000000012,
+          "blending": true,
+          "renderedFrames": 69,
+          "held": false
+        },
+        {
+          "timestamp": 1813.6,
+          "distance": 17.639999999999993,
+          "loopTime": 1.0500000000000012,
+          "blending": true,
+          "renderedFrames": 69,
+          "held": false
+        },
+        {
+          "timestamp": 1821.9,
+          "distance": 17.919999999999995,
+          "loopTime": 1.0666666666666678,
+          "blending": true,
+          "renderedFrames": 70,
+          "held": false
+        },
+        {
+          "timestamp": 1830.2,
+          "distance": 17.919999999999995,
+          "loopTime": 1.0666666666666678,
+          "blending": true,
+          "renderedFrames": 70,
+          "held": false
+        },
+        {
+          "timestamp": 1838.6,
+          "distance": 18.199999999999996,
+          "loopTime": 1.0833333333333344,
+          "blending": true,
+          "renderedFrames": 71,
+          "held": false
+        },
+        {
+          "timestamp": 1846.9,
+          "distance": 18.199999999999996,
+          "loopTime": 1.0833333333333344,
+          "blending": true,
+          "renderedFrames": 71,
+          "held": false
+        },
+        {
+          "timestamp": 1854.9,
+          "distance": 18.479999999999997,
+          "loopTime": 1.100000000000001,
+          "blending": true,
+          "renderedFrames": 72,
+          "held": false
+        },
+        {
+          "timestamp": 1863.7,
+          "distance": 18.479999999999997,
+          "loopTime": 1.100000000000001,
+          "blending": true,
+          "renderedFrames": 72,
+          "held": false
+        },
+        {
+          "timestamp": 1872,
+          "distance": 18.759999999999998,
+          "loopTime": 1.1166666666666676,
+          "blending": true,
+          "renderedFrames": 73,
+          "held": false
+        },
+        {
+          "timestamp": 1880.2,
+          "distance": 18.759999999999998,
+          "loopTime": 1.1166666666666676,
+          "blending": true,
+          "renderedFrames": 73,
+          "held": false
+        },
+        {
+          "timestamp": 1888.6,
+          "distance": 19.04,
+          "loopTime": 1.1333333333333342,
+          "blending": true,
+          "renderedFrames": 74,
+          "held": false
+        },
+        {
+          "timestamp": 1896.9,
+          "distance": 19.04,
+          "loopTime": 1.1333333333333342,
+          "blending": true,
+          "renderedFrames": 74,
+          "held": false
+        },
+        {
+          "timestamp": 1905.3,
+          "distance": 19.32,
+          "loopTime": 1.1500000000000008,
+          "blending": true,
+          "renderedFrames": 75,
+          "held": false
+        },
+        {
+          "timestamp": 1913.6,
+          "distance": 19.32,
+          "loopTime": 1.1500000000000008,
+          "blending": true,
+          "renderedFrames": 75,
+          "held": false
+        },
+        {
+          "timestamp": 1921.9,
+          "distance": 19.6,
+          "loopTime": 1.1666666666666674,
+          "blending": true,
+          "renderedFrames": 76,
+          "held": false
+        },
+        {
+          "timestamp": 1930.3,
+          "distance": 19.6,
+          "loopTime": 1.1666666666666674,
+          "blending": true,
+          "renderedFrames": 76,
+          "held": false
+        },
+        {
+          "timestamp": 1938.6,
+          "distance": 19.880000000000003,
+          "loopTime": 1.183333333333334,
+          "blending": true,
+          "renderedFrames": 77,
+          "held": false
+        },
+        {
+          "timestamp": 1946.9,
+          "distance": 19.880000000000003,
+          "loopTime": 1.183333333333334,
+          "blending": true,
+          "renderedFrames": 77,
+          "held": false
+        },
+        {
+          "timestamp": 1954.9,
+          "distance": 20.160000000000004,
+          "loopTime": 1.2000000000000006,
+          "blending": true,
+          "renderedFrames": 78,
+          "held": false
+        },
+        {
+          "timestamp": 1963.6,
+          "distance": 20.160000000000004,
+          "loopTime": 1.2000000000000006,
+          "blending": true,
+          "renderedFrames": 78,
+          "held": false
+        },
+        {
+          "timestamp": 1971.9,
+          "distance": 20.440000000000005,
+          "loopTime": 1.2166666666666672,
+          "blending": false,
+          "renderedFrames": 79,
+          "held": false
+        },
+        {
+          "timestamp": 1980.1,
+          "distance": 20.440000000000005,
+          "loopTime": 1.2166666666666672,
+          "blending": false,
+          "renderedFrames": 79,
+          "held": false
+        },
+        {
+          "timestamp": 1988.6,
+          "distance": 20.720000000000006,
+          "loopTime": 1.2333333333333338,
+          "blending": false,
+          "renderedFrames": 80,
+          "held": false
+        },
+        {
+          "timestamp": 1996.9,
+          "distance": 20.720000000000006,
+          "loopTime": 1.2333333333333338,
+          "blending": false,
+          "renderedFrames": 80,
+          "held": false
+        },
+        {
+          "timestamp": 2004.7,
+          "distance": 21.000000000000007,
+          "loopTime": 1.2500000000000004,
+          "blending": false,
+          "renderedFrames": 81,
+          "held": false
+        },
+        {
+          "timestamp": 2013.7,
+          "distance": 21.000000000000007,
+          "loopTime": 1.2500000000000004,
+          "blending": false,
+          "renderedFrames": 81,
+          "held": false
+        },
+        {
+          "timestamp": 2021.9,
+          "distance": 21.28000000000001,
+          "loopTime": 1.266666666666667,
+          "blending": false,
+          "renderedFrames": 82,
+          "held": false
+        },
+        {
+          "timestamp": 2030.2,
+          "distance": 21.28000000000001,
+          "loopTime": 1.266666666666667,
+          "blending": false,
+          "renderedFrames": 82,
+          "held": false
+        },
+        {
+          "timestamp": 2038.6,
+          "distance": 21.56000000000001,
+          "loopTime": 1.2833333333333337,
+          "blending": false,
+          "renderedFrames": 83,
+          "held": false
+        },
+        {
+          "timestamp": 2046.9,
+          "distance": 21.56000000000001,
+          "loopTime": 1.2833333333333337,
+          "blending": false,
+          "renderedFrames": 83,
+          "held": false
+        },
+        {
+          "timestamp": 2055.3,
+          "distance": 21.84000000000001,
+          "loopTime": 1.3000000000000003,
+          "blending": false,
+          "renderedFrames": 84,
+          "held": false
+        },
+        {
+          "timestamp": 2063.6,
+          "distance": 21.84000000000001,
+          "loopTime": 1.3000000000000003,
+          "blending": false,
+          "renderedFrames": 84,
+          "held": false
+        },
+        {
+          "timestamp": 2071.9,
+          "distance": 22.12000000000001,
+          "loopTime": 1.3166666666666669,
+          "blending": false,
+          "renderedFrames": 85,
+          "held": false
+        },
+        {
+          "timestamp": 2080.3,
+          "distance": 22.12000000000001,
+          "loopTime": 1.3166666666666669,
+          "blending": false,
+          "renderedFrames": 85,
+          "held": false
+        },
+        {
+          "timestamp": 2088.6,
+          "distance": 22.400000000000013,
+          "loopTime": 1.3333333333333335,
+          "blending": false,
+          "renderedFrames": 86,
+          "held": false
+        },
+        {
+          "timestamp": 2096.9,
+          "distance": 22.400000000000013,
+          "loopTime": 1.3333333333333335,
+          "blending": false,
+          "renderedFrames": 86,
+          "held": false
+        },
+        {
+          "timestamp": 2105.2,
+          "distance": 22.680000000000014,
+          "loopTime": 1.35,
+          "blending": false,
+          "renderedFrames": 87,
+          "held": false
+        },
+        {
+          "timestamp": 2113.6,
+          "distance": 22.680000000000014,
+          "loopTime": 1.35,
+          "blending": false,
+          "renderedFrames": 87,
+          "held": false
+        },
+        {
+          "timestamp": 2122,
+          "distance": 22.960000000000015,
+          "loopTime": 1.3666666666666667,
+          "blending": false,
+          "renderedFrames": 88,
+          "held": false
+        },
+        {
+          "timestamp": 2130.2,
+          "distance": 22.960000000000015,
+          "loopTime": 1.3666666666666667,
+          "blending": false,
+          "renderedFrames": 88,
+          "held": false
+        },
+        {
+          "timestamp": 2138.6,
+          "distance": 23.240000000000016,
+          "loopTime": 1.3833333333333333,
+          "blending": false,
+          "renderedFrames": 89,
+          "held": false
+        },
+        {
+          "timestamp": 2147,
+          "distance": 23.240000000000016,
+          "loopTime": 1.3833333333333333,
+          "blending": false,
+          "renderedFrames": 89,
+          "held": false
+        },
+        {
+          "timestamp": 2155.2,
+          "distance": 23.520000000000017,
+          "loopTime": 1.4,
+          "blending": false,
+          "renderedFrames": 90,
+          "held": false
+        },
+        {
+          "timestamp": 2163.5,
+          "distance": 23.520000000000017,
+          "loopTime": 1.4,
+          "blending": false,
+          "renderedFrames": 90,
+          "held": false
+        },
+        {
+          "timestamp": 2171.9,
+          "distance": 23.80000000000002,
+          "loopTime": 1.4166666666666665,
+          "blending": false,
+          "renderedFrames": 91,
+          "held": false
+        },
+        {
+          "timestamp": 2180.2,
+          "distance": 23.80000000000002,
+          "loopTime": 1.4166666666666665,
+          "blending": false,
+          "renderedFrames": 91,
+          "held": false
+        },
+        {
+          "timestamp": 2188.5,
+          "distance": 24.08000000000002,
+          "loopTime": 1.4333333333333331,
+          "blending": false,
+          "renderedFrames": 92,
+          "held": false
+        },
+        {
+          "timestamp": 2196.9,
+          "distance": 24.08000000000002,
+          "loopTime": 1.4333333333333331,
+          "blending": false,
+          "renderedFrames": 92,
+          "held": false
+        },
+        {
+          "timestamp": 2205.3,
+          "distance": 24.36000000000002,
+          "loopTime": 1.4499999999999997,
+          "blending": false,
+          "renderedFrames": 93,
+          "held": false
+        },
+        {
+          "timestamp": 2213.5,
+          "distance": 24.36000000000002,
+          "loopTime": 1.4499999999999997,
+          "blending": false,
+          "renderedFrames": 93,
+          "held": false
+        },
+        {
+          "timestamp": 2221.5,
+          "distance": 24.640000000000022,
+          "loopTime": 1.4666666666666663,
+          "blending": false,
+          "renderedFrames": 94,
+          "held": false
+        },
+        {
+          "timestamp": 2230.2,
+          "distance": 24.640000000000022,
+          "loopTime": 1.4666666666666663,
+          "blending": false,
+          "renderedFrames": 94,
+          "held": false
+        },
+        {
+          "timestamp": 2238.6,
+          "distance": 24.920000000000023,
+          "loopTime": 1.483333333333333,
+          "blending": false,
+          "renderedFrames": 95,
+          "held": false
+        },
+        {
+          "timestamp": 2246.9,
+          "distance": 24.920000000000023,
+          "loopTime": 1.483333333333333,
+          "blending": false,
+          "renderedFrames": 95,
+          "held": false
+        },
+        {
+          "timestamp": 2255.2,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 97,
+          "held": false
+        }
+      ],
+      "longTasks": []
+    },
+    {
+      "scene": "ramp",
+      "trial": 0,
+      "audit": {
+        "target": "light",
+        "started": 2893.600000023842,
+        "method": "live-scene-circle",
+        "duration": 400,
+        "animationStarted": 3061.2000000476837,
+        "finished": 3477.8000000715256
+      },
+      "playing": true,
+      "samples": [
+        {
+          "timestamp": 2946.9,
+          "distance": 10.079999999999998,
+          "loopTime": 0.6166666666666669,
+          "blending": true,
+          "renderedFrames": 131,
+          "held": false
+        },
+        {
+          "timestamp": 3105.3,
+          "distance": 10.079999999999998,
+          "loopTime": 0.6166666666666669,
+          "blending": true,
+          "renderedFrames": 131,
+          "held": false
+        },
+        {
+          "timestamp": 3113.5,
+          "distance": 10.079999999999998,
+          "loopTime": 0.6166666666666669,
+          "blending": true,
+          "renderedFrames": 131,
+          "held": false
+        },
+        {
+          "timestamp": 3121.9,
+          "distance": 11.759999999999998,
+          "loopTime": 0.7166666666666669,
+          "blending": true,
+          "renderedFrames": 132,
+          "held": false
+        },
+        {
+          "timestamp": 3129.4,
+          "distance": 11.759999999999998,
+          "loopTime": 0.7166666666666669,
+          "blending": true,
+          "renderedFrames": 132,
+          "held": false
+        },
+        {
+          "timestamp": 3171.9,
+          "distance": 12.039999999999997,
+          "loopTime": 0.7333333333333336,
+          "blending": true,
+          "renderedFrames": 133,
+          "held": false
+        },
+        {
+          "timestamp": 3180.3,
+          "distance": 12.599999999999998,
+          "loopTime": 0.7666666666666669,
+          "blending": true,
+          "renderedFrames": 134,
+          "held": false
+        },
+        {
+          "timestamp": 3188.6,
+          "distance": 12.879999999999997,
+          "loopTime": 0.7833333333333337,
+          "blending": true,
+          "renderedFrames": 135,
+          "held": false
+        },
+        {
+          "timestamp": 3196.2,
+          "distance": 12.879999999999997,
+          "loopTime": 0.7833333333333337,
+          "blending": true,
+          "renderedFrames": 135,
+          "held": false
+        },
+        {
+          "timestamp": 3205.2,
+          "distance": 13.159999999999997,
+          "loopTime": 0.8000000000000004,
+          "blending": true,
+          "renderedFrames": 136,
+          "held": false
+        },
+        {
+          "timestamp": 3213.2,
+          "distance": 13.159999999999997,
+          "loopTime": 0.8000000000000004,
+          "blending": true,
+          "renderedFrames": 136,
+          "held": false
+        },
+        {
+          "timestamp": 3222,
+          "distance": 13.439999999999996,
+          "loopTime": 0.8166666666666671,
+          "blending": true,
+          "renderedFrames": 137,
+          "held": false
+        },
+        {
+          "timestamp": 3230.2,
+          "distance": 13.439999999999996,
+          "loopTime": 0.8166666666666671,
+          "blending": true,
+          "renderedFrames": 137,
+          "held": false
+        },
+        {
+          "timestamp": 3238.6,
+          "distance": 13.719999999999995,
+          "loopTime": 0.8333333333333338,
+          "blending": true,
+          "renderedFrames": 138,
+          "held": false
+        },
+        {
+          "timestamp": 3246.9,
+          "distance": 13.719999999999995,
+          "loopTime": 0.8333333333333338,
+          "blending": true,
+          "renderedFrames": 138,
+          "held": false
+        },
+        {
+          "timestamp": 3255.3,
+          "distance": 13.999999999999995,
+          "loopTime": 0.8500000000000005,
+          "blending": true,
+          "renderedFrames": 139,
+          "held": false
+        },
+        {
+          "timestamp": 3263.6,
+          "distance": 13.999999999999995,
+          "loopTime": 0.8500000000000005,
+          "blending": true,
+          "renderedFrames": 139,
+          "held": false
+        },
+        {
+          "timestamp": 3271.9,
+          "distance": 14.279999999999994,
+          "loopTime": 0.8666666666666673,
+          "blending": true,
+          "renderedFrames": 140,
+          "held": false
+        },
+        {
+          "timestamp": 3280.2,
+          "distance": 14.279999999999994,
+          "loopTime": 0.8666666666666673,
+          "blending": true,
+          "renderedFrames": 140,
+          "held": false
+        },
+        {
+          "timestamp": 3288.6,
+          "distance": 14.559999999999993,
+          "loopTime": 0.883333333333334,
+          "blending": true,
+          "renderedFrames": 141,
+          "held": false
+        },
+        {
+          "timestamp": 3297,
+          "distance": 14.559999999999993,
+          "loopTime": 0.883333333333334,
+          "blending": true,
+          "renderedFrames": 141,
+          "held": false
+        },
+        {
+          "timestamp": 3305.3,
+          "distance": 14.839999999999993,
+          "loopTime": 0.9000000000000007,
+          "blending": true,
+          "renderedFrames": 142,
+          "held": false
+        },
+        {
+          "timestamp": 3313.6,
+          "distance": 14.839999999999993,
+          "loopTime": 0.9000000000000007,
+          "blending": true,
+          "renderedFrames": 142,
+          "held": false
+        },
+        {
+          "timestamp": 3322,
+          "distance": 15.119999999999992,
+          "loopTime": 0.9166666666666674,
+          "blending": true,
+          "renderedFrames": 143,
+          "held": false
+        },
+        {
+          "timestamp": 3330.2,
+          "distance": 15.119999999999992,
+          "loopTime": 0.9166666666666674,
+          "blending": true,
+          "renderedFrames": 143,
+          "held": false
+        },
+        {
+          "timestamp": 3338.5,
+          "distance": 15.399999999999991,
+          "loopTime": 0.9333333333333341,
+          "blending": true,
+          "renderedFrames": 144,
+          "held": false
+        },
+        {
+          "timestamp": 3346.8,
+          "distance": 15.399999999999991,
+          "loopTime": 0.9333333333333341,
+          "blending": true,
+          "renderedFrames": 144,
+          "held": false
+        },
+        {
+          "timestamp": 3355.2,
+          "distance": 15.67999999999999,
+          "loopTime": 0.9500000000000008,
+          "blending": false,
+          "renderedFrames": 145,
+          "held": false
+        },
+        {
+          "timestamp": 3362.8,
+          "distance": 15.67999999999999,
+          "loopTime": 0.9500000000000008,
+          "blending": false,
+          "renderedFrames": 145,
+          "held": false
+        },
+        {
+          "timestamp": 3371,
+          "distance": 15.95999999999999,
+          "loopTime": 0.9666666666666676,
+          "blending": false,
+          "renderedFrames": 146,
+          "held": false
+        },
+        {
+          "timestamp": 3380.4,
+          "distance": 15.95999999999999,
+          "loopTime": 0.9666666666666676,
+          "blending": false,
+          "renderedFrames": 146,
+          "held": false
+        },
+        {
+          "timestamp": 3387.7,
+          "distance": 16.23999999999999,
+          "loopTime": 0.9833333333333343,
+          "blending": false,
+          "renderedFrames": 147,
+          "held": false
+        },
+        {
+          "timestamp": 3396.9,
+          "distance": 16.23999999999999,
+          "loopTime": 0.9833333333333343,
+          "blending": false,
+          "renderedFrames": 147,
+          "held": false
+        },
+        {
+          "timestamp": 3405.2,
+          "distance": 16.519999999999992,
+          "loopTime": 1.0000000000000009,
+          "blending": false,
+          "renderedFrames": 148,
+          "held": false
+        },
+        {
+          "timestamp": 3413.6,
+          "distance": 16.519999999999992,
+          "loopTime": 1.0000000000000009,
+          "blending": false,
+          "renderedFrames": 148,
+          "held": false
+        },
+        {
+          "timestamp": 3421.9,
+          "distance": 16.799999999999994,
+          "loopTime": 1.0166666666666675,
+          "blending": false,
+          "renderedFrames": 149,
+          "held": false
+        },
+        {
+          "timestamp": 3429.9,
+          "distance": 16.799999999999994,
+          "loopTime": 1.0166666666666675,
+          "blending": false,
+          "renderedFrames": 149,
+          "held": false
+        },
+        {
+          "timestamp": 3438.5,
+          "distance": 17.079999999999995,
+          "loopTime": 1.033333333333334,
+          "blending": false,
+          "renderedFrames": 150,
+          "held": false
+        },
+        {
+          "timestamp": 3446.9,
+          "distance": 17.079999999999995,
+          "loopTime": 1.033333333333334,
+          "blending": false,
+          "renderedFrames": 150,
+          "held": false
+        },
+        {
+          "timestamp": 3454.5,
+          "distance": 17.359999999999996,
+          "loopTime": 1.0500000000000007,
+          "blending": false,
+          "renderedFrames": 151,
+          "held": false
+        },
+        {
+          "timestamp": 3463.6,
+          "distance": 17.359999999999996,
+          "loopTime": 1.0500000000000007,
+          "blending": false,
+          "renderedFrames": 151,
+          "held": false
+        },
+        {
+          "timestamp": 3471.9,
+          "distance": 17.639999999999997,
+          "loopTime": 1.0666666666666673,
+          "blending": false,
+          "renderedFrames": 152,
+          "held": false
+        },
+        {
+          "timestamp": 3480.3,
+          "distance": 17.639999999999997,
+          "loopTime": 1.0666666666666673,
+          "blending": false,
+          "renderedFrames": 152,
+          "held": false
+        },
+        {
+          "timestamp": 3488.6,
+          "distance": 17.919999999999998,
+          "loopTime": 1.083333333333334,
+          "blending": false,
+          "renderedFrames": 153,
+          "held": false
+        },
+        {
+          "timestamp": 3497,
+          "distance": 17.919999999999998,
+          "loopTime": 1.083333333333334,
+          "blending": false,
+          "renderedFrames": 153,
+          "held": false
+        },
+        {
+          "timestamp": 3505.2,
+          "distance": 18.2,
+          "loopTime": 1.1000000000000005,
+          "blending": false,
+          "renderedFrames": 154,
+          "held": false
+        },
+        {
+          "timestamp": 3513.6,
+          "distance": 18.2,
+          "loopTime": 1.1000000000000005,
+          "blending": false,
+          "renderedFrames": 154,
+          "held": false
+        },
+        {
+          "timestamp": 3521.9,
+          "distance": 18.48,
+          "loopTime": 1.1166666666666671,
+          "blending": false,
+          "renderedFrames": 155,
+          "held": false
+        },
+        {
+          "timestamp": 3530.2,
+          "distance": 18.48,
+          "loopTime": 1.1166666666666671,
+          "blending": false,
+          "renderedFrames": 155,
+          "held": false
+        },
+        {
+          "timestamp": 3538.5,
+          "distance": 18.76,
+          "loopTime": 1.1333333333333337,
+          "blending": false,
+          "renderedFrames": 156,
+          "held": false
+        },
+        {
+          "timestamp": 3546.9,
+          "distance": 18.76,
+          "loopTime": 1.1333333333333337,
+          "blending": false,
+          "renderedFrames": 156,
+          "held": false
+        },
+        {
+          "timestamp": 3555.3,
+          "distance": 19.040000000000003,
+          "loopTime": 1.1500000000000004,
+          "blending": false,
+          "renderedFrames": 157,
+          "held": false
+        },
+        {
+          "timestamp": 3563.6,
+          "distance": 19.040000000000003,
+          "loopTime": 1.1500000000000004,
+          "blending": false,
+          "renderedFrames": 157,
+          "held": false
+        },
+        {
+          "timestamp": 3571.6,
+          "distance": 19.320000000000004,
+          "loopTime": 1.166666666666667,
+          "blending": false,
+          "renderedFrames": 158,
+          "held": false
+        },
+        {
+          "timestamp": 3580.3,
+          "distance": 19.320000000000004,
+          "loopTime": 1.166666666666667,
+          "blending": false,
+          "renderedFrames": 158,
+          "held": false
+        },
+        {
+          "timestamp": 3588.1,
+          "distance": 19.600000000000005,
+          "loopTime": 1.1833333333333336,
+          "blending": false,
+          "renderedFrames": 159,
+          "held": false
+        },
+        {
+          "timestamp": 3596.9,
+          "distance": 19.600000000000005,
+          "loopTime": 1.1833333333333336,
+          "blending": false,
+          "renderedFrames": 159,
+          "held": false
+        },
+        {
+          "timestamp": 3605.2,
+          "distance": 19.880000000000006,
+          "loopTime": 1.2000000000000002,
+          "blending": false,
+          "renderedFrames": 160,
+          "held": false
+        },
+        {
+          "timestamp": 3613.5,
+          "distance": 19.880000000000006,
+          "loopTime": 1.2000000000000002,
+          "blending": false,
+          "renderedFrames": 160,
+          "held": false
+        },
+        {
+          "timestamp": 3622,
+          "distance": 20.160000000000007,
+          "loopTime": 1.2166666666666668,
+          "blending": false,
+          "renderedFrames": 161,
+          "held": false
+        },
+        {
+          "timestamp": 3630.3,
+          "distance": 20.160000000000007,
+          "loopTime": 1.2166666666666668,
+          "blending": false,
+          "renderedFrames": 161,
+          "held": false
+        },
+        {
+          "timestamp": 3638.6,
+          "distance": 20.44000000000001,
+          "loopTime": 1.2333333333333334,
+          "blending": false,
+          "renderedFrames": 162,
+          "held": false
+        },
+        {
+          "timestamp": 3646.9,
+          "distance": 20.44000000000001,
+          "loopTime": 1.2333333333333334,
+          "blending": false,
+          "renderedFrames": 162,
+          "held": false
+        }
+      ],
+      "longTasks": [
+        {
+          "start": 2943.9000000953674,
+          "duration": 162
+        }
+      ]
+    },
+    {
+      "scene": "ramp",
+      "trial": 1,
+      "audit": {
+        "target": "dark",
+        "started": 3594.9000000953674,
+        "method": "live-scene-circle",
+        "duration": 400,
+        "animationStarted": 3606.7000000476837,
+        "finished": 4009.3000000715256
+      },
+      "playing": true,
+      "samples": [
+        {
+          "timestamp": 3646.9,
+          "distance": 20.44000000000001,
+          "loopTime": 1.2333333333333334,
+          "blending": false,
+          "renderedFrames": 162,
+          "held": false
+        },
+        {
+          "timestamp": 3655.2,
+          "distance": 20.72000000000001,
+          "loopTime": 1.25,
+          "blending": true,
+          "renderedFrames": 164,
+          "held": false
+        },
+        {
+          "timestamp": 3663.6,
+          "distance": 20.72000000000001,
+          "loopTime": 1.25,
+          "blending": true,
+          "renderedFrames": 164,
+          "held": false
+        },
+        {
+          "timestamp": 3671.7,
+          "distance": 21.00000000000001,
+          "loopTime": 1.2666666666666666,
+          "blending": true,
+          "renderedFrames": 165,
+          "held": false
+        },
+        {
+          "timestamp": 3680.2,
+          "distance": 21.00000000000001,
+          "loopTime": 1.2666666666666666,
+          "blending": true,
+          "renderedFrames": 165,
+          "held": false
+        },
+        {
+          "timestamp": 3688.6,
+          "distance": 21.280000000000012,
+          "loopTime": 1.2833333333333332,
+          "blending": true,
+          "renderedFrames": 166,
+          "held": false
+        },
+        {
+          "timestamp": 3696.9,
+          "distance": 21.280000000000012,
+          "loopTime": 1.2833333333333332,
+          "blending": true,
+          "renderedFrames": 166,
+          "held": false
+        },
+        {
+          "timestamp": 3705.3,
+          "distance": 21.560000000000013,
+          "loopTime": 1.2999999999999998,
+          "blending": true,
+          "renderedFrames": 167,
+          "held": false
+        },
+        {
+          "timestamp": 3713.6,
+          "distance": 21.560000000000013,
+          "loopTime": 1.2999999999999998,
+          "blending": true,
+          "renderedFrames": 167,
+          "held": false
+        },
+        {
+          "timestamp": 3721.9,
+          "distance": 21.840000000000014,
+          "loopTime": 1.3166666666666664,
+          "blending": true,
+          "renderedFrames": 168,
+          "held": false
+        },
+        {
+          "timestamp": 3730.3,
+          "distance": 21.840000000000014,
+          "loopTime": 1.3166666666666664,
+          "blending": true,
+          "renderedFrames": 168,
+          "held": false
+        },
+        {
+          "timestamp": 3738.6,
+          "distance": 22.120000000000015,
+          "loopTime": 1.333333333333333,
+          "blending": true,
+          "renderedFrames": 169,
+          "held": false
+        },
+        {
+          "timestamp": 3746.9,
+          "distance": 22.120000000000015,
+          "loopTime": 1.333333333333333,
+          "blending": true,
+          "renderedFrames": 169,
+          "held": false
+        },
+        {
+          "timestamp": 3755.2,
+          "distance": 22.400000000000016,
+          "loopTime": 1.3499999999999996,
+          "blending": true,
+          "renderedFrames": 170,
+          "held": false
+        },
+        {
+          "timestamp": 3762.8,
+          "distance": 22.400000000000016,
+          "loopTime": 1.3499999999999996,
+          "blending": true,
+          "renderedFrames": 170,
+          "held": false
+        },
+        {
+          "timestamp": 3771.9,
+          "distance": 22.680000000000017,
+          "loopTime": 1.3666666666666663,
+          "blending": true,
+          "renderedFrames": 171,
+          "held": false
+        },
+        {
+          "timestamp": 3780.2,
+          "distance": 22.680000000000017,
+          "loopTime": 1.3666666666666663,
+          "blending": true,
+          "renderedFrames": 171,
+          "held": false
+        },
+        {
+          "timestamp": 3788.6,
+          "distance": 22.96000000000002,
+          "loopTime": 1.3833333333333329,
+          "blending": true,
+          "renderedFrames": 172,
+          "held": false
+        },
+        {
+          "timestamp": 3796.9,
+          "distance": 22.96000000000002,
+          "loopTime": 1.3833333333333329,
+          "blending": true,
+          "renderedFrames": 172,
+          "held": false
+        },
+        {
+          "timestamp": 3805.2,
+          "distance": 23.24000000000002,
+          "loopTime": 1.3999999999999995,
+          "blending": true,
+          "renderedFrames": 173,
+          "held": false
+        },
+        {
+          "timestamp": 3813.6,
+          "distance": 23.24000000000002,
+          "loopTime": 1.3999999999999995,
+          "blending": true,
+          "renderedFrames": 173,
+          "held": false
+        },
+        {
+          "timestamp": 3821.5,
+          "distance": 23.52000000000002,
+          "loopTime": 1.416666666666666,
+          "blending": true,
+          "renderedFrames": 174,
+          "held": false
+        },
+        {
+          "timestamp": 3830.2,
+          "distance": 23.52000000000002,
+          "loopTime": 1.416666666666666,
+          "blending": true,
+          "renderedFrames": 174,
+          "held": false
+        },
+        {
+          "timestamp": 3838.5,
+          "distance": 23.800000000000022,
+          "loopTime": 1.4333333333333327,
+          "blending": true,
+          "renderedFrames": 175,
+          "held": false
+        },
+        {
+          "timestamp": 3846.9,
+          "distance": 23.800000000000022,
+          "loopTime": 1.4333333333333327,
+          "blending": true,
+          "renderedFrames": 175,
+          "held": false
+        },
+        {
+          "timestamp": 3855.2,
+          "distance": 24.080000000000023,
+          "loopTime": 1.4499999999999993,
+          "blending": true,
+          "renderedFrames": 176,
+          "held": false
+        },
+        {
+          "timestamp": 3863.6,
+          "distance": 24.080000000000023,
+          "loopTime": 1.4499999999999993,
+          "blending": true,
+          "renderedFrames": 176,
+          "held": false
+        },
+        {
+          "timestamp": 3871.9,
+          "distance": 24.360000000000024,
+          "loopTime": 1.466666666666666,
+          "blending": true,
+          "renderedFrames": 177,
+          "held": false
+        },
+        {
+          "timestamp": 3880.2,
+          "distance": 24.360000000000024,
+          "loopTime": 1.466666666666666,
+          "blending": true,
+          "renderedFrames": 177,
+          "held": false
+        },
+        {
+          "timestamp": 3888.6,
+          "distance": 24.640000000000025,
+          "loopTime": 1.4833333333333325,
+          "blending": true,
+          "renderedFrames": 178,
+          "held": false
+        },
+        {
+          "timestamp": 3896.9,
+          "distance": 24.640000000000025,
+          "loopTime": 1.4833333333333325,
+          "blending": true,
+          "renderedFrames": 178,
+          "held": false
+        },
+        {
+          "timestamp": 3905.2,
+          "distance": 24.920000000000027,
+          "loopTime": 1.4999999999999991,
+          "blending": true,
+          "renderedFrames": 179,
+          "held": false
+        },
+        {
+          "timestamp": 3913.5,
+          "distance": 24.920000000000027,
+          "loopTime": 1.4999999999999991,
+          "blending": true,
+          "renderedFrames": 179,
+          "held": false
+        },
+        {
+          "timestamp": 3922,
+          "distance": 25.200000000000028,
+          "loopTime": 1.5166666666666657,
+          "blending": true,
+          "renderedFrames": 180,
+          "held": false
+        },
+        {
+          "timestamp": 3930.2,
+          "distance": 25.200000000000028,
+          "loopTime": 1.5166666666666657,
+          "blending": true,
+          "renderedFrames": 180,
+          "held": false
+        },
+        {
+          "timestamp": 3938.6,
+          "distance": 25.48000000000003,
+          "loopTime": 1.5333333333333323,
+          "blending": true,
+          "renderedFrames": 181,
+          "held": false
+        },
+        {
+          "timestamp": 3946.9,
+          "distance": 25.48000000000003,
+          "loopTime": 1.5333333333333323,
+          "blending": true,
+          "renderedFrames": 181,
+          "held": false
+        },
+        {
+          "timestamp": 3955.3,
+          "distance": 25.76000000000003,
+          "loopTime": 1.549999999999999,
+          "blending": true,
+          "renderedFrames": 182,
+          "held": false
+        },
+        {
+          "timestamp": 3963.6,
+          "distance": 25.76000000000003,
+          "loopTime": 1.549999999999999,
+          "blending": true,
+          "renderedFrames": 182,
+          "held": false
+        },
+        {
+          "timestamp": 3971.9,
+          "distance": 26.04000000000003,
+          "loopTime": 1.5666666666666655,
+          "blending": true,
+          "renderedFrames": 183,
+          "held": false
+        },
+        {
+          "timestamp": 3980.2,
+          "distance": 26.04000000000003,
+          "loopTime": 1.5666666666666655,
+          "blending": true,
+          "renderedFrames": 183,
+          "held": false
+        },
+        {
+          "timestamp": 3988.6,
+          "distance": 26.320000000000032,
+          "loopTime": 1.5833333333333321,
+          "blending": true,
+          "renderedFrames": 184,
+          "held": false
+        },
+        {
+          "timestamp": 3997,
+          "distance": 26.320000000000032,
+          "loopTime": 1.5833333333333321,
+          "blending": true,
+          "renderedFrames": 184,
+          "held": false
+        },
+        {
+          "timestamp": 4005.2,
+          "distance": 26.600000000000033,
+          "loopTime": 1.5999999999999988,
+          "blending": true,
+          "renderedFrames": 185,
+          "held": false
+        },
+        {
+          "timestamp": 4013.6,
+          "distance": 26.600000000000033,
+          "loopTime": 1.5999999999999988,
+          "blending": true,
+          "renderedFrames": 185,
+          "held": false
+        },
+        {
+          "timestamp": 4021.9,
+          "distance": 26.880000000000035,
+          "loopTime": 1.6166666666666654,
+          "blending": true,
+          "renderedFrames": 186,
+          "held": false
+        },
+        {
+          "timestamp": 4030.3,
+          "distance": 26.880000000000035,
+          "loopTime": 1.6166666666666654,
+          "blending": true,
+          "renderedFrames": 186,
+          "held": false
+        },
+        {
+          "timestamp": 4038.6,
+          "distance": 27.160000000000036,
+          "loopTime": 1.633333333333332,
+          "blending": true,
+          "renderedFrames": 187,
+          "held": false
+        },
+        {
+          "timestamp": 4046.9,
+          "distance": 27.160000000000036,
+          "loopTime": 1.633333333333332,
+          "blending": true,
+          "renderedFrames": 187,
+          "held": false
+        },
+        {
+          "timestamp": 4055.2,
+          "distance": 27.440000000000037,
+          "loopTime": 1.6499999999999986,
+          "blending": true,
+          "renderedFrames": 188,
+          "held": false
+        },
+        {
+          "timestamp": 4063.6,
+          "distance": 27.440000000000037,
+          "loopTime": 1.6499999999999986,
+          "blending": true,
+          "renderedFrames": 188,
+          "held": false
+        },
+        {
+          "timestamp": 4071.9,
+          "distance": 27.720000000000038,
+          "loopTime": 1.6666666666666652,
+          "blending": false,
+          "renderedFrames": 189,
+          "held": false
+        },
+        {
+          "timestamp": 4080.3,
+          "distance": 27.720000000000038,
+          "loopTime": 1.6666666666666652,
+          "blending": false,
+          "renderedFrames": 189,
+          "held": false
+        },
+        {
+          "timestamp": 4088.1,
+          "distance": 28.00000000000004,
+          "loopTime": 1.6833333333333318,
+          "blending": false,
+          "renderedFrames": 190,
+          "held": false
+        },
+        {
+          "timestamp": 4096.3,
+          "distance": 28.00000000000004,
+          "loopTime": 1.6833333333333318,
+          "blending": false,
+          "renderedFrames": 190,
+          "held": false
+        },
+        {
+          "timestamp": 4105.3,
+          "distance": 28.28000000000004,
+          "loopTime": 1.6999999999999984,
+          "blending": false,
+          "renderedFrames": 191,
+          "held": false
+        },
+        {
+          "timestamp": 4113.6,
+          "distance": 28.28000000000004,
+          "loopTime": 1.6999999999999984,
+          "blending": false,
+          "renderedFrames": 191,
+          "held": false
+        },
+        {
+          "timestamp": 4121.9,
+          "distance": 28.56000000000004,
+          "loopTime": 1.716666666666665,
+          "blending": false,
+          "renderedFrames": 192,
+          "held": false
+        },
+        {
+          "timestamp": 4130.3,
+          "distance": 28.56000000000004,
+          "loopTime": 1.716666666666665,
+          "blending": false,
+          "renderedFrames": 192,
+          "held": false
+        },
+        {
+          "timestamp": 4138.6,
+          "distance": 28.840000000000042,
+          "loopTime": 1.7333333333333316,
+          "blending": false,
+          "renderedFrames": 193,
+          "held": false
+        },
+        {
+          "timestamp": 4146.9,
+          "distance": 28.840000000000042,
+          "loopTime": 1.7333333333333316,
+          "blending": false,
+          "renderedFrames": 193,
+          "held": false
+        },
+        {
+          "timestamp": 4155,
+          "distance": 29.120000000000044,
+          "loopTime": 1.7499999999999982,
+          "blending": false,
+          "renderedFrames": 194,
+          "held": false
+        },
+        {
+          "timestamp": 4163.5,
+          "distance": 29.120000000000044,
+          "loopTime": 1.7499999999999982,
+          "blending": false,
+          "renderedFrames": 194,
+          "held": false
+        },
+        {
+          "timestamp": 4171.9,
+          "distance": 29.400000000000045,
+          "loopTime": 1.7666666666666648,
+          "blending": false,
+          "renderedFrames": 195,
+          "held": false
+        },
+        {
+          "timestamp": 4180.3,
+          "distance": 29.400000000000045,
+          "loopTime": 1.7666666666666648,
+          "blending": false,
+          "renderedFrames": 195,
+          "held": false
+        },
+        {
+          "timestamp": 4188.5,
+          "distance": 29.680000000000046,
+          "loopTime": 1.7833333333333314,
+          "blending": false,
+          "renderedFrames": 196,
+          "held": false
+        },
+        {
+          "timestamp": 4196.9,
+          "distance": 29.680000000000046,
+          "loopTime": 1.7833333333333314,
+          "blending": false,
+          "renderedFrames": 196,
+          "held": false
+        },
+        {
+          "timestamp": 4205.3,
+          "distance": 29.960000000000047,
+          "loopTime": 1.799999999999998,
+          "blending": false,
+          "renderedFrames": 197,
+          "held": false
+        },
+        {
+          "timestamp": 4213.6,
+          "distance": 29.960000000000047,
+          "loopTime": 1.799999999999998,
+          "blending": false,
+          "renderedFrames": 197,
+          "held": false
+        },
+        {
+          "timestamp": 4221.5,
+          "distance": 30.240000000000048,
+          "loopTime": 1.8166666666666647,
+          "blending": false,
+          "renderedFrames": 198,
+          "held": false
+        },
+        {
+          "timestamp": 4230.3,
+          "distance": 30.240000000000048,
+          "loopTime": 1.8166666666666647,
+          "blending": false,
+          "renderedFrames": 198,
+          "held": false
+        },
+        {
+          "timestamp": 4238.6,
+          "distance": 30.52000000000005,
+          "loopTime": 1.8333333333333313,
+          "blending": false,
+          "renderedFrames": 199,
+          "held": false
+        },
+        {
+          "timestamp": 4246.9,
+          "distance": 30.52000000000005,
+          "loopTime": 1.8333333333333313,
+          "blending": false,
+          "renderedFrames": 199,
+          "held": false
+        },
+        {
+          "timestamp": 4255.2,
+          "distance": 30.80000000000005,
+          "loopTime": 1.8499999999999979,
+          "blending": false,
+          "renderedFrames": 200,
+          "held": false
+        },
+        {
+          "timestamp": 4263.6,
+          "distance": 30.80000000000005,
+          "loopTime": 1.8499999999999979,
+          "blending": false,
+          "renderedFrames": 200,
+          "held": false
+        },
+        {
+          "timestamp": 4271.9,
+          "distance": 31.08000000000005,
+          "loopTime": 1.8666666666666645,
+          "blending": false,
+          "renderedFrames": 201,
+          "held": false
+        },
+        {
+          "timestamp": 4280.2,
+          "distance": 31.08000000000005,
+          "loopTime": 1.8666666666666645,
+          "blending": false,
+          "renderedFrames": 201,
+          "held": false
+        },
+        {
+          "timestamp": 4288.5,
+          "distance": 31.360000000000053,
+          "loopTime": 1.883333333333331,
+          "blending": false,
+          "renderedFrames": 202,
+          "held": false
+        },
+        {
+          "timestamp": 4296.9,
+          "distance": 31.360000000000053,
+          "loopTime": 1.883333333333331,
+          "blending": false,
+          "renderedFrames": 202,
+          "held": false
+        },
+        {
+          "timestamp": 4305.2,
+          "distance": 31.640000000000054,
+          "loopTime": 1.8999999999999977,
+          "blending": false,
+          "renderedFrames": 203,
+          "held": false
+        },
+        {
+          "timestamp": 4313.6,
+          "distance": 31.640000000000054,
+          "loopTime": 1.8999999999999977,
+          "blending": false,
+          "renderedFrames": 203,
+          "held": false
+        },
+        {
+          "timestamp": 4322,
+          "distance": 31.920000000000055,
+          "loopTime": 1.9166666666666643,
+          "blending": false,
+          "renderedFrames": 204,
+          "held": false
+        },
+        {
+          "timestamp": 4330.2,
+          "distance": 31.920000000000055,
+          "loopTime": 1.9166666666666643,
+          "blending": false,
+          "renderedFrames": 204,
+          "held": false
+        },
+        {
+          "timestamp": 4338.6,
+          "distance": 32.20000000000005,
+          "loopTime": 1.933333333333331,
+          "blending": false,
+          "renderedFrames": 205,
+          "held": false
+        },
+        {
+          "timestamp": 4346.7,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 206,
+          "held": false
+        }
+      ],
+      "longTasks": []
+    },
+    {
+      "scene": "junction",
+      "trial": 0,
+      "audit": {
+        "target": "light",
+        "started": 5042.200000047684,
+        "method": "live-scene-circle",
+        "duration": 400,
+        "animationStarted": 5052.800000071526,
+        "finished": 5460.900000095367
+      },
+      "playing": true,
+      "samples": [
+        {
+          "timestamp": 5096.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 240,
+          "held": false
+        },
+        {
+          "timestamp": 5105.2,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 240,
+          "held": false
+        },
+        {
+          "timestamp": 5113.6,
+          "distance": 0,
+          "loopTime": 0.016666666666666666,
+          "blending": true,
+          "renderedFrames": 241,
+          "held": false
+        },
+        {
+          "timestamp": 5121.9,
+          "distance": 0,
+          "loopTime": 0.016666666666666666,
+          "blending": true,
+          "renderedFrames": 241,
+          "held": false
+        },
+        {
+          "timestamp": 5130.2,
+          "distance": 0,
+          "loopTime": 0.03333333333333333,
+          "blending": true,
+          "renderedFrames": 242,
+          "held": false
+        },
+        {
+          "timestamp": 5138.5,
+          "distance": 0,
+          "loopTime": 0.03333333333333333,
+          "blending": true,
+          "renderedFrames": 242,
+          "held": false
+        },
+        {
+          "timestamp": 5146.9,
+          "distance": 0,
+          "loopTime": 0.05,
+          "blending": true,
+          "renderedFrames": 243,
+          "held": false
+        },
+        {
+          "timestamp": 5155.2,
+          "distance": 0,
+          "loopTime": 0.05,
+          "blending": true,
+          "renderedFrames": 243,
+          "held": false
+        },
+        {
+          "timestamp": 5163.6,
+          "distance": 0,
+          "loopTime": 0.06666666666666667,
+          "blending": true,
+          "renderedFrames": 244,
+          "held": false
+        },
+        {
+          "timestamp": 5171.9,
+          "distance": 0,
+          "loopTime": 0.06666666666666667,
+          "blending": true,
+          "renderedFrames": 244,
+          "held": false
+        },
+        {
+          "timestamp": 5180.3,
+          "distance": 0,
+          "loopTime": 0.08333333333333333,
+          "blending": true,
+          "renderedFrames": 245,
+          "held": false
+        },
+        {
+          "timestamp": 5187.8,
+          "distance": 0,
+          "loopTime": 0.08333333333333333,
+          "blending": true,
+          "renderedFrames": 245,
+          "held": false
+        },
+        {
+          "timestamp": 5196.9,
+          "distance": 0,
+          "loopTime": 0.09999999999999999,
+          "blending": true,
+          "renderedFrames": 246,
+          "held": false
+        },
+        {
+          "timestamp": 5205.2,
+          "distance": 0,
+          "loopTime": 0.09999999999999999,
+          "blending": true,
+          "renderedFrames": 246,
+          "held": false
+        },
+        {
+          "timestamp": 5213.6,
+          "distance": 0,
+          "loopTime": 0.11666666666666665,
+          "blending": true,
+          "renderedFrames": 247,
+          "held": false
+        },
+        {
+          "timestamp": 5221.9,
+          "distance": 0,
+          "loopTime": 0.11666666666666665,
+          "blending": true,
+          "renderedFrames": 247,
+          "held": false
+        },
+        {
+          "timestamp": 5230.2,
+          "distance": 0,
+          "loopTime": 0.13333333333333333,
+          "blending": true,
+          "renderedFrames": 248,
+          "held": false
+        },
+        {
+          "timestamp": 5238.6,
+          "distance": 0,
+          "loopTime": 0.13333333333333333,
+          "blending": true,
+          "renderedFrames": 248,
+          "held": false
+        },
+        {
+          "timestamp": 5246.9,
+          "distance": 0,
+          "loopTime": 0.15,
+          "blending": true,
+          "renderedFrames": 249,
+          "held": false
+        },
+        {
+          "timestamp": 5255.2,
+          "distance": 0,
+          "loopTime": 0.15,
+          "blending": true,
+          "renderedFrames": 249,
+          "held": false
+        },
+        {
+          "timestamp": 5263.6,
+          "distance": 0,
+          "loopTime": 0.16666666666666666,
+          "blending": true,
+          "renderedFrames": 250,
+          "held": false
+        },
+        {
+          "timestamp": 5271.9,
+          "distance": 0,
+          "loopTime": 0.16666666666666666,
+          "blending": true,
+          "renderedFrames": 250,
+          "held": false
+        },
+        {
+          "timestamp": 5280.2,
+          "distance": 0,
+          "loopTime": 0.18333333333333332,
+          "blending": true,
+          "renderedFrames": 251,
+          "held": false
+        },
+        {
+          "timestamp": 5288.6,
+          "distance": 0,
+          "loopTime": 0.18333333333333332,
+          "blending": true,
+          "renderedFrames": 251,
+          "held": false
+        },
+        {
+          "timestamp": 5296.9,
+          "distance": 0,
+          "loopTime": 0.19999999999999998,
+          "blending": true,
+          "renderedFrames": 252,
+          "held": false
+        },
+        {
+          "timestamp": 5305.3,
+          "distance": 0,
+          "loopTime": 0.19999999999999998,
+          "blending": true,
+          "renderedFrames": 252,
+          "held": false
+        },
+        {
+          "timestamp": 5313.5,
+          "distance": 0,
+          "loopTime": 0.21666666666666665,
+          "blending": true,
+          "renderedFrames": 253,
+          "held": false
+        },
+        {
+          "timestamp": 5321.6,
+          "distance": 0,
+          "loopTime": 0.21666666666666665,
+          "blending": true,
+          "renderedFrames": 253,
+          "held": false
+        },
+        {
+          "timestamp": 5330.3,
+          "distance": 0,
+          "loopTime": 0.2333333333333333,
+          "blending": true,
+          "renderedFrames": 254,
+          "held": false
+        },
+        {
+          "timestamp": 5338.3,
+          "distance": 0,
+          "loopTime": 0.2333333333333333,
+          "blending": true,
+          "renderedFrames": 254,
+          "held": false
+        },
+        {
+          "timestamp": 5346.8,
+          "distance": 0,
+          "loopTime": 0.24999999999999997,
+          "blending": true,
+          "renderedFrames": 255,
+          "held": false
+        },
+        {
+          "timestamp": 5355.2,
+          "distance": 0,
+          "loopTime": 0.24999999999999997,
+          "blending": true,
+          "renderedFrames": 255,
+          "held": false
+        },
+        {
+          "timestamp": 5363.6,
+          "distance": 0,
+          "loopTime": 0.26666666666666666,
+          "blending": true,
+          "renderedFrames": 256,
+          "held": false
+        },
+        {
+          "timestamp": 5371.9,
+          "distance": 0,
+          "loopTime": 0.26666666666666666,
+          "blending": true,
+          "renderedFrames": 256,
+          "held": false
+        },
+        {
+          "timestamp": 5380.3,
+          "distance": 0,
+          "loopTime": 0.2833333333333333,
+          "blending": true,
+          "renderedFrames": 257,
+          "held": false
+        },
+        {
+          "timestamp": 5388.6,
+          "distance": 0,
+          "loopTime": 0.2833333333333333,
+          "blending": true,
+          "renderedFrames": 257,
+          "held": false
+        },
+        {
+          "timestamp": 5396.9,
+          "distance": 0,
+          "loopTime": 0.3,
+          "blending": true,
+          "renderedFrames": 258,
+          "held": false
+        },
+        {
+          "timestamp": 5405.3,
+          "distance": 0,
+          "loopTime": 0.3,
+          "blending": true,
+          "renderedFrames": 258,
+          "held": false
+        },
+        {
+          "timestamp": 5413.6,
+          "distance": 0,
+          "loopTime": 0.31666666666666665,
+          "blending": true,
+          "renderedFrames": 259,
+          "held": false
+        },
+        {
+          "timestamp": 5421.4,
+          "distance": 0,
+          "loopTime": 0.31666666666666665,
+          "blending": true,
+          "renderedFrames": 259,
+          "held": false
+        },
+        {
+          "timestamp": 5430.2,
+          "distance": 0,
+          "loopTime": 0.3333333333333333,
+          "blending": true,
+          "renderedFrames": 260,
+          "held": false
+        },
+        {
+          "timestamp": 5438.6,
+          "distance": 0,
+          "loopTime": 0.3333333333333333,
+          "blending": true,
+          "renderedFrames": 260,
+          "held": false
+        },
+        {
+          "timestamp": 5446.9,
+          "distance": 0,
+          "loopTime": 0.35,
+          "blending": true,
+          "renderedFrames": 261,
+          "held": false
+        },
+        {
+          "timestamp": 5455.2,
+          "distance": 0,
+          "loopTime": 0.35,
+          "blending": true,
+          "renderedFrames": 261,
+          "held": false
+        },
+        {
+          "timestamp": 5463.5,
+          "distance": 0,
+          "loopTime": 0.36666666666666664,
+          "blending": true,
+          "renderedFrames": 262,
+          "held": false
+        },
+        {
+          "timestamp": 5471.9,
+          "distance": 0,
+          "loopTime": 0.36666666666666664,
+          "blending": true,
+          "renderedFrames": 262,
+          "held": false
+        },
+        {
+          "timestamp": 5480.2,
+          "distance": 0,
+          "loopTime": 0.3833333333333333,
+          "blending": true,
+          "renderedFrames": 263,
+          "held": false
+        },
+        {
+          "timestamp": 5488.6,
+          "distance": 0,
+          "loopTime": 0.3833333333333333,
+          "blending": true,
+          "renderedFrames": 263,
+          "held": false
+        },
+        {
+          "timestamp": 5496.9,
+          "distance": 0,
+          "loopTime": 0.39999999999999997,
+          "blending": true,
+          "renderedFrames": 264,
+          "held": false
+        },
+        {
+          "timestamp": 5505.3,
+          "distance": 0,
+          "loopTime": 0.39999999999999997,
+          "blending": true,
+          "renderedFrames": 264,
+          "held": false
+        },
+        {
+          "timestamp": 5513.6,
+          "distance": 0,
+          "loopTime": 0.41666666666666663,
+          "blending": false,
+          "renderedFrames": 265,
+          "held": false
+        },
+        {
+          "timestamp": 5521.9,
+          "distance": 0,
+          "loopTime": 0.41666666666666663,
+          "blending": false,
+          "renderedFrames": 265,
+          "held": false
+        },
+        {
+          "timestamp": 5529.7,
+          "distance": 0,
+          "loopTime": 0.4333333333333333,
+          "blending": false,
+          "renderedFrames": 266,
+          "held": false
+        },
+        {
+          "timestamp": 5538.7,
+          "distance": 0,
+          "loopTime": 0.4333333333333333,
+          "blending": false,
+          "renderedFrames": 266,
+          "held": false
+        },
+        {
+          "timestamp": 5546.6,
+          "distance": 0,
+          "loopTime": 0.44999999999999996,
+          "blending": false,
+          "renderedFrames": 267,
+          "held": false
+        },
+        {
+          "timestamp": 5554.8,
+          "distance": 0,
+          "loopTime": 0.44999999999999996,
+          "blending": false,
+          "renderedFrames": 267,
+          "held": false
+        },
+        {
+          "timestamp": 5563.6,
+          "distance": 0,
+          "loopTime": 0.4666666666666666,
+          "blending": false,
+          "renderedFrames": 268,
+          "held": false
+        },
+        {
+          "timestamp": 5571.9,
+          "distance": 0,
+          "loopTime": 0.4666666666666666,
+          "blending": false,
+          "renderedFrames": 268,
+          "held": false
+        },
+        {
+          "timestamp": 5580.2,
+          "distance": 0,
+          "loopTime": 0.4833333333333333,
+          "blending": false,
+          "renderedFrames": 269,
+          "held": false
+        },
+        {
+          "timestamp": 5588.6,
+          "distance": 0,
+          "loopTime": 0.4833333333333333,
+          "blending": false,
+          "renderedFrames": 269,
+          "held": false
+        },
+        {
+          "timestamp": 5596.9,
+          "distance": 0,
+          "loopTime": 0.49999999999999994,
+          "blending": false,
+          "renderedFrames": 270,
+          "held": false
+        },
+        {
+          "timestamp": 5605.3,
+          "distance": 0,
+          "loopTime": 0.49999999999999994,
+          "blending": false,
+          "renderedFrames": 270,
+          "held": false
+        },
+        {
+          "timestamp": 5613.5,
+          "distance": 0,
+          "loopTime": 0.5166666666666666,
+          "blending": false,
+          "renderedFrames": 271,
+          "held": false
+        },
+        {
+          "timestamp": 5621.9,
+          "distance": 0,
+          "loopTime": 0.5166666666666666,
+          "blending": false,
+          "renderedFrames": 271,
+          "held": false
+        },
+        {
+          "timestamp": 5629.5,
+          "distance": 0,
+          "loopTime": 0.5333333333333333,
+          "blending": false,
+          "renderedFrames": 272,
+          "held": false
+        },
+        {
+          "timestamp": 5638.5,
+          "distance": 0,
+          "loopTime": 0.5333333333333333,
+          "blending": false,
+          "renderedFrames": 272,
+          "held": false
+        },
+        {
+          "timestamp": 5646.9,
+          "distance": 0,
+          "loopTime": 0.55,
+          "blending": false,
+          "renderedFrames": 273,
+          "held": false
+        },
+        {
+          "timestamp": 5655.2,
+          "distance": 0,
+          "loopTime": 0.55,
+          "blending": false,
+          "renderedFrames": 273,
+          "held": false
+        },
+        {
+          "timestamp": 5663.6,
+          "distance": 0,
+          "loopTime": 0.5666666666666668,
+          "blending": false,
+          "renderedFrames": 274,
+          "held": false
+        },
+        {
+          "timestamp": 5671.9,
+          "distance": 0,
+          "loopTime": 0.5666666666666668,
+          "blending": false,
+          "renderedFrames": 274,
+          "held": false
+        },
+        {
+          "timestamp": 5680.2,
+          "distance": 0,
+          "loopTime": 0.5833333333333335,
+          "blending": false,
+          "renderedFrames": 275,
+          "held": false
+        },
+        {
+          "timestamp": 5688.6,
+          "distance": 0,
+          "loopTime": 0.5833333333333335,
+          "blending": false,
+          "renderedFrames": 275,
+          "held": false
+        },
+        {
+          "timestamp": 5696.9,
+          "distance": 0,
+          "loopTime": 0.6000000000000002,
+          "blending": false,
+          "renderedFrames": 276,
+          "held": false
+        },
+        {
+          "timestamp": 5705.2,
+          "distance": 0,
+          "loopTime": 0.6000000000000002,
+          "blending": false,
+          "renderedFrames": 276,
+          "held": false
+        },
+        {
+          "timestamp": 5713.6,
+          "distance": 0,
+          "loopTime": 0.6166666666666669,
+          "blending": false,
+          "renderedFrames": 277,
+          "held": false
+        },
+        {
+          "timestamp": 5721.5,
+          "distance": 0,
+          "loopTime": 0.6166666666666669,
+          "blending": false,
+          "renderedFrames": 277,
+          "held": false
+        },
+        {
+          "timestamp": 5730.3,
+          "distance": 0,
+          "loopTime": 0.6333333333333336,
+          "blending": false,
+          "renderedFrames": 278,
+          "held": false
+        },
+        {
+          "timestamp": 5738.5,
+          "distance": 0,
+          "loopTime": 0.6333333333333336,
+          "blending": false,
+          "renderedFrames": 278,
+          "held": false
+        },
+        {
+          "timestamp": 5746.9,
+          "distance": 0,
+          "loopTime": 0.6500000000000004,
+          "blending": false,
+          "renderedFrames": 279,
+          "held": false
+        },
+        {
+          "timestamp": 5754.9,
+          "distance": 0,
+          "loopTime": 0.6500000000000004,
+          "blending": false,
+          "renderedFrames": 279,
+          "held": false
+        },
+        {
+          "timestamp": 5762.8,
+          "distance": 0,
+          "loopTime": 0.6666666666666671,
+          "blending": false,
+          "renderedFrames": 280,
+          "held": false
+        },
+        {
+          "timestamp": 5772,
+          "distance": 0,
+          "loopTime": 0.6666666666666671,
+          "blending": false,
+          "renderedFrames": 280,
+          "held": false
+        },
+        {
+          "timestamp": 5780.2,
+          "distance": 0,
+          "loopTime": 0.6833333333333338,
+          "blending": false,
+          "renderedFrames": 281,
+          "held": false
+        },
+        {
+          "timestamp": 5788.6,
+          "distance": 0,
+          "loopTime": 0.6833333333333338,
+          "blending": false,
+          "renderedFrames": 281,
+          "held": false
+        },
+        {
+          "timestamp": 5796.9,
+          "distance": 0,
+          "loopTime": 0.7000000000000005,
+          "blending": false,
+          "renderedFrames": 282,
+          "held": false
+        }
+      ],
+      "longTasks": []
+    },
+    {
+      "scene": "junction",
+      "trial": 1,
+      "audit": {
+        "target": "dark",
+        "started": 5742.900000095367,
+        "method": "live-scene-circle",
+        "duration": 400,
+        "animationStarted": 5755.700000047684,
+        "finished": 6167.200000047684
+      },
+      "playing": true,
+      "samples": [
+        {
+          "timestamp": 5796.9,
+          "distance": 0,
+          "loopTime": 0.7000000000000005,
+          "blending": false,
+          "renderedFrames": 282,
+          "held": false
+        },
+        {
+          "timestamp": 5805.2,
+          "distance": 0,
+          "loopTime": 0.7000000000000005,
+          "blending": true,
+          "renderedFrames": 283,
+          "held": false
+        },
+        {
+          "timestamp": 5813.2,
+          "distance": 0,
+          "loopTime": 0.7000000000000005,
+          "blending": true,
+          "renderedFrames": 283,
+          "held": false
+        },
+        {
+          "timestamp": 5822,
+          "distance": 0,
+          "loopTime": 0.7166666666666672,
+          "blending": true,
+          "renderedFrames": 284,
+          "held": false
+        },
+        {
+          "timestamp": 5830.2,
+          "distance": 0,
+          "loopTime": 0.733333333333334,
+          "blending": true,
+          "renderedFrames": 285,
+          "held": false
+        },
+        {
+          "timestamp": 5838.6,
+          "distance": 0,
+          "loopTime": 0.733333333333334,
+          "blending": true,
+          "renderedFrames": 285,
+          "held": false
+        },
+        {
+          "timestamp": 5846.9,
+          "distance": 0,
+          "loopTime": 0.7500000000000007,
+          "blending": true,
+          "renderedFrames": 286,
+          "held": false
+        },
+        {
+          "timestamp": 5855.2,
+          "distance": 0,
+          "loopTime": 0.7500000000000007,
+          "blending": true,
+          "renderedFrames": 286,
+          "held": false
+        },
+        {
+          "timestamp": 5863.6,
+          "distance": 0,
+          "loopTime": 0.7666666666666674,
+          "blending": true,
+          "renderedFrames": 287,
+          "held": false
+        },
+        {
+          "timestamp": 5871.9,
+          "distance": 0,
+          "loopTime": 0.7666666666666674,
+          "blending": true,
+          "renderedFrames": 287,
+          "held": false
+        },
+        {
+          "timestamp": 5880.1,
+          "distance": 0,
+          "loopTime": 0.7833333333333341,
+          "blending": true,
+          "renderedFrames": 288,
+          "held": false
+        },
+        {
+          "timestamp": 5888.6,
+          "distance": 0,
+          "loopTime": 0.7833333333333341,
+          "blending": true,
+          "renderedFrames": 288,
+          "held": false
+        },
+        {
+          "timestamp": 5896.9,
+          "distance": 0,
+          "loopTime": 0.8000000000000008,
+          "blending": true,
+          "renderedFrames": 289,
+          "held": false
+        },
+        {
+          "timestamp": 5905.2,
+          "distance": 0,
+          "loopTime": 0.8000000000000008,
+          "blending": true,
+          "renderedFrames": 289,
+          "held": false
+        },
+        {
+          "timestamp": 5913.6,
+          "distance": 0,
+          "loopTime": 0.8166666666666675,
+          "blending": true,
+          "renderedFrames": 290,
+          "held": false
+        },
+        {
+          "timestamp": 5921.9,
+          "distance": 0,
+          "loopTime": 0.8166666666666675,
+          "blending": true,
+          "renderedFrames": 290,
+          "held": false
+        },
+        {
+          "timestamp": 5930.2,
+          "distance": 0,
+          "loopTime": 0.8333333333333343,
+          "blending": true,
+          "renderedFrames": 291,
+          "held": false
+        },
+        {
+          "timestamp": 5938.5,
+          "distance": 0,
+          "loopTime": 0.8333333333333343,
+          "blending": true,
+          "renderedFrames": 291,
+          "held": false
+        },
+        {
+          "timestamp": 5946.9,
+          "distance": 0,
+          "loopTime": 0.850000000000001,
+          "blending": true,
+          "renderedFrames": 292,
+          "held": false
+        },
+        {
+          "timestamp": 5955.2,
+          "distance": 0,
+          "loopTime": 0.850000000000001,
+          "blending": true,
+          "renderedFrames": 292,
+          "held": false
+        },
+        {
+          "timestamp": 5963.4,
+          "distance": 0,
+          "loopTime": 0.8666666666666677,
+          "blending": true,
+          "renderedFrames": 293,
+          "held": false
+        },
+        {
+          "timestamp": 5971.9,
+          "distance": 0,
+          "loopTime": 0.8666666666666677,
+          "blending": true,
+          "renderedFrames": 293,
+          "held": false
+        },
+        {
+          "timestamp": 5980.2,
+          "distance": 0,
+          "loopTime": 0.8833333333333344,
+          "blending": true,
+          "renderedFrames": 294,
+          "held": false
+        },
+        {
+          "timestamp": 5988.5,
+          "distance": 0,
+          "loopTime": 0.8833333333333344,
+          "blending": true,
+          "renderedFrames": 294,
+          "held": false
+        },
+        {
+          "timestamp": 5996.9,
+          "distance": 0,
+          "loopTime": 0.9000000000000011,
+          "blending": true,
+          "renderedFrames": 295,
+          "held": false
+        },
+        {
+          "timestamp": 6005.2,
+          "distance": 0,
+          "loopTime": 0.9000000000000011,
+          "blending": true,
+          "renderedFrames": 295,
+          "held": false
+        },
+        {
+          "timestamp": 6013.5,
+          "distance": 0,
+          "loopTime": 0.9166666666666679,
+          "blending": true,
+          "renderedFrames": 296,
+          "held": false
+        },
+        {
+          "timestamp": 6021.9,
+          "distance": 0,
+          "loopTime": 0.9166666666666679,
+          "blending": true,
+          "renderedFrames": 296,
+          "held": false
+        },
+        {
+          "timestamp": 6030.3,
+          "distance": 0,
+          "loopTime": 0.9333333333333346,
+          "blending": true,
+          "renderedFrames": 297,
+          "held": false
+        },
+        {
+          "timestamp": 6038.7,
+          "distance": 0,
+          "loopTime": 0.9333333333333346,
+          "blending": true,
+          "renderedFrames": 297,
+          "held": false
+        },
+        {
+          "timestamp": 6046.9,
+          "distance": 0,
+          "loopTime": 0.9500000000000013,
+          "blending": true,
+          "renderedFrames": 298,
+          "held": false
+        },
+        {
+          "timestamp": 6055.2,
+          "distance": 0,
+          "loopTime": 0.9500000000000013,
+          "blending": true,
+          "renderedFrames": 298,
+          "held": false
+        },
+        {
+          "timestamp": 6063.6,
+          "distance": 0,
+          "loopTime": 0.966666666666668,
+          "blending": true,
+          "renderedFrames": 299,
+          "held": false
+        },
+        {
+          "timestamp": 6071.9,
+          "distance": 0,
+          "loopTime": 0.966666666666668,
+          "blending": true,
+          "renderedFrames": 299,
+          "held": false
+        },
+        {
+          "timestamp": 6080.2,
+          "distance": 0,
+          "loopTime": 0.9833333333333347,
+          "blending": true,
+          "renderedFrames": 300,
+          "held": false
+        },
+        {
+          "timestamp": 6088.2,
+          "distance": 0,
+          "loopTime": 0.9833333333333347,
+          "blending": true,
+          "renderedFrames": 300,
+          "held": false
+        },
+        {
+          "timestamp": 6097,
+          "distance": 0,
+          "loopTime": 1.0000000000000013,
+          "blending": true,
+          "renderedFrames": 301,
+          "held": false
+        },
+        {
+          "timestamp": 6105.2,
+          "distance": 0,
+          "loopTime": 1.0000000000000013,
+          "blending": true,
+          "renderedFrames": 301,
+          "held": false
+        },
+        {
+          "timestamp": 6113.5,
+          "distance": 0,
+          "loopTime": 1.016666666666668,
+          "blending": true,
+          "renderedFrames": 302,
+          "held": false
+        },
+        {
+          "timestamp": 6121.9,
+          "distance": 0,
+          "loopTime": 1.016666666666668,
+          "blending": true,
+          "renderedFrames": 302,
+          "held": false
+        },
+        {
+          "timestamp": 6130.2,
+          "distance": 0,
+          "loopTime": 1.0333333333333345,
+          "blending": true,
+          "renderedFrames": 303,
+          "held": false
+        },
+        {
+          "timestamp": 6138.6,
+          "distance": 0,
+          "loopTime": 1.0333333333333345,
+          "blending": true,
+          "renderedFrames": 303,
+          "held": false
+        },
+        {
+          "timestamp": 6146.8,
+          "distance": 0,
+          "loopTime": 1.0500000000000012,
+          "blending": true,
+          "renderedFrames": 304,
+          "held": false
+        },
+        {
+          "timestamp": 6155.3,
+          "distance": 0,
+          "loopTime": 1.0500000000000012,
+          "blending": true,
+          "renderedFrames": 304,
+          "held": false
+        },
+        {
+          "timestamp": 6163.6,
+          "distance": 0,
+          "loopTime": 1.0666666666666678,
+          "blending": true,
+          "renderedFrames": 305,
+          "held": false
+        },
+        {
+          "timestamp": 6171.9,
+          "distance": 0,
+          "loopTime": 1.0666666666666678,
+          "blending": true,
+          "renderedFrames": 305,
+          "held": false
+        },
+        {
+          "timestamp": 6180.2,
+          "distance": 0,
+          "loopTime": 1.0833333333333344,
+          "blending": true,
+          "renderedFrames": 306,
+          "held": false
+        },
+        {
+          "timestamp": 6188.6,
+          "distance": 0,
+          "loopTime": 1.0833333333333344,
+          "blending": true,
+          "renderedFrames": 306,
+          "held": false
+        },
+        {
+          "timestamp": 6196.9,
+          "distance": 0,
+          "loopTime": 1.100000000000001,
+          "blending": true,
+          "renderedFrames": 307,
+          "held": false
+        },
+        {
+          "timestamp": 6205.2,
+          "distance": 0,
+          "loopTime": 1.100000000000001,
+          "blending": true,
+          "renderedFrames": 307,
+          "held": false
+        },
+        {
+          "timestamp": 6213.6,
+          "distance": 0,
+          "loopTime": 1.1166666666666676,
+          "blending": false,
+          "renderedFrames": 308,
+          "held": false
+        },
+        {
+          "timestamp": 6221.9,
+          "distance": 0,
+          "loopTime": 1.1166666666666676,
+          "blending": false,
+          "renderedFrames": 308,
+          "held": false
+        },
+        {
+          "timestamp": 6230.2,
+          "distance": 0,
+          "loopTime": 1.1333333333333342,
+          "blending": false,
+          "renderedFrames": 309,
+          "held": false
+        },
+        {
+          "timestamp": 6238.5,
+          "distance": 0,
+          "loopTime": 1.1333333333333342,
+          "blending": false,
+          "renderedFrames": 309,
+          "held": false
+        },
+        {
+          "timestamp": 6246.9,
+          "distance": 0,
+          "loopTime": 1.1500000000000008,
+          "blending": false,
+          "renderedFrames": 310,
+          "held": false
+        },
+        {
+          "timestamp": 6255.3,
+          "distance": 0,
+          "loopTime": 1.1500000000000008,
+          "blending": false,
+          "renderedFrames": 310,
+          "held": false
+        },
+        {
+          "timestamp": 6263.5,
+          "distance": 0,
+          "loopTime": 1.1666666666666674,
+          "blending": false,
+          "renderedFrames": 311,
+          "held": false
+        },
+        {
+          "timestamp": 6271.9,
+          "distance": 0,
+          "loopTime": 1.1666666666666674,
+          "blending": false,
+          "renderedFrames": 311,
+          "held": false
+        },
+        {
+          "timestamp": 6280.2,
+          "distance": 0,
+          "loopTime": 1.183333333333334,
+          "blending": false,
+          "renderedFrames": 312,
+          "held": false
+        },
+        {
+          "timestamp": 6288.6,
+          "distance": 0,
+          "loopTime": 1.183333333333334,
+          "blending": false,
+          "renderedFrames": 312,
+          "held": false
+        },
+        {
+          "timestamp": 6296.9,
+          "distance": 0,
+          "loopTime": 1.2000000000000006,
+          "blending": false,
+          "renderedFrames": 313,
+          "held": false
+        },
+        {
+          "timestamp": 6305.3,
+          "distance": 0,
+          "loopTime": 1.2000000000000006,
+          "blending": false,
+          "renderedFrames": 313,
+          "held": false
+        },
+        {
+          "timestamp": 6313.6,
+          "distance": 0,
+          "loopTime": 1.2166666666666672,
+          "blending": false,
+          "renderedFrames": 314,
+          "held": false
+        },
+        {
+          "timestamp": 6321.9,
+          "distance": 0,
+          "loopTime": 1.2166666666666672,
+          "blending": false,
+          "renderedFrames": 314,
+          "held": false
+        },
+        {
+          "timestamp": 6330.3,
+          "distance": 0,
+          "loopTime": 1.2333333333333338,
+          "blending": false,
+          "renderedFrames": 315,
+          "held": false
+        },
+        {
+          "timestamp": 6338.2,
+          "distance": 0,
+          "loopTime": 1.2333333333333338,
+          "blending": false,
+          "renderedFrames": 315,
+          "held": false
+        },
+        {
+          "timestamp": 6346.9,
+          "distance": 0,
+          "loopTime": 1.2500000000000004,
+          "blending": false,
+          "renderedFrames": 316,
+          "held": false
+        },
+        {
+          "timestamp": 6355.3,
+          "distance": 0,
+          "loopTime": 1.2500000000000004,
+          "blending": false,
+          "renderedFrames": 316,
+          "held": false
+        },
+        {
+          "timestamp": 6363.5,
+          "distance": 0,
+          "loopTime": 1.266666666666667,
+          "blending": false,
+          "renderedFrames": 317,
+          "held": false
+        },
+        {
+          "timestamp": 6371.9,
+          "distance": 0,
+          "loopTime": 1.266666666666667,
+          "blending": false,
+          "renderedFrames": 317,
+          "held": false
+        },
+        {
+          "timestamp": 6380.3,
+          "distance": 0,
+          "loopTime": 1.2833333333333337,
+          "blending": false,
+          "renderedFrames": 318,
+          "held": false
+        },
+        {
+          "timestamp": 6388.5,
+          "distance": 0,
+          "loopTime": 1.2833333333333337,
+          "blending": false,
+          "renderedFrames": 318,
+          "held": false
+        },
+        {
+          "timestamp": 6396.9,
+          "distance": 0,
+          "loopTime": 1.3000000000000003,
+          "blending": false,
+          "renderedFrames": 319,
+          "held": false
+        },
+        {
+          "timestamp": 6405.2,
+          "distance": 0,
+          "loopTime": 1.3000000000000003,
+          "blending": false,
+          "renderedFrames": 319,
+          "held": false
+        },
+        {
+          "timestamp": 6413.4,
+          "distance": 0,
+          "loopTime": 1.3166666666666669,
+          "blending": false,
+          "renderedFrames": 320,
+          "held": false
+        },
+        {
+          "timestamp": 6421.9,
+          "distance": 0,
+          "loopTime": 1.3166666666666669,
+          "blending": false,
+          "renderedFrames": 320,
+          "held": false
+        },
+        {
+          "timestamp": 6430.2,
+          "distance": 0,
+          "loopTime": 1.3333333333333335,
+          "blending": false,
+          "renderedFrames": 321,
+          "held": false
+        },
+        {
+          "timestamp": 6438.5,
+          "distance": 0,
+          "loopTime": 1.3333333333333335,
+          "blending": false,
+          "renderedFrames": 321,
+          "held": false
+        },
+        {
+          "timestamp": 6446.9,
+          "distance": 0,
+          "loopTime": 1.35,
+          "blending": false,
+          "renderedFrames": 322,
+          "held": false
+        },
+        {
+          "timestamp": 6455.3,
+          "distance": 0,
+          "loopTime": 1.35,
+          "blending": false,
+          "renderedFrames": 322,
+          "held": false
+        },
+        {
+          "timestamp": 6463.6,
+          "distance": 0,
+          "loopTime": 1.3666666666666667,
+          "blending": false,
+          "renderedFrames": 323,
+          "held": false
+        },
+        {
+          "timestamp": 6471.9,
+          "distance": 0,
+          "loopTime": 1.3666666666666667,
+          "blending": false,
+          "renderedFrames": 323,
+          "held": false
+        },
+        {
+          "timestamp": 6479.6,
+          "distance": 0,
+          "loopTime": 1.3833333333333333,
+          "blending": false,
+          "renderedFrames": 324,
+          "held": false
+        },
+        {
+          "timestamp": 6488.1,
+          "distance": 0,
+          "loopTime": 1.3833333333333333,
+          "blending": false,
+          "renderedFrames": 324,
+          "held": false
+        },
+        {
+          "timestamp": 6496.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 326,
+          "held": false
+        }
+      ],
+      "longTasks": []
+    },
+    {
+      "scene": "parking",
+      "trial": 0,
+      "audit": {
+        "target": "light",
+        "started": 6802,
+        "method": "live-scene-circle",
+        "duration": 400,
+        "animationStarted": 6807.400000095367,
+        "finished": 7219.700000047684
+      },
+      "playing": false,
+      "samples": [
+        {
+          "timestamp": 6855.3,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 351,
+          "held": false
+        },
+        {
+          "timestamp": 6863.6,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 351,
+          "held": false
+        },
+        {
+          "timestamp": 6871.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 352,
+          "held": false
+        },
+        {
+          "timestamp": 6880.3,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 352,
+          "held": false
+        },
+        {
+          "timestamp": 6888.5,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 353,
+          "held": false
+        },
+        {
+          "timestamp": 6896.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 353,
+          "held": false
+        },
+        {
+          "timestamp": 6905.2,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 354,
+          "held": false
+        },
+        {
+          "timestamp": 6913.6,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 354,
+          "held": false
+        },
+        {
+          "timestamp": 6921.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 355,
+          "held": false
+        },
+        {
+          "timestamp": 6930.2,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 355,
+          "held": false
+        },
+        {
+          "timestamp": 6938.6,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 356,
+          "held": false
+        },
+        {
+          "timestamp": 6946.8,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 356,
+          "held": false
+        },
+        {
+          "timestamp": 6955.2,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 357,
+          "held": false
+        },
+        {
+          "timestamp": 6963.6,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 357,
+          "held": false
+        },
+        {
+          "timestamp": 6971.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 358,
+          "held": false
+        },
+        {
+          "timestamp": 6980.2,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 358,
+          "held": false
+        },
+        {
+          "timestamp": 6988.5,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 359,
+          "held": false
+        },
+        {
+          "timestamp": 6996.6,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 359,
+          "held": false
+        },
+        {
+          "timestamp": 7005.3,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 360,
+          "held": false
+        },
+        {
+          "timestamp": 7013.6,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 360,
+          "held": false
+        },
+        {
+          "timestamp": 7021.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 361,
+          "held": false
+        },
+        {
+          "timestamp": 7030.2,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 361,
+          "held": false
+        },
+        {
+          "timestamp": 7038.5,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 362,
+          "held": false
+        },
+        {
+          "timestamp": 7047,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 362,
+          "held": false
+        },
+        {
+          "timestamp": 7055.3,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 363,
+          "held": false
+        },
+        {
+          "timestamp": 7063.6,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 363,
+          "held": false
+        },
+        {
+          "timestamp": 7071.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 364,
+          "held": false
+        },
+        {
+          "timestamp": 7080.2,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 364,
+          "held": false
+        },
+        {
+          "timestamp": 7088.6,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 365,
+          "held": false
+        },
+        {
+          "timestamp": 7096.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 365,
+          "held": false
+        },
+        {
+          "timestamp": 7105.3,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 366,
+          "held": false
+        },
+        {
+          "timestamp": 7113.5,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 366,
+          "held": false
+        },
+        {
+          "timestamp": 7121.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 367,
+          "held": false
+        },
+        {
+          "timestamp": 7130.2,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 367,
+          "held": false
+        },
+        {
+          "timestamp": 7138.3,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 368,
+          "held": false
+        },
+        {
+          "timestamp": 7146.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 368,
+          "held": false
+        },
+        {
+          "timestamp": 7155.2,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 369,
+          "held": false
+        },
+        {
+          "timestamp": 7163.5,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 369,
+          "held": false
+        },
+        {
+          "timestamp": 7171.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 370,
+          "held": false
+        },
+        {
+          "timestamp": 7180.3,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 370,
+          "held": false
+        },
+        {
+          "timestamp": 7188.6,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 371,
+          "held": false
+        },
+        {
+          "timestamp": 7196.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 371,
+          "held": false
+        },
+        {
+          "timestamp": 7205.3,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 372,
+          "held": false
+        },
+        {
+          "timestamp": 7213.6,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 372,
+          "held": false
+        },
+        {
+          "timestamp": 7221.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 373,
+          "held": false
+        },
+        {
+          "timestamp": 7229.4,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 373,
+          "held": false
+        },
+        {
+          "timestamp": 7238.6,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 374,
+          "held": false
+        },
+        {
+          "timestamp": 7246.8,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 374,
+          "held": false
+        },
+        {
+          "timestamp": 7254.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 375,
+          "held": false
+        },
+        {
+          "timestamp": 7263.6,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 375,
+          "held": false
+        },
+        {
+          "timestamp": 7271.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 376,
+          "held": false
+        },
+        {
+          "timestamp": 7280.2,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 376,
+          "held": false
+        },
+        {
+          "timestamp": 7288.6,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 376,
+          "held": false
+        },
+        {
+          "timestamp": 7296.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 376,
+          "held": false
+        },
+        {
+          "timestamp": 7305.3,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 376,
+          "held": false
+        },
+        {
+          "timestamp": 7313.5,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 376,
+          "held": false
+        },
+        {
+          "timestamp": 7321.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 376,
+          "held": false
+        },
+        {
+          "timestamp": 7330.2,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 376,
+          "held": false
+        },
+        {
+          "timestamp": 7338.6,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 376,
+          "held": false
+        },
+        {
+          "timestamp": 7346.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 376,
+          "held": false
+        },
+        {
+          "timestamp": 7355.2,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 376,
+          "held": false
+        },
+        {
+          "timestamp": 7363.6,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 376,
+          "held": false
+        },
+        {
+          "timestamp": 7371.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 376,
+          "held": false
+        },
+        {
+          "timestamp": 7380.3,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 376,
+          "held": false
+        },
+        {
+          "timestamp": 7387.7,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 376,
+          "held": false
+        },
+        {
+          "timestamp": 7396.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 376,
+          "held": false
+        },
+        {
+          "timestamp": 7405.3,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 376,
+          "held": false
+        },
+        {
+          "timestamp": 7413.3,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 376,
+          "held": false
+        },
+        {
+          "timestamp": 7421.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 376,
+          "held": false
+        },
+        {
+          "timestamp": 7429.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 376,
+          "held": false
+        },
+        {
+          "timestamp": 7438.6,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 376,
+          "held": false
+        },
+        {
+          "timestamp": 7446.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 376,
+          "held": false
+        },
+        {
+          "timestamp": 7455.2,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 376,
+          "held": false
+        },
+        {
+          "timestamp": 7463.6,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 376,
+          "held": false
+        },
+        {
+          "timestamp": 7471.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 376,
+          "held": false
+        },
+        {
+          "timestamp": 7480.3,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 376,
+          "held": false
+        },
+        {
+          "timestamp": 7488.6,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 376,
+          "held": false
+        },
+        {
+          "timestamp": 7496.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 376,
+          "held": false
+        },
+        {
+          "timestamp": 7505.2,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 376,
+          "held": false
+        },
+        {
+          "timestamp": 7513.5,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 376,
+          "held": false
+        },
+        {
+          "timestamp": 7521.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 376,
+          "held": false
+        },
+        {
+          "timestamp": 7530.2,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 376,
+          "held": false
+        },
+        {
+          "timestamp": 7538.6,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 376,
+          "held": false
+        },
+        {
+          "timestamp": 7546.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 376,
+          "held": false
+        },
+        {
+          "timestamp": 7554.8,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 376,
+          "held": false
+        }
+      ],
+      "longTasks": []
+    },
+    {
+      "scene": "parking",
+      "trial": 1,
+      "audit": {
+        "target": "dark",
+        "started": 7503.300000071526,
+        "method": "live-scene-circle",
+        "duration": 400,
+        "animationStarted": 7514,
+        "finished": 7917.300000071526
+      },
+      "playing": false,
+      "samples": [
+        {
+          "timestamp": 7554.8,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 376,
+          "held": false
+        },
+        {
+          "timestamp": 7563.6,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 377,
+          "held": false
+        },
+        {
+          "timestamp": 7571.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 377,
+          "held": false
+        },
+        {
+          "timestamp": 7580.3,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 378,
+          "held": false
+        },
+        {
+          "timestamp": 7588.6,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 378,
+          "held": false
+        },
+        {
+          "timestamp": 7596.8,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 379,
+          "held": false
+        },
+        {
+          "timestamp": 7605.2,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 379,
+          "held": false
+        },
+        {
+          "timestamp": 7613,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 380,
+          "held": false
+        },
+        {
+          "timestamp": 7621.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 380,
+          "held": false
+        },
+        {
+          "timestamp": 7629.5,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 381,
+          "held": false
+        },
+        {
+          "timestamp": 7638.3,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 381,
+          "held": false
+        },
+        {
+          "timestamp": 7646.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 382,
+          "held": false
+        },
+        {
+          "timestamp": 7655.3,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 382,
+          "held": false
+        },
+        {
+          "timestamp": 7663.6,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 383,
+          "held": false
+        },
+        {
+          "timestamp": 7671.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 383,
+          "held": false
+        },
+        {
+          "timestamp": 7680.2,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 384,
+          "held": false
+        },
+        {
+          "timestamp": 7687.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 384,
+          "held": false
+        },
+        {
+          "timestamp": 7697,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 385,
+          "held": false
+        },
+        {
+          "timestamp": 7705.2,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 385,
+          "held": false
+        },
+        {
+          "timestamp": 7713.6,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 386,
+          "held": false
+        },
+        {
+          "timestamp": 7721.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 386,
+          "held": false
+        },
+        {
+          "timestamp": 7730.2,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 387,
+          "held": false
+        },
+        {
+          "timestamp": 7738.5,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 387,
+          "held": false
+        },
+        {
+          "timestamp": 7746.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 388,
+          "held": false
+        },
+        {
+          "timestamp": 7755.3,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 388,
+          "held": false
+        },
+        {
+          "timestamp": 7763.5,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 389,
+          "held": false
+        },
+        {
+          "timestamp": 7771.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 389,
+          "held": false
+        },
+        {
+          "timestamp": 7780.2,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 390,
+          "held": false
+        },
+        {
+          "timestamp": 7788.5,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 390,
+          "held": false
+        },
+        {
+          "timestamp": 7796.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 391,
+          "held": false
+        },
+        {
+          "timestamp": 7805.2,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 391,
+          "held": false
+        },
+        {
+          "timestamp": 7813.6,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 392,
+          "held": false
+        },
+        {
+          "timestamp": 7821.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 392,
+          "held": false
+        },
+        {
+          "timestamp": 7830.2,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 393,
+          "held": false
+        },
+        {
+          "timestamp": 7838.6,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 393,
+          "held": false
+        },
+        {
+          "timestamp": 7846.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 394,
+          "held": false
+        },
+        {
+          "timestamp": 7855.3,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 394,
+          "held": false
+        },
+        {
+          "timestamp": 7863.6,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 395,
+          "held": false
+        },
+        {
+          "timestamp": 7871.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 395,
+          "held": false
+        },
+        {
+          "timestamp": 7879.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 396,
+          "held": false
+        },
+        {
+          "timestamp": 7888.6,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 396,
+          "held": false
+        },
+        {
+          "timestamp": 7896.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 397,
+          "held": false
+        },
+        {
+          "timestamp": 7905.2,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 397,
+          "held": false
+        },
+        {
+          "timestamp": 7913.6,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 398,
+          "held": false
+        },
+        {
+          "timestamp": 7921.5,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 398,
+          "held": false
+        },
+        {
+          "timestamp": 7930.3,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 399,
+          "held": false
+        },
+        {
+          "timestamp": 7938.6,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 399,
+          "held": false
+        },
+        {
+          "timestamp": 7946.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 400,
+          "held": false
+        },
+        {
+          "timestamp": 7955.2,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 400,
+          "held": false
+        },
+        {
+          "timestamp": 7963.5,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 401,
+          "held": false
+        },
+        {
+          "timestamp": 7971.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": true,
+          "renderedFrames": 401,
+          "held": false
+        },
+        {
+          "timestamp": 7980.3,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 402,
+          "held": false
+        },
+        {
+          "timestamp": 7988.6,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 402,
+          "held": false
+        },
+        {
+          "timestamp": 7996.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 402,
+          "held": false
+        },
+        {
+          "timestamp": 8005.2,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 402,
+          "held": false
+        },
+        {
+          "timestamp": 8013.6,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 402,
+          "held": false
+        },
+        {
+          "timestamp": 8021.8,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 402,
+          "held": false
+        },
+        {
+          "timestamp": 8029.5,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 402,
+          "held": false
+        },
+        {
+          "timestamp": 8038.6,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 402,
+          "held": false
+        },
+        {
+          "timestamp": 8046.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 402,
+          "held": false
+        },
+        {
+          "timestamp": 8055.2,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 402,
+          "held": false
+        },
+        {
+          "timestamp": 8063.5,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 402,
+          "held": false
+        },
+        {
+          "timestamp": 8071.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 402,
+          "held": false
+        },
+        {
+          "timestamp": 8080.3,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 402,
+          "held": false
+        },
+        {
+          "timestamp": 8088.2,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 402,
+          "held": false
+        },
+        {
+          "timestamp": 8096.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 402,
+          "held": false
+        },
+        {
+          "timestamp": 8105.3,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 402,
+          "held": false
+        },
+        {
+          "timestamp": 8113.5,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 402,
+          "held": false
+        },
+        {
+          "timestamp": 8121.8,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 402,
+          "held": false
+        },
+        {
+          "timestamp": 8130.3,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 402,
+          "held": false
+        },
+        {
+          "timestamp": 8138.6,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 402,
+          "held": false
+        },
+        {
+          "timestamp": 8146.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 402,
+          "held": false
+        },
+        {
+          "timestamp": 8155.3,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 402,
+          "held": false
+        },
+        {
+          "timestamp": 8162.8,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 402,
+          "held": false
+        },
+        {
+          "timestamp": 8171.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 402,
+          "held": false
+        },
+        {
+          "timestamp": 8180.2,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 402,
+          "held": false
+        },
+        {
+          "timestamp": 8188.5,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 402,
+          "held": false
+        },
+        {
+          "timestamp": 8196.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 402,
+          "held": false
+        },
+        {
+          "timestamp": 8205.3,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 402,
+          "held": false
+        },
+        {
+          "timestamp": 8213.3,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 402,
+          "held": false
+        },
+        {
+          "timestamp": 8221.9,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 402,
+          "held": false
+        },
+        {
+          "timestamp": 8230.2,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 402,
+          "held": false
+        },
+        {
+          "timestamp": 8238.2,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 402,
+          "held": false
+        },
+        {
+          "timestamp": 8247,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 402,
+          "held": false
+        },
+        {
+          "timestamp": 8255.3,
+          "distance": 0,
+          "loopTime": 0,
+          "blending": false,
+          "renderedFrames": 403,
+          "held": false
+        }
+      ],
+      "longTasks": []
+    }
+  ],
+  "errors": []
+}

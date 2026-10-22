@@ -1,4 +1,4 @@
-import {createProject,sceneTypes} from './artboards.js?v=refine-20261022e';
+import {createProject,sceneTypes} from './artboards.js?v=live-theme09-20261022';
 import {mountFormatSelect} from './format-select.js';
 import {morphSegment,glideIndicator,reducedMotion} from './motion-runtime.js';
 
@@ -60,7 +60,7 @@ async function setTheme(theme){
  if(exporting||sceneUpdating)return;
  requestedTheme=theme;
  if(themeTransition)return;
- const commit=async(value,render=true)=>{if(render&&ready)await bridge().theme(value);document.documentElement.dataset.theme=value;try{localStorage.setItem(themeKey,value)}catch{}renderTheme()};
+ const commit=async(value,animate=false)=>{if(ready)await bridge().theme(value,{animate});document.documentElement.dataset.theme=value;try{localStorage.setItem(themeKey,value)}catch{}renderTheme()};
  while(document.documentElement.dataset.theme!==requestedTheme){
   const target=requestedTheme;
   if(!document.startViewTransition||reducedMotion()){await commit(target);continue}
@@ -68,11 +68,9 @@ async function setTheme(theme){
   const style=document.getElementById('draft-theme-wipe')||document.head.appendChild(Object.assign(document.createElement('style'),{id:'draft-theme-wipe'}));
   style.textContent='::view-transition-old(root){z-index:1;mask:none}::view-transition-new(root){z-index:2;mask:none;will-change:clip-path}';
   document.documentElement.classList.add('theme-changing');frame.contentDocument?.documentElement.classList.add('theme-changing');
-  const started=performance.now(),audit={target,started,method:'composited-circle',duration:400};themeTransition={};
-  if(ready){await holdFrame();bridge().beginTheme();try{await bridge().theme(target)}catch(error){$('frame-cover').hidden=true;bridge().endTheme();themeTransition=null;throw error}}
-  audit.prepared=performance.now();
-  const transition=document.startViewTransition(()=>{$('frame-cover').hidden=true;return commit(target,false)});themeTransition=transition;
-  try{await transition.ready;audit.animationStarted=performance.now();await document.documentElement.animate([{clipPath:`circle(0px at ${x}px ${y}px)`},{clipPath:`circle(${radius}px at ${x}px ${y}px)`}],{duration:400,easing:'cubic-bezier(.65,0,.35,1)',fill:'both',pseudoElement:'::view-transition-new(root)'}).finished}catch(error){audit.error=error.message}finally{await transition.finished.catch(()=>{});document.documentElement.classList.remove('theme-changing');frame.contentDocument?.documentElement.classList.remove('theme-changing');themeTransition=null;if(ready)bridge().endTheme();audit.finished=performance.now();document.body.dataset.themeMotion=JSON.stringify(audit)}
+  const started=performance.now(),audit={target,started,method:'live-scene-circle',duration:400};
+  const transition=document.startViewTransition(()=>commit(target,true));themeTransition=transition;
+  try{await transition.ready;audit.animationStarted=performance.now();await document.documentElement.animate([{clipPath:`circle(0px at ${x}px ${y}px)`},{clipPath:`circle(${radius}px at ${x}px ${y}px)`}],{duration:400,easing:'cubic-bezier(.65,0,.35,1)',fill:'both',pseudoElement:'::view-transition-new(root)'}).finished}catch(error){audit.error=error.message}finally{await transition.finished.catch(()=>{});document.documentElement.classList.remove('theme-changing');frame.contentDocument?.documentElement.classList.remove('theme-changing');themeTransition=null;audit.finished=performance.now();document.body.dataset.themeMotion=JSON.stringify(audit)}
  }
 }
 $('theme').addEventListener('click',()=>{void setTheme(requestedTheme==='dark'?'light':'dark').catch(error=>feedback(error.message))});
@@ -82,7 +80,7 @@ document.addEventListener('keydown',event=>{if(/^(INPUT|TEXTAREA|SELECT)$/.test(
 window.addEventListener('message',event=>{if(event.source!==frame.contentWindow||event.origin!==location.origin||event.data?.type!=='ui-draft-status')return;status=event.data.value;const transport=$('junction-transport');if(transport){transport.textContent=status.playing?'Pause':status.junction?.complete?'Replay':'Play';transport.setAttribute('aria-label',status.playing?'Pause approach':status.junction?.complete?'Replay approach and stop':'Play approach and stop')}document.body.dataset.runtime=JSON.stringify(status)});
 new ResizeObserver(sizeBoard).observe($('stage'));new ResizeObserver(sizeSegments).observe($('scene-properties'));window.addEventListener('resize',sizeBoard);
 renderNav();renderInspector();$('debug-links').hidden=!new URLSearchParams(location.search).has('debug');
-const state=params(),initialLayout=({parking:{default:'10',raised:'16',bev:'14'},outdoor:{default:'17',raised:'18',bev:'19'}}[project.active]?.[state.camera])||state.layout,query=new URLSearchParams({review:'ui-draft',quality:'sr50',scene:initialLayout,mode:document.documentElement.dataset.theme||'light',lanes:state.lanes,view:state.camera,model:state.model,buildings:Number(state.buildings),trees:Number(state.trees),waterfront:Number(state.waterfront),roadworks:'0',vehicle:'1',weather:state.weather,path:Number(state.path),seed:board().seed});frame.src='./engine.html?'+query+'&runtime=refine-20261022e';
+const state=params(),initialLayout=({parking:{default:'10',raised:'16',bev:'14'},outdoor:{default:'17',raised:'18',bev:'19'}}[project.active]?.[state.camera])||state.layout,query=new URLSearchParams({review:'ui-draft',quality:'sr50',scene:initialLayout,mode:document.documentElement.dataset.theme||'light',lanes:state.lanes,view:state.camera,model:state.model,buildings:Number(state.buildings),trees:Number(state.trees),waterfront:Number(state.waterfront),roadworks:'0',vehicle:'1',weather:state.weather,path:Number(state.path),seed:board().seed});frame.src='./engine.html?'+query+'&runtime=live-theme09-20261022';
 const spinner=$('loading').querySelector('.loading-spinner');for(let index=0;index<12;index++){const spoke=document.createElement('i');spoke.style.setProperty('--index',index);spinner.append(spoke)}const loadingTimer=setTimeout(()=>{$('loading').hidden=false},400);
 await waitFor(()=>api()?.get().ready&&api().draft?.get().ready,30000);clearTimeout(loadingTimer);ready=true;bridge().param('traffic',state.traffic);$('loading').hidden=true;for(const id of ['assist','export'])$(id).disabled=false;sizeBoard();status=bridge().get();renderVehicles();document.body.dataset.ready='true';
 window.draftController={project,selectScene,applyParam,bridge,get status(){return status},exportCurrent};

@@ -11,8 +11,12 @@ test('Theme commits while view transitions have suspended iframe animation callb
  await commit('dark');await commit('light');assert.equal(renders,2);
 });
 
-test('Circular theme wipe prepares the renderer behind a held frame before capturing the transition',async()=>{
+test('Circular theme wipe keeps the live scene separate and never holds scene playback',async()=>{
  const source=await readFile(new URL('../draft.js',import.meta.url),'utf8');
- assert.match(source,/await holdFrame\(\);bridge\(\)\.beginTheme\(\);try\{await bridge\(\)\.theme\(target\)/);
- assert.match(source,/document.startViewTransition\(\(\)=>\{\$\('frame-cover'\)\.hidden=true;return commit\(target,false\)\}\)/);
+ const theme=source.slice(source.indexOf('async function setTheme('),source.indexOf("$('theme').addEventListener"));
+ assert.doesNotMatch(theme,/holdFrame|beginTheme|endTheme/);
+ assert.match(theme,/document.startViewTransition\(\(\)=>commit\(target,true\)\)/);
+ const css=await readFile(new URL('../inspector.css',import.meta.url),'utf8');
+ assert.match(css,/\.artboard-clip\{view-transition-name:live-scene\}/);
+ assert.match(css,/::view-transition-old\(live-scene\)\{display:none\}/);
 });
