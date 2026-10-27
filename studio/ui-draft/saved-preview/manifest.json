@@ -1,0 +1,32 @@
+{
+  "snapshot": "2026-10-27",
+  "scope": "Current saved UI draft preview",
+  "profile": {
+    "white": 19,
+    "body": 104,
+    "cool": 21,
+    "roof": 130,
+    "side": 53,
+    "glass": 104,
+    "wheels": 100,
+    "matte": 88,
+    "shadow": 56
+  },
+  "original_preview_runtime_sha256": "1abfaa9929b0eee52d8c5b98d514cc6a64eeb74a42a98a0dce767a160afb6a36",
+  "files": {
+    "frame-profile.js": "f1c61ed878003a70da4992523fefd9c864f033857f69f97ade4e205c9ae7f4c5",
+    "parking-material-structure.mjs": "926f89ad1ba724a77d7d36915e81fa78c3040cd73d09bb0aeadf4cf799d354e5",
+    "parking-material-normals.json": "71af5198415fb897daef128ec69680fc1fe05b8f674ee9d3b36188e81dec6a23",
+    "parking-saved-profile.json": "3cdc5b3177db7ccfa0044c632b12d5fbbac86dfc6a4cff66abe6d29ccbc15c25"
+  },
+  "notes": [
+    "Includes fixed materials, original vehicle geometry, local material normal corrections, default camera alignment and removal of the edge-clipped parked car.",
+    "Theme switching is silent; the soft radial transition remains.",
+    "Parking maneuver controls remain hidden and inactive, matching the saved preview.",
+    "Shared engine source remains unchanged.",
+    "Post-packaging fixes align Parking export capabilities, size the initial canvas before engine load, and use 450ms strong ease-out Traffic entry with immediate Traffic removal.",
+    "Original review runtime byte equivalence was verified before these requested behavioral fixes; current runtime intentionally differs.",
+    "Traffic entry combines intact 450ms eased rise, ground clipping and opacity. Parking depth writing restores after entry; off remains immediate."
+  ],
+  "current_runtime_sha256": "293d8239151174a3717d5f7020f7b2fefedcb9f1bde44cc3529cb4f30ad51eb7"
+}

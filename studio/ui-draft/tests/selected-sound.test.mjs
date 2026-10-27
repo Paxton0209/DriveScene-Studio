@@ -29,9 +29,10 @@ test('Chosen sound runs only on explicit on/off intent and does not replace the 
 test('Delayed audio resume cannot replay a cue after a silent restoration cancels it',async()=>{
  const starts=[];
  class AudioContext {
-  state='running';currentTime=0;
+  state='running';currentTime=0;sampleRate=48000;
   async resume(){}
-  async decodeAudioData(bytes){const audio=wav(Buffer.from(bytes));return {duration:audio.samples.length/2/audio.rate}}
+  createBuffer(channels,length,rate){const data=Array.from({length:channels},()=>new Float32Array(length));return {duration:length/rate,numberOfChannels:channels,length,getChannelData:c=>data[c]}}
+  async decodeAudioData(bytes){const audio=wav(Buffer.from(bytes));const buffer=this.createBuffer(1,audio.samples.length/2,audio.rate);for(let i=0;i<buffer.length;i++)buffer.getChannelData(0)[i]=audio.samples.readInt16LE(i*2)/32768;return buffer;}
   createBufferSource(){return {connect(){},disconnect(){},stop(){},start(){starts.push(this.buffer.duration)}}}
   createGain(){return {gain:{value:0,cancelScheduledValues(){},setTargetAtTime(){}},connect(){},disconnect(){}}}
  }
@@ -39,5 +40,5 @@ test('Delayed audio resume cannot replay a cue after a silent restoration cancel
  const sound=new Function('window','document','fetch',source+';return {preparePathSound,playPathSound,playPathExitSound,stopPathSound,pathSoundStatus};')({AudioContext},{documentElement:{dataset:{}}},async url=>({ok:true,arrayBuffer:async()=>{const bytes=await readFile(url);return bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength)}}));
  await sound.preparePathSound();sound.playPathSound();sound.stopPathSound();await new Promise(resolve=>setImmediate(resolve));assert.equal(starts.length,0);
  sound.playPathSound();await new Promise(resolve=>setImmediate(resolve));sound.playPathExitSound();await new Promise(resolve=>setImmediate(resolve));
- assert.deepEqual(starts,[.615,.23]);assert.equal(sound.pathSoundStatus().plays,1);assert.equal(sound.pathSoundStatus().exitPlays,1);
+ assert.deepEqual(starts,[.615,1.23]);assert.equal(sound.pathSoundStatus().plays,1);assert.equal(sound.pathSoundStatus().exitPlays,1);
 });

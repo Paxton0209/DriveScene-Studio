@@ -1,34 +1,27 @@
-const preview=document.getElementById('preview'),result=document.getElementById('result');
-const wait=milliseconds=>new Promise(resolve=>setTimeout(resolve,milliseconds));
-document.getElementById('run').addEventListener('click',async()=>{
- const checks=[];
- try{
-  result.textContent='Running';
-  for(let attempt=0;!preview.contentWindow.draftController&&attempt<300;attempt++)await wait(100);
-  const controller=preview.contentWindow.draftController,doc=preview.contentDocument,bridge=controller.bridge();
-  const count=()=>bridge.get().sound.plays;
-  const check=(name,passed,detail)=>checks.push({name,passed,detail});
-  await controller.selectScene('road');controller.applyParam('path',true,false);
-  await controller.selectScene('ramp');controller.applyParam('path',false,false);
-  const initial=count();
-  for(const scene of ['road','ramp','road','elevated','junction','parking','outdoor','road'])await controller.selectScene(scene);
-  check('Scene restoration stays silent',count()===initial,{before:initial,after:count()});
-  for(const [key,value]of [['lanes',4],['camera','high'],['weather','rain'],['traffic',false],['model','x6']]){
-   controller.applyParam(key,value,false);await wait(500);
-  }
-  doc.getElementById('theme').click();await wait(900);
-  check('Parameters, vehicle and theme stay silent',count()===initial,{before:initial,after:count()});
-  controller.applyParam('path',false,false);const before=count();
-  doc.getElementById('assist').click();await wait(600);
-  check('Explicit Assist on plays once',count()===before+1,{before,after:count(),sound:bridge.get().sound});
-  const afterOn=count();controller.applyParam('path',true,false);await wait(300);
-  check('Repeated same state does not replay',count()===afterOn,{before:afterOn,after:count()});
-  doc.getElementById('assist').click();await wait(300);
-  check('Assist off does not play enable cue',count()===afterOn,{before:afterOn,after:count()});
-  const bounds=[...doc.querySelectorAll('.properties,.vehicle-strip,#layers')].map(element=>({id:element.id,left:element.getBoundingClientRect().left,right:element.getBoundingClientRect().right}));
-  check('Inspector groups align',bounds.every(value=>value.left===bounds[0].left&&value.right===bounds[0].right),bounds);
-  const icon=doc.querySelector('.theme-icon').getBoundingClientRect();
-  check('Theme icon reduced to 18px',icon.width===18&&icon.height===18,{width:icon.width,height:icon.height});
-  result.textContent=JSON.stringify(checks,null,2);result.dataset.complete='true';
- }catch(error){result.textContent=JSON.stringify({checks,error:error.stack},null,2);result.dataset.complete='error'}
-});
+const frame=document.getElementById('preview'),result=document.getElementById('result'),wait=ms=>new Promise(r=>setTimeout(r,ms));
+async function ready(){for(let i=0;i<300;i++){if(frame.contentDocument?.body.dataset.ready==='true')return frame.contentWindow.draftController;await wait(100)}throw Error('not ready')}
+const stats=a=>{const s=[...a].sort((x,y)=>x-y);return {frames:a.length,p95:s[Math.floor(s.length*.95)],max:Math.max(...a),over50:a.filter(x=>x>50).length}};
+async function measure(action){let prior=performance.now(),active=true,a=[];const sample=t=>{a.push(t-prior);prior=t;if(active)requestAnimationFrame(sample)};requestAnimationFrame(sample);await action();await wait(1000);active=false;return stats(a)}
+document.getElementById('run').onclick=async()=>{
+ const e={scenes:[],lanes:[],parking:[],errors:[]};result.textContent='Running';delete result.dataset.complete;
+ const check=(value,message)=>{if(!value)throw Error(message)},publish=label=>{result.textContent=label+'\n'+JSON.stringify(e,null,2)};
+ try{const c=await ready(),b=c.bridge(),engine=()=>frame.contentWindow.document.getElementById('engine').contentWindow.layoutEngine;
+ const pick=(x=5.9,z=-3.6)=>{const bay=b.audit().parkingBays.find(p=>p.x===x&&p.z===z),canvas=b.canvas,rect=canvas.getBoundingClientRect();check(bay,'bay exists');for(const type of ['pointerdown','pointerup'])canvas.dispatchEvent(new PointerEvent(type,{clientX:rect.left+rect.width*bay.screen[0],clientY:rect.top+rect.height*bay.screen[1],bubbles:true}));check(!!b.get().parking.target,'bay selectable');};
+ await c.applyParam('model','ix');await c.applyParam('weather','rain');
+ for(const scene of ['road','elevated','ramp','junction','parking','outdoor']){await c.selectScene(scene);await wait(300);const before=b.get();await wait(1400);const after=b.get();e.scenes.push({scene,model:engine().get().vehicle,weather:after.features.weather,playing:after.playing,distanceDelta:after.distance-before.distance,loopDelta:after.loopTime-before.loopTime});check(engine().get().vehicle==='ix','shared vehicle '+scene);check(after.features.weather==='rain','shared weather '+scene);check(after.playing===['road','elevated','ramp'].includes(scene),'scene playback policy '+scene);if(!after.playing)check(Math.abs(after.loopTime-before.loopTime)<.001,'no brief unintended playback '+scene);publish('Scenes');}
+ await c.applyParam('weather','default');await c.applyParam('model','model-3');await c.selectScene('road');b.setPlaying(false);for(const lanes of [2,6,4,6])e.lanes.push({lanes,...await measure(()=>c.applyParam('lanes',lanes))});
+ await Promise.all([c.selectScene('junction'),c.selectScene('road'),c.selectScene('outdoor')]);e.rapidScene={project:c.project.active,engine:b.get().scene};check(e.rapidScene.engine==='outdoor','rapid scene last choice wins');
+ await c.selectScene('parking');await c.applyParam('traffic',true);check(!b.get().parking.target,'no auto selection');const initial=b.audit();e.initialFrame=initial.vehicleBounds;check(Math.abs(initial.framing.vehicleFrame.bottom-.785)<.003,'default bottom framing');pick();await wait(800);check(b.get().parking.view==='raised','selection raises camera');check(!b.get().parking.active,'selection does not drive');
+ const ribbons=()=>b.capture().objects.filter(o=>o.object.name?.startsWith('Parking ')&&o.object.name.endsWith('path')).map(o=>({name:o.object.name,visible:o.visible}));e.previewPaths=ribbons();check(e.previewPaths.filter(p=>p.visible).length===2,'both routes previewed');
+ const target=b.get().parking.target;await c.applyParam('camera','bev');await wait(800);check(JSON.stringify(b.get().parking.target)===JSON.stringify(target),'camera independent of bay');
+ await c.applyParam('path',true,true,{sound:true});b.advance(1);await c.applyParam('path',false);const stopped=b.capture().pose.carPosition.toArray();b.advance(1);check(JSON.stringify(stopped)===JSON.stringify(b.capture().pose.carPosition.toArray()),'path off stops car');b.setPlaying(true);check(!b.get().playing,'no playback without path');
+ await c.applyParam('path',true,true,{sound:true});for(let i=0;i<420;i++){b.advance(1/30);if(i%60===0){const pose=b.capture().pose,a=b.audit();e.parking.push({time:b.get().parking.elapsed,car:pose.carPosition.toArray(),bottom:a.vehicleBounds.bottom,view:b.get().parking.view,occluders:a.occluders});publish('Parking');await wait(0);}}check(b.get().parking.complete,'parking completes');b.advance(1.2);const parked=b.audit();e.parked={state:b.get().parking,camera:b.capture().pose.position.toArray(),bottom:parked.vehicleBounds.bottom,reflection:parked.groundReflection};check(b.get().parking.view==='bev','success BEV');
+ b.prepareExit();check(b.get().parking.phase==='exit-select','exit asks direction');b.chooseExit(-1);await c.applyParam('path',true,true,{sound:true});for(let i=0;i<240;i++){b.advance(1/30);if(i%60===0)await wait(0);}check(b.get().parking.exited&&!b.get().parking.target,'exit frees selection');e.exit=b.get().parking;
+ pick();await wait(700);await c.applyParam('path',true,true,{sound:true});b.advance(13.2);check(b.get().parking.complete,'second parking loop completes');
+ e.wheels={};for(const model of ['model-3','x6','ix','xc90']){await c.applyParam('model',model);e.wheels[model]=b.get().wheels;check(e.wheels[model]>0,'rolling wheel vertices '+model);}
+ await c.applyParam('model','model-3');const before=b.capture().pose.carPosition.toArray();const exported=await b.export({format:'png'});e.export={...exported.audit,bytes:exported.blob.size,before,after:b.capture().pose.carPosition.toArray()};check(JSON.stringify(e.export.before)===JSON.stringify(e.export.after),'export restores pose');
+ await c.selectScene('outdoor');await c.applyParam('buildings',true);await c.applyParam('trees',true);await c.applyParam('traffic',true);pick();await wait(800);await c.applyParam('path',true,true,{sound:true});e.outdoor=[];for(let i=0;i<135;i++){b.advance(.1);if(i%30===0){const a=b.audit();e.outdoor.push({time:b.get().parking.elapsed,occluders:a.occluders,bottom:a.vehicleBounds.bottom});await wait(0);}}check(b.get().parking.complete,'outdoor completes');
+ await c.selectScene('junction');const start=b.capture().pose.carPosition.toArray();await wait(1200);check(JSON.stringify(start)===JSON.stringify(b.capture().pose.carPosition.toArray()),'junction waits for play');b.setPlaying(true);e.junction=[];for(let i=0;i<300;i++){b.advance(.1);if(i%30===0)e.junction.push({t:b.get().loopTime,...b.get().junction});if(b.get().junction.complete)break;}check(b.get().junction.complete,'junction reaches zero-speed stop');check(b.get().junction.speed===0,'junction stops');
+ e.persistence=JSON.parse(frame.contentWindow.localStorage.getItem('drivescene-ui-draft-project-v2-qa-regression'));result.textContent=JSON.stringify(e,null,2);result.dataset.complete='true';
+ }catch(error){e.errors.push(error.stack);result.textContent=JSON.stringify(e,null,2);result.dataset.complete='error'}
+};

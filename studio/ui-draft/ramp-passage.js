@@ -1,3 +1,4 @@
+import {RAMP_PAINT_INSET,RAMP_CURB_TOP} from './road-boundaries.js';
 import {Group,Mesh} from 'three';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {rampPassageState} from './road-mark-motion.js';
@@ -8,7 +9,14 @@ export function installRampPassage(world,id,width,startIndex,join){
  const root=world.root,payload=new Group();payload.name='ramp-passage';
  for(const mesh of root.children.slice(startIndex)){
   if(mesh.userData.laneDash||mesh.geometry?.type==='PlaneGeometry'&&mesh.position.x<0)continue;
-  payload.add(mesh);
+  // The asphalt is horizontal. Near-zero-area triangles along dense straight
+  // perimeter samples can otherwise produce inverted or zero vertex normals.
+  if(mesh.geometry?.type==='ShapeGeometry'&&mesh.material===world.mat.road){
+   const normal=mesh.geometry.getAttribute('normal');
+   for(let i=0;i<normal.count;i++)normal.setXYZ(i,0,1,0);
+   normal.needsUpdate=true;
+  }
+  mesh.castShadow=false;payload.add(mesh);
  }
  const paint=[...payload.children].filter(mesh=>mesh.material===world.mat.whitePaint);
  if(paint.length>1){
@@ -16,23 +24,30 @@ export function installRampPassage(world,id,width,startIndex,join){
   geometries.forEach(geometry=>geometry.dispose());
   if(merged){const batch=new Mesh(merged,world.mat.whitePaint);batch.name='ramp-passage-paint';payload.add(batch);for(const mesh of paint){mesh.removeFromParent();mesh.geometry.dispose();}}
  }
- root.add(payload);world.road(0,width,70,-260,-.002);
+ root.add(payload);world.road(0,width,70,-900,-.002);
  const edges=new Group();edges.name='ramp-mainline-edge';root.add(edges);
- for(let index=0;index<2;index++){world.line(width/2-.25,70,-260);const mesh=root.children.at(-1);mesh.name='ramp-mainline-edge-'+index;edges.add(mesh);}
+ for(let index=0;index<2;index++){world.line(width/2-RAMP_PAINT_INSET,70,-900);const mesh=root.children.at(-1);mesh.name='ramp-mainline-edge-'+index;edges.add(mesh);}
+ const curbs=new Group();curbs.name='ramp-mainline-curbs';root.add(curbs);
+ const height=RAMP_CURB_TOP+.10,center=(RAMP_CURB_TOP-.10)/2;
+ for(let index=0;index<2;index++){const curb=world.box(1.0,height,970,width/2+.50,center,-415,'curb');curb.castShadow=false;curb.receiveShadow=false;curbs.add(curb);}
+ const left=world.box(1.0,height,970,-(width+1.6)-width/2-.50,center,-415,'curb');left.castShadow=false;left.receiveShadow=false;
  const gap=id==='06'?[-8-join,-8]:[-60,-60+join];
- passages.set(root,{payload,edges,gap});advanceRampPassage(root,world.drivingDistance||0);
+ passages.set(root,{payload,edges,curbs,gap});advanceRampPassage(root,world.drivingDistance||0);
 }
 
 function edgeSpan(mesh,start,end){
- const near=Math.min(70,start),far=Math.max(-260,end);
+ const near=Math.min(70,start),far=Math.max(-900,end);
  mesh.visible=near>far;
  if(!mesh.visible)return;
- mesh.position.z=(near+far)/2;mesh.scale.y=(near-far+.8)/mesh.geometry.parameters.height;
+ mesh.position.z=(near+far)/2;
+ if(mesh.geometry.type==='BoxGeometry')mesh.scale.z=(near-far)/mesh.geometry.parameters.depth;
+ else mesh.scale.y=(near-far+.8)/mesh.geometry.parameters.height;
 }
 
 export function advanceRampPassage(root,distance){
  const passage=passages.get(root);if(!passage)return;
  const state=rampPassageState(distance),far=passage.gap[0]+state.offset,near=passage.gap[1]+state.offset;
  passage.payload.position.z=state.offset;passage.payload.visible=state.visible;
- edgeSpan(passage.edges.children[0],70,near);edgeSpan(passage.edges.children[1],far,-260);
+ edgeSpan(passage.edges.children[0],70,near);edgeSpan(passage.edges.children[1],far,-900);
+ edgeSpan(passage.curbs.children[0],70,near);edgeSpan(passage.curbs.children[1],far,-900);
 }

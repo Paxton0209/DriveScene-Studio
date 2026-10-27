@@ -23,7 +23,7 @@ export function mountFormatSelect(select) {
     label.textContent = select.selectedOptions[0]?.textContent || '';
     trigger.disabled = select.disabled;
     if (trigger.disabled) close(false);
-    menu.replaceChildren(...Array.from(select.options, option => {
+    menu.replaceChildren(...Array.from(select.options).filter(option => !option.hidden).map(option => {
       const button = document.createElement('button');
       button.type = 'button';
       button.setAttribute('role', 'option');

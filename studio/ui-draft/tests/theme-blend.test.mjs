@@ -27,6 +27,7 @@ test('Weather colors and the aerial curve follow the same continuous theme weigh
  assert.match(weather,/themeTone=world.draftThemeTone\?\.value/);
  assert.match(weather,/copy\(light.top\)\.lerp\(night.top,themeTone\)/);
  const world=refineWorld(await readFile(new URL('../../engine/world.js',import.meta.url),'utf8'));
- assert.match(world,/t=mix\(t,clamp\(\(vFogDepth-65\.\)\/235\.,0\.,1\.\),darkAerialPerspective\)/);
+ assert.match(world,/linearToOutputTexel\(vec4\(fogColor,1\.\)\)/);
+ assert.doesNotMatch(world,/outgoingLight=mix\(outgoingLight,sharedHorizon/);
  assert.doesNotMatch(world,/if\(darkAerialPerspective>\.5\)t=/);
 });
