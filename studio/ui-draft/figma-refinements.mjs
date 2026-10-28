@@ -42,7 +42,7 @@ export function refineFigma(name,source){
   source=change(source,'object.castShadow=true;object.receiveShadow=true;','object.castShadow=false;object.receiveShadow=false;');
  }
  if(name==='activation-sweep.js'){
-  source=change(source,'return {min:0,max:width/2};','return {min:.25,max:width/2-.25};');
+  source=change(source,'return {min:0,max:width/2};','return {min:.1525,max:width/2-.315};');
   source=change(source,'const uniforms={progress:','const uniforms={stopZ:{value:-10000},progress:');
   source=change(source,'uniform float progress;uniform float tone;uniform vec2 bounds;','uniform float stopZ;uniform float progress;uniform float tone;uniform vec2 bounds;');
   source=change(source,'float edge=step(bounds.x,p.x)','float edge=step(stopZ,p.z)*step(bounds.x,p.x)');

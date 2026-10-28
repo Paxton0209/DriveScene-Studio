@@ -164,3 +164,15 @@ test('Parking entry restores exterior depth writing after the first fully transp
  vehicle.userData.trafficOpacity=1;vehicle.userData.draftTrafficEntryOpacity=1;mesh.material.opacity=1;world.draftTime=500;updateParkingOcclusion(world,parking);
  assert.equal(mesh.material.depthWrite,true);assert.equal(mesh.children.find(o=>o.userData.draftOcclusionDepth).visible,false);
 });
+
+test('Translucent pillars composite after entering traffic while vehicle depth rejects rear obstacles',()=>{
+ const root=new THREE.Group(),parking=new THREE.Group(),vehicle=new THREE.Group();vehicle.userData.trafficVehicle=true;
+ const body=new THREE.Mesh(new THREE.BoxGeometry(2,2,4),new THREE.MeshPhysicalMaterial());vehicle.add(body);parking.add(vehicle);
+ const pillar=new THREE.Mesh(new THREE.BoxGeometry(.68,3.2,.68),new THREE.ShaderMaterial({transparent:true,depthWrite:false}));pillar.position.set(0,1.6,5);root.add(pillar);
+ const camera=new THREE.PerspectiveCamera();camera.position.set(0,3,10);
+ const world={root,car:new THREE.Group(),camera,draftTime:0};
+ vehicle.userData.draftTrafficEntryOpacity=.5;updateParkingOcclusion(world,parking);
+ assert.ok(pillar.renderOrder>body.renderOrder);assert.equal(pillar.material.depthTest,true);assert.equal(pillar.material.depthWrite,false);
+ const shell=body.children.find(o=>o.userData.draftOcclusionDepth);assert.equal(shell.visible,true);assert.equal(shell.material.transparent,false);assert.equal(shell.material.depthWrite,true);
+ for(const progress of [.7,1]){vehicle.userData.draftTrafficEntryOpacity=progress;world.draftTime+=100;updateParkingOcclusion(world,parking);assert.ok(pillar.renderOrder>body.renderOrder);}
+});

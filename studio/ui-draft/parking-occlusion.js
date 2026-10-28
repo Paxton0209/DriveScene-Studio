@@ -24,7 +24,10 @@ export function updateParkingOcclusion(world,parking,target,route=[]){
      const m=original.clone(),uniform={value:1};if(original.isShaderMaterial)m.uniforms={...original.uniforms};
      m.onBeforeCompile=(shader,renderer)=>{original.onBeforeCompile.call(m,shader,renderer);shader.uniforms.draftOcclusion=uniform;shader.fragmentShader='uniform float draftOcclusion;\n'+shader.fragmentShader;shader.fragmentShader=shader.fragmentShader.replace(/}\s*$/,'gl_FragColor.a*=draftOcclusion;\n}');};
      m.customProgramCacheKey=()=>original.customProgramCacheKey()+'-occlusion';m.userData.draftOcclusion=true;m.transparent=true;m.depthWrite=false;
-     if(o.userData.trafficVehicle)mesh.renderOrder=8;
+     // Blend translucent obstacles over the vehicle colour. Its opaque depth
+     // shell still rejects obstacles behind it; pillars in front remain visible
+     // throughout entry rather than being painted over by the fading body.
+     mesh.renderOrder=o.userData.trafficVehicle?8:9;
      // Environment follows the source theme; traffic owns its copied colours.
      const source=o.userData.trafficVehicle?null:original;
      if(source){if(source.color)m.color=source.color;if(source.emissive)m.emissive=source.emissive;}

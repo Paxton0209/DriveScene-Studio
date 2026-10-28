@@ -156,21 +156,6 @@
     });
    });
   }
-  // Clip the sweep inside the painted carriageway; never change its appearance.
-  const sweep=s.getObjectByName('Assistance road material lattice');
-  if(sweep?.material?.uniforms?.bounds&&!qa.patched.has(sweep.material)){
-   const m=sweep.material;qa.patched.add(m);
-   const old=sweep.onBeforeRender;
-   sweep.onBeforeRender=function(...args){
-    old?.apply(this,args);const st={scene:qa.scene};
-    if(['parking','outdoor','junction'].includes(st.scene)){this.visible=false;return;}
-    const bounds=m.uniforms.bounds.value;
-    if(st.scene==='ramp'){bounds.set(-5.55+.55,5.55-.55);}
-    else if(st.scene==='elevated'){bounds.set(-5.55+.35,5.55-.35);}
-    else if(st.scene==='road'){bounds.set(.35,world.layoutVisual.width/2-.35);}
-   };
-   changed=true;
-  }
   if(changed){qa.events.push({scene:state.scene,dark,time:Date.now()});if(qa.events.length>64)qa.events.shift();}
   lastChildren=group?.children.length;lastSceneChildren=s.children.length;lastContact=world.car?.userData.draftIndoorContact;
   qa.scene=state.scene;qa.dark=dark;return true;

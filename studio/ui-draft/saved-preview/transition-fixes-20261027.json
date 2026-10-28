@@ -1,0 +1,128 @@
+{
+  "recorded_at": "2026-10-28T01:00:04.426817+00:00",
+  "scope": "UI draft: Traffic pillar occlusion, preparation responsiveness and activation sweep bounds",
+  "runtime_version": "traffic-occlusion-perf2-20261027",
+  "runtime_sha256": "b5fafa340c5dacd4ab7425892940313585ceb49fd625dcae0044cf3b3b0b0ec7",
+  "build": "passed",
+  "tests": {
+    "total": 262,
+    "passed": 262,
+    "failed": 0
+  },
+  "shared_engine_source": "unchanged",
+  "changes": {
+    "occlusion": "Parking transparent environment objects render after traffic colour; exterior depth mask rejects rear objects. Entry remains intact 450ms translation, clipping and opacity; off remains immediate.",
+    "preparation": "Warm colour jobs suppress redundant shadow atlas redraws and restore flags. Scene construction uses existing incremental preparation with partial-frame guards.",
+    "sweep": "One bounds source follows rendered road width: Road left .1525m, right width/2-.315m; Elevated +/-5.235m; Ramp actual width/2-.315m. Removed stale saved-profile override."
+  },
+  "rendered_validation": {
+    "entry": "Controlled 40/90/180/450ms sampled Indoor entry frames, light/dark; immediate off and interrupted off; foreground pillars stay in front and rear pillars are depth-rejected. Screenshots inspected through native browser.",
+    "cameras": "Native Indoor Default/Raised/BEV endpoints; real Traffic off/on in light/dark; restored light Default.",
+    "peers": "Outdoor/Road Traffic related captures; Road 2/4/6 lanes and High camera sweep; Elevated and Ramp 06/07 boundaries inspected.",
+    "method_limit": "Sampled captures and native interactions; no high-speed recording or all-device guarantee."
+  },
+  "local_measurements": {
+    "conditions": "Local HTTP server on fresh origin 18039; controller operation time includes intended scene transition. This is not public-network cold-start or GPU FPS.",
+    "startup": {
+      "readyMs": 895.8999999985099,
+      "runtime": "http://127.0.0.1:18039/studio/ui-draft/runtime.bundle.js?v=traffic-occlusion-perf2-20261027",
+      "resources": [
+        {
+          "name": "cropped/x6.png",
+          "duration": 4.099999997764826,
+          "bytes": 103257
+        },
+        {
+          "name": "cropped/ix.png",
+          "duration": 4.899999998509884,
+          "bytes": 109740
+        },
+        {
+          "name": "cropped/xc90.png",
+          "duration": 5.099999997764826,
+          "bytes": 106441
+        }
+      ]
+    },
+    "operations": [
+      {
+        "phase": "scene/elevated",
+        "ms": 379.4000000022352
+      },
+      {
+        "phase": "scene/ramp",
+        "ms": 315.1000000014901
+      },
+      {
+        "phase": "scene/junction",
+        "ms": 312.19999999925494
+      },
+      {
+        "phase": "scene/parking",
+        "ms": 382.1000000014901
+      },
+      {
+        "phase": "scene/outdoor",
+        "ms": 368
+      },
+      {
+        "phase": "scene/road",
+        "ms": 213.89999999850988
+      },
+      {
+        "phase": "scene/elevated",
+        "ms": 210.69999999925494
+      },
+      {
+        "phase": "scene/road",
+        "ms": 216.80000000074506
+      },
+      {
+        "phase": "param/camera/high",
+        "ms": 18.899999998509884
+      },
+      {
+        "phase": "param/camera/low",
+        "ms": 3.699999999254942
+      },
+      {
+        "phase": "param/weather/rain",
+        "ms": 4
+      },
+      {
+        "phase": "param/weather/default",
+        "ms": 4.800000000745058
+      },
+      {
+        "phase": "param/traffic/true",
+        "ms": 21.5
+      },
+      {
+        "phase": "param/traffic/false",
+        "ms": 5.5
+      },
+      {
+        "phase": "param/lanes/2",
+        "ms": 18
+      },
+      {
+        "phase": "param/lanes/6",
+        "ms": 11
+      }
+    ],
+    "long_tasks_before_capture": [
+      {
+        "phase": "startup",
+        "start": 747.6999999992549,
+        "duration": 145
+      }
+    ],
+    "errors": []
+  },
+  "remaining": [
+    "Startup still has a 145ms long task (renderFrame max138.6ms).",
+    "First alternate Ramp layout build measured53.2ms; a77ms task during the capture run is retained separately from normal control timings.",
+    "Public deployment and human visual acceptance are separate states; publication verification recorded outside this pre-publication file."
+  ],
+  "user_acceptance": null
+}
