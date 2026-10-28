@@ -2,8 +2,20 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark">
-<link rel="modulepreload" href="runtime.bundle.js?v=interaction-20261027"><link rel="preload" href="icons.json" as="fetch" crossorigin>
-<title>DriveScene Studio · UI draft</title><link rel="stylesheet" href="draft.css?v=text-hover32-20261025"><link rel="stylesheet" href="inspector.css?v=mobile88-20261026">
+
+<script id="startup-assets">(function startStartupAssets(scope=window){
+ const q=new URLSearchParams(scope.location.search),qa=q.has('qa'),suffix=qa?'-qa'+(['','1'].includes(q.get('qa'))?'':'-'+q.get('qa')):'';
+ let saved={};try{saved=JSON.parse(scope.localStorage.getItem('drivescene-ui-draft-project-v2'+suffix)||'{}')||{};}catch{}
+ const active=['road','elevated','ramp','junction','parking','outdoor'].includes(saved.active)?saved.active:'road',requested=saved.shared?.model??saved.boards?.[active]?.params?.model;
+ const model=['model-3','x6','ix','xc90'].includes(requested)?requested:'model-3';
+ const urls=['../engine/assets/studio-environment.bin.gz?v=1','./traffic-model-y.prepared.json.gz?v=transport121',model==='x6'?'../engine/ego-vehicle-ready.glb.gz?v=17.9':`../engine/vehicle-library/prepared/${model}/model.glb.gz`];
+ const requests=scope.__draftStartupAssets=new Map();
+ for(const path of urls){const url=new URL(path,scope.document.baseURI).href,controller=new AbortController(),timer=scope.setTimeout(()=>controller.abort(),30000);
+  const request=scope.fetch(url,{priority:'high',signal:controller.signal}).then(response=>{if(!response.ok)throw Error('Scene asset could not load');return response.arrayBuffer()}).finally(()=>scope.clearTimeout(timer));
+  request.catch(()=>{});requests.set(url,request);
+ }
+ return requests;
+})()</script><title>DriveScene Studio · UI draft</title><link rel="stylesheet" href="draft.css?v=text-hover32-20261025"><link rel="stylesheet" href="inspector.css?v=mobile88-20261026">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem('sr-ui-draft-theme')||'light'}catch{}</script>
 </head><body><div id="app">
 <header class="toolbar"><span class="project-name">DriveScene Studio</span><button id="theme" class="icon-button" aria-label="Switch to dark theme" data-tip="Appearance"></button></header>
@@ -27,4 +39,4 @@
 </div><details id="export-preview"><summary>Preview</summary><img id="export-preview-image" alt="Export preview" hidden><p id="export-preview-description"></p></details><button id="export" class="raised" data-tip="Export" disabled><span id="export-label">Export</span></button><p id="feedback" role="status" hidden></p></section>
 </div></aside></div>
 <nav id="debug-links" hidden><a href="../material-draft/">Material draft</a><a href="./sound-ab.html">08 / 09 A/B</a><a href="./review.html">QA</a></nav>
-</div><div id="tooltip" role="tooltip" hidden></div><script type="module" src="draft.js?v=interaction-exportfix-20261027"></script><script src="saved-preview/frame-profile.js?v=interaction-20261027"></script></body></html>
+</div><div id="tooltip" role="tooltip" hidden></div><script type="module" src="draft.bundle.js?v=cold-clipping-20261028"></script><script src="saved-preview/frame-profile.js?v=interaction-20261027"></script></body></html>

@@ -55,6 +55,7 @@ export function patchFeatures(source){
 export function patchApp(source){
  // The embedded canvas may be narrow on desktop; capacity follows the host viewport.
  source=replace(source,"maxEntries:matchMedia('(max-width:760px)').matches?2:4","maxEntries:window.parent.matchMedia('(max-width:760px)').matches?2:4");
+ source=replace(source,"if(key==='model'){document.getElementById('vehicle-option-'+value)?.click();return;}","if(key==='model')return vehicleSelector.choose(value);");
  source=replace(source,'preparationQueue.then(()=>prepareVehicleChoice(world,car))','preparationQueue.then(()=>{world.draftPrepareVehicle?.(car);return prepareVehicleChoice(world,car);})');
  source=replace(source,"delete preview.dataset.loadError;world.setVehicle(car,", "delete preview.dataset.loadError;world.draftPrepareVehicle?.(car);world.setVehicle(car,");
  source=replace(source,"mark('update');world.renderFrame();mark('frame');","mark('update');await world.draftPrepareAppearance?.();world.renderFrame();mark('frame');");
@@ -83,6 +84,10 @@ export function patchApp(source){
  // Traffic is part of the initial scene, including its final shader variants.
  // Wait inside the existing preparation lifecycle before any warm or visible frame.
  source=replace(source,'try{let requested;','try{await world.draftPrepareStartup?.();let requested;');
+ // The prepared frame is already complete. The parent applies its saved
+ // settings and presents the visible frame; no extra RAF/render is needed here.
+ source=replace(source,'await new Promise(requestAnimationFrame);world.renderFrame();','if(!world.draftManaged){await new Promise(requestAnimationFrame);world.renderFrame();}');
+ source=replace(source,"window.dispatchEvent(new Event('studio:ready'));","window.dispatchEvent(new Event('studio:ready'));window.parent.postMessage({type:'ui-draft-ready'},location.origin);");
  // The parent completes saved settings and raster sizing before publishing its first frame.
  source=replace(source,"preview.setAttribute('aria-busy',String(world.initializingScene||","preview.setAttribute('aria-busy',String(world.draftInitialFrameReady!==true||world.initializingScene||");
  source=replace(source,'function rememberPreview(immediate=false){',"function rememberPreview(immediate=false){if(query.get('review')==='ui-draft')return;");
@@ -117,6 +122,7 @@ export function patchApp(source){
 }
 
 export function patchVehicleMaterials(source){
+ source="import {yieldSceneTask} from '../../../ui-draft/scene-preparation.js';\n"+source;
  source=replace(source,'export function prepareVehicleMaterials(model,id,length){','export async function prepareVehicleMaterials(model,id,length){');
  // The model is still offscreen. Preserve traversal order and every per-mesh
  // operation, yielding only between meshes so input/rendering can make progress.
@@ -124,7 +130,7 @@ export function patchVehicleMaterials(source){
   if(!mesh.isMesh)return;`, ` const meshes=[];model.traverse(mesh=>{if(mesh.isMesh)meshes.push(mesh);});
  let sliceStart=performance.now();
  for(const mesh of meshes){
-  if(performance.now()-sliceStart>=4){await new Promise(resolve=>setTimeout(resolve,0));sliceStart=performance.now();}`);
+  if(performance.now()-sliceStart>=4){await yieldSceneTask();sliceStart=performance.now();}`);
  source=replace(source,' });\n prepareFrontGrilles(model,id);',' }\n prepareFrontGrilles(model,id);');
  return source;
 }
@@ -150,6 +156,13 @@ export function patchLaneGeometry(source){
 }
 
 export function patchRendererPreparation(source){
+ source="import {batchPreparationJobs,attachPreparationBatch} from '../ui-draft/preparation-batches.js';\n"+source;
+ source=replace(source,' const {renderer,scene}=world,jobs='," const phaseStart=performance.now();const {renderer,scene}=world,jobs=");
+ source=replace(source,' await yieldToBrowser();\n world.preparedMaterials='," performance.measure('studio-warm-record',{start:phaseStart,detail:{jobs:jobs.length,batches:batchPreparationJobs(jobs).length}});const compileStart=performance.now();await yieldToBrowser();\n world.preparedMaterials=");
+ source=replace(source,'await Promise.all(pending);sliceStart=performance.now();',"await Promise.all(pending);performance.measure('studio-warm-compile',{start:compileStart});const drawStart=performance.now();sliceStart=drawStart;");
+ source=replace(source,' }finally{for(const target of targets.values())target.dispose();}'," performance.measure('studio-warm-draw',{start:drawStart});\n }finally{for(const target of targets.values())target.dispose();}");
+ source="import {yieldSceneTask} from '../ui-draft/scene-preparation.js';\n"+source;
+ source=replace(source,'const yieldToBrowser=()=>new Promise(resolve=>setTimeout(resolve,0));','const yieldToBrowser=yieldSceneTask;');
  // Warm proxies need object metadata references, not a JSON serialization of
  // scene-owned geometry/textures. Keep the source intact even if cloning fails.
  source=replace(source,'const yieldToBrowser=',`function clonePassObject(object){
@@ -186,6 +199,20 @@ const yieldToBrowser=`);
   'const shadowAutoUpdate=renderer.shadowMap.autoUpdate,shadowNeedsUpdate=renderer.shadowMap.needsUpdate;renderer.setRenderTarget(job.target);renderer.setViewport(0,0,1,1);renderer.shadowMap.autoUpdate=false;renderer.shadowMap.needsUpdate=false;');
  source=replace(source,'renderer.setViewport(viewport);renderer.shadowMap.needsUpdate=true;',
   'renderer.setViewport(viewport);renderer.shadowMap.autoUpdate=shadowAutoUpdate;renderer.shadowMap.needsUpdate=shadowNeedsUpdate;');
+ // Group equivalent pass contexts instead of repeating renderer traversal for
+ // every individual material. Each mesh and exact shader variant is retained.
+ source=source.replaceAll('for(const job of jobs){','for(const job of batchPreparationJobs(jobs)){');
+ source=source.replaceAll('job.scene.add(job.proxy);','const detach=attachPreparationBatch(job);');
+ source=source.replaceAll('job.proxy.removeFromParent();','detach();');
+ source=source.replaceAll(',transparent=job.material.transparent;if(job.trafficFade)job.material.transparent=!job.baseTransparent;', ';');
+ source=source.replaceAll('job.material.transparent=transparent;','');
+ // Separate CPU work from asynchronous shader completion in diagnostics.
+ source=replace(source,'const compileStart=performance.now();','const compileStart=performance.now(),compileBatches=[],drawBatches=[];');
+ source=source.replaceAll('const detach=attachPreparationBatch(job);','const batchStart=performance.now(),programsBefore=(renderer.info?.programs?.length||0);const detach=attachPreparationBatch(job);');
+ source=replace(source,'pending.push(renderer.compileAsync(job.scene,job.camera));','pending.push(renderer.compileAsync(job.scene,job.camera));compileBatches.push({jobs:job.jobs.length,cpu:performance.now()-batchStart,newPrograms:(renderer.info?.programs?.length||0)-programsBefore});');
+ source=replace(source,"performance.measure('studio-warm-compile',{start:compileStart})","performance.measure('studio-warm-compile',{start:compileStart,detail:{batches:compileBatches,programs:(renderer.info?.programs?.length||0)}})");
+ source=replace(source,'try{renderer.render(job.scene,job.camera);}','try{renderer.render(job.scene,job.camera);drawBatches.push({jobs:job.jobs.length,cpu:performance.now()-batchStart,newPrograms:(renderer.info?.programs?.length||0)-programsBefore});}');
+ source=replace(source,"performance.measure('studio-warm-draw',{start:drawStart})","performance.measure('studio-warm-draw',{start:drawStart,detail:{batches:drawBatches,programs:(renderer.info?.programs?.length||0)}})");
  return source;
 }
 
@@ -193,7 +220,7 @@ export function isolatedRuntimePlugin(){return {name:'isolated-ui-draft',setup(b
  let source=await readFile(args.path,'utf8');const name=args.path.split('/engine/').at(-1);
  if(name==='app.js')source=patchApp(source);
  // The parent owns the visible vehicle selector; do not build a second hidden picker.
- if(name==='vehicle-selector.js')source=replace(source," const element=(tag,className,text)=>"," if(new URLSearchParams(location.search).get('review')==='ui-draft')return {sync(){}};\n const element=(tag,className,text)=>");
+ if(name==='vehicle-selector.js')source="import {createVehicleSelection} from '../ui-draft/vehicle-selection.js';\n"+replace(source," const element=(tag,className,text)=>"," if(new URLSearchParams(location.search).get('review')==='ui-draft')return createVehicleSelection({selected,onChange,ids:vehicleCatalog.map(model=>model.id)});\n const element=(tag,className,text)=>");
  if(name==='vehicle-library/three/vehicle-materials.js')source=patchVehicleMaterials(source);
  if(name==='vehicle-library/three/load-prepared.js')source=patchLoadPrepared(source);
  if(name==='lane-geometry-cache.js')source=patchLaneGeometry(source);
@@ -393,6 +420,8 @@ export function isolatedRuntimePlugin(){return {name:'isolated-ui-draft',setup(b
  }
  source=refineIndoorFinish(name,refineFigma(name,source));
  if(name==='world.js'){
+  source="import {prepareSceneSteps} from '../ui-draft/scene-preparation.js';\n"+source;
+  source=replace(source,'for(const step of this.buildSteps(id,{...state,palette:this.palette}))await new Promise(resolve=>setTimeout(resolve,0));','await prepareSceneSteps(this.buildSteps(id,{...state,palette:this.palette}));');
   // Use the same construction path for synchronous callers and sliced scene
   // preparation. Yield only after a complete independent geometry operation.
   source=replace(source,'{installRampCurbs,rampNose,','{installRampCurbs,rampCurbSteps,rampNose,');
