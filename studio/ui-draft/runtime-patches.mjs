@@ -83,7 +83,7 @@ export function patchApp(source){
  // old scene render followed by one render/two RAFs for every saved parameter.
  source=replace(source,'if(vehicleReady&&!versionFeatures.animating()','if(!world.draftManaged&&vehicleReady&&!versionFeatures.animating()');
  source=replace(source,' warmVehicle,',` warmVehicle,
- prepareDraftScene(key,values){
+ async prepareDraftScene(key,values){
   if(!preferences.has(key))throw Error('Unknown draft scene');
   cancelDriveArming();continuousDrive?.reset();selected=key;
   const preference=preferences.get(key);
@@ -92,7 +92,10 @@ export function patchApp(source){
   if(['parking','outdoor'].includes(key))preference.id=({parking:{default:'10',raised:'16',bev:'14'},outdoor:{default:'17',raised:'18',bev:'19'}}[key][values.camera]||preference.id);
   if(key==='junction'){preference.junctionPosition='approaching';preference.cameraView='low';}
   versionFeatures.set({path:!!values.path,weather:values.weather||'default'},{animate:false});
-  trafficSystem?.setEnabled(!!values.traffic);render(true,false,'draft');
+  trafficSystem?.setEnabled(!!values.traffic);
+  const previousRoot=world.root,initializing=world.initializingScene;world.initializingScene=true;
+  try{await world.prepareInitialScene(state());}finally{world.initializingScene=initializing;}
+  render(true,false,'draft');if(world.root!==previousRoot)world.continuousDrive?.rebind();
  },`);
  source=replace(source,"if(animate&&vehicleReady&&!reduced&&!cameraMotion", "if(animate&&motion!=='draft'&&vehicleReady&&!reduced&&!cameraMotion");
  source=replace(source,"window.dispatchEvent(new Event('layout:ready'));","installDraftBridge({world,features:versionFeatures,drive:continuousDrive,traffic:trafficSystem,api:window.layoutEngine,current:()=>selected,updateURL});\nwindow.dispatchEvent(new Event('layout:ready'));");
@@ -157,6 +160,12 @@ const yieldToBrowser=`);
  source=replace(source,'job.proxy.removeFromParent();renderer.setRenderTarget(previous);}', 'job.proxy.removeFromParent();job.material.transparent=transparent;renderer.setRenderTarget(previous);}');
  source=replace(source,'const previous=renderer.getRenderTarget();\n  const viewport=', 'const previous=renderer.getRenderTarget(),transparent=job.material.transparent;if(job.trafficFade)job.material.transparent=true;\n  const viewport=');
  source=replace(source,'job.proxy.removeFromParent();renderer.setRenderTarget(previous);renderer.setViewport(viewport);','job.proxy.removeFromParent();job.material.transparent=transparent;renderer.setRenderTarget(previous);renderer.setViewport(viewport);');
+ // The recorded jobs already contain the shadow passes. A one-pixel colour
+ // warm draw must not allocate and redraw a full shadow atlas for every proxy.
+ source=replace(source,'renderer.setRenderTarget(job.target);renderer.setViewport(0,0,1,1);renderer.shadowMap.needsUpdate=false;',
+  'const shadowAutoUpdate=renderer.shadowMap.autoUpdate,shadowNeedsUpdate=renderer.shadowMap.needsUpdate;renderer.setRenderTarget(job.target);renderer.setViewport(0,0,1,1);renderer.shadowMap.autoUpdate=false;renderer.shadowMap.needsUpdate=false;');
+ source=replace(source,'renderer.setViewport(viewport);renderer.shadowMap.needsUpdate=true;',
+  'renderer.setViewport(viewport);renderer.shadowMap.autoUpdate=shadowAutoUpdate;renderer.shadowMap.needsUpdate=shadowNeedsUpdate;');
  return source;
 }
 

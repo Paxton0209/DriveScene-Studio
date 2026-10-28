@@ -15,7 +15,7 @@ function fixture(fail=false){
  for(const material of materials)scene.add(new THREE.Mesh(new THREE.PlaneGeometry(),material));
  const hidden=new THREE.Group();hidden.visible=false;scene.add(hidden);
  let current=target;
- const renderer={shadowMap:{needsUpdate:false},renderBufferDirect(){},getRenderTarget:()=>current,setRenderTarget(value){current=value;},getViewport:()=>new THREE.Vector4(0,0,4,4),setViewport(){},
+ const renderer={shadowMap:{autoUpdate:true,needsUpdate:false},renderBufferDirect(){},getRenderTarget:()=>current,setRenderTarget(value){current=value;},getViewport:()=>new THREE.Vector4(0,0,4,4),setViewport(){},
   compileAsync(context){const material=context.children.find(o=>o.isMesh).material;calls.push({kind:'compile',material,transparent:material.transparent});
    return Promise.resolve().then(()=>{assert.equal(materials[0].transparent,false,'live traffic restored before asynchronous work');assert.equal(current,target);if(fail)throw Error('compile failure');});},
   render(context){const material=context.children.find(o=>o.isMesh).material;calls.push({kind:'draw',material,transparent:material.transparent});}
@@ -81,4 +81,12 @@ test('Preparation copies preserve metadata references without serializing scene-
  await prepareRenderer(f.world);
  assert.equal(f.world.scene.userData,sceneData);assert.equal(mesh.userData,meshData);
  assert.equal(mesh.userData.resource,resource);
+});
+
+for(const failDraw of [false,true])test(`Warm colour draws skip redundant shadow atlases and restore flags (failure=${failDraw})`,async()=>{
+ const f=fixture(),render=f.world.renderer.render;
+ f.world.renderer.render=function(...args){assert.equal(this.shadowMap.autoUpdate,false);assert.equal(this.shadowMap.needsUpdate,false);if(failDraw)throw Error('draw failure');return render.apply(this,args)};
+ if(failDraw)await assert.rejects(prepareRenderer(f.world),/draw failure/);else await prepareRenderer(f.world);
+ assert.equal(f.world.renderer.shadowMap.autoUpdate,true);assert.equal(f.world.renderer.shadowMap.needsUpdate,true);
+ assert.equal(f.world.renderer.getRenderTarget(),f.target);assert.equal(f.materials[0].transparent,false);
 });

@@ -43,7 +43,7 @@ await writeFile(new URL('./vehicles/framing-hulls.json',import.meta.url),JSON.st
 const traffic=JSON.parse(gunzipSync(await readFile(new URL('../engine/assets/traffic-model-y.json.gz',import.meta.url))));
 await writeFile(new URL('./traffic-model-y.prepared.json.gz',import.meta.url),gzipSync(JSON.stringify(compactTrafficAttributes(refineTrafficBody(consolidateTrafficRear(traffic))))));
 const html=await readFile(new URL('../engine/index.html',import.meta.url),'utf8');
-const embedded=html.replace('<head>','<head><base href="../engine/"><link rel="stylesheet" href="../ui-draft/engine.css?v=startup-20261027">').replaceAll('drivescene-preview-v15','drivescene-ui-draft-preview-v1').replaceAll('"sr-theme"','"sr-ui-draft-theme"').replace('<script src="startup.js?v=20261019-finish-110"></script>','<script type="module" src="../ui-draft/runtime.bundle.js?v=traffic-opacity-rise-20261027"></script>');
+const embedded=html.replace('<head>','<head><base href="../engine/"><link rel="stylesheet" href="../ui-draft/engine.css?v=startup-20261027">').replaceAll('drivescene-preview-v15','drivescene-ui-draft-preview-v1').replaceAll('"sr-theme"','"sr-ui-draft-theme"').replace('<script src="startup.js?v=20261019-finish-110"></script>','<script type="module" src="../ui-draft/runtime.bundle.js?v=traffic-occlusion-perf2-20261027"></script>');
 await writeFile(new URL('./engine.html',import.meta.url),embedded);
 const iconFile=new URL('./icons.json',import.meta.url),iconMissing=await access(iconFile).then(()=>false,()=>true);
 if(iconMissing||process.argv.includes('--sync-icons')){
