@@ -1,4 +1,5 @@
-import {startupBundlesPlugin} from './startup-bundles.mjs';
+import {startupBundlesPlugin,startupAssetScript} from './startup-bundles.mjs';
+import {clippingPrecompilePlugin} from './clipping-precompile.mjs';
 import {build} from 'esbuild';
 import {access,readFile,writeFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
@@ -44,8 +45,19 @@ await writeFile(new URL('./vehicles/framing-hulls.json',import.meta.url),JSON.st
 const traffic=JSON.parse(gunzipSync(await readFile(new URL('../engine/assets/traffic-model-y.json.gz',import.meta.url))));
 await writeFile(new URL('./traffic-model-y.prepared.json.gz',import.meta.url),gzipSync(JSON.stringify(compactTrafficAttributes(refineTrafficBody(consolidateTrafficRear(traffic))))));
 const html=await readFile(new URL('../engine/index.html',import.meta.url),'utf8');
-const embedded=html.replace('globalThis.__studioEnvironmentRequest=preloadAsset(',`const selectedModel=q.get('model')||'x6';if(['model-3','ix','xc90'].includes(selectedModel)){globalThis.__draftPreparedVehicle={id:selectedModel,request:preloadAsset('./vehicle-library/prepared/'+selectedModel+'/model.glb.gz')};globalThis.__draftPreparedVehicle.request.catch(()=>{});}globalThis.__draftTrafficRequest=preloadAsset('../ui-draft/traffic-model-y.prepared.json.gz?v=transport121');globalThis.__draftTrafficRequest.catch(()=>{});globalThis.__studioEnvironmentRequest=preloadAsset(`).replace('<head>','<head><base href="../engine/"><link rel="stylesheet" href="../ui-draft/engine.css?v=startup-20261027">').replaceAll('drivescene-preview-v15','drivescene-ui-draft-preview-v1').replaceAll('"sr-theme"','"sr-ui-draft-theme"').replace('<script src="startup.js?v=20261019-finish-110"></script>','<script type="module" src="../ui-draft/runtime.bundle.js?v=interaction-20261027"></script>');
-await writeFile(new URL('./engine.html',import.meta.url),embedded);
+const embedded=html.replace('async function preloadAsset(url){',`async function preloadAsset(url){try{const requests=window.parent.__draftStartupAssets,key=new URL(url,document.baseURI).href,early=requests?.get(key);if(early){requests.delete(key);return await early;}}catch{} `).replace('globalThis.__studioEnvironmentRequest=preloadAsset(',`const selectedModel=q.get('model')||'x6';if(['model-3','ix','xc90'].includes(selectedModel)){globalThis.__draftPreparedVehicle={id:selectedModel,request:preloadAsset('./vehicle-library/prepared/'+selectedModel+'/model.glb.gz')};globalThis.__draftPreparedVehicle.request.catch(()=>{});}globalThis.__draftTrafficRequest=preloadAsset('../ui-draft/traffic-model-y.prepared.json.gz?v=transport121');globalThis.__draftTrafficRequest.catch(()=>{});globalThis.__studioEnvironmentRequest=preloadAsset(`).replace('<head>','<head><base href="../engine/"><link rel="stylesheet" href="../ui-draft/engine.css?v=startup-20261027">').replaceAll('drivescene-preview-v15','drivescene-ui-draft-preview-v1').replaceAll('"sr-theme"','"sr-ui-draft-theme"').replace('<script src="startup.js?v=20261019-finish-110"></script>','<script type="module" src="../ui-draft/runtime.bundle.js?v=cold-clipping-20261028"></script>');
+let engineHtml=embedded.replace(/document\.documentElement\.style\.setProperty\(\"--startup-frame\"[\s\S]*?document\.head\.append\(link\);/,'');
+// Preserve the engine cascade exactly while avoiding a separate network turn
+// for each stylesheet in the first embedded frame. These styles have no URLs.
+for(const [tag] of engineHtml.matchAll(/<link[^>]*rel="stylesheet"[^>]*>/g)){
+ const href=tag.match(/href="([^"]+)"/)[1].split('?')[0];
+ const css=await readFile(new URL(href,new URL('../engine/',import.meta.url)),'utf8');
+ engineHtml=engineHtml.replace(tag,`<style>${css}</style>`);
+}
+await writeFile(new URL('./engine.html',import.meta.url),engineHtml);
+const parentFile=new URL('./index.html',import.meta.url);let parent=await readFile(parentFile,'utf8');
+parent=parent.replace(/<link rel="modulepreload"[^>]+>/g,'').replace(/<link rel="preload" href="icons.json"[^>]+>/g,'').replace(/<script id="startup-assets">[\s\S]*?<\/script>/,'').replace('<title>',`<script id="startup-assets">${startupAssetScript()}</script><title>`).replace(/src="(?:draft|draft.bundle)\.js\?v=[^"]+"/,'src="draft.bundle.js?v=cold-clipping-20261028"');
+await writeFile(parentFile,parent);
 const iconFile=new URL('./icons.json',import.meta.url),iconMissing=await access(iconFile).then(()=>false,()=>true);
 if(iconMissing||process.argv.includes('--sync-icons')){
  const reference=await readFile(new URL('../../outputs/design-reference-Main.dc.html',import.meta.url),'utf8');
@@ -71,7 +83,8 @@ function draftMotion(source){
   .replace("grid().style.opacity='0';grid().style.transform='translateY(-6px)';","grid().style.opacity='0';grid().style.transform='translateY(-6px)';popup.style.opacity='0';popup.style.transform='scale(.96)';");
 }
 await build({absWorkingDir:root,entryPoints:['../ui-motion.js'],bundle:true,minify:true,format:'esm',outfile:'motion-runtime.js',plugins:[{name:'draft-motion-dimensions',setup(builder){builder.onLoad({filter:/\/ui-motion\.js$/},async args=>({contents:draftMotion(await readFile(args.path,'utf8')),loader:'js',resolveDir:root+'../'}))}}]});
-await build({absWorkingDir:root,entryPoints:['../engine/app.js'],bundle:true,minify:true,format:'esm',outfile:'runtime.bundle.js',plugins:[startupBundlesPlugin(),isolatedRuntimePlugin()],target:['chrome110','safari17']});
+await build({absWorkingDir:root,entryPoints:['./draft.js'],bundle:true,minify:true,format:'esm',outfile:'draft.bundle.js',target:['chrome110','safari17'],plugins:[{name:'inline-icons',setup(b){b.onLoad({filter:/\/draft\.js$/},async({path})=>({contents:(await readFile(path,'utf8')).replace("await fetch('./icons.json').then(response=>response.json())",await readFile(iconFile,'utf8')),loader:'js',resolveDir:root}));}}]});
+await build({absWorkingDir:root,entryPoints:['../engine/app.js'],bundle:true,minify:true,format:'esm',outfile:'runtime.bundle.js',plugins:[startupBundlesPlugin(),clippingPrecompilePlugin(),isolatedRuntimePlugin()],target:['chrome110','safari17']});
 console.log('UI draft runtime built; shared engine files are read-only inputs.');
 
 // Reproduce the saved preview, including its fixed material and frame profile.

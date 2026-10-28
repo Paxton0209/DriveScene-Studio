@@ -63,3 +63,31 @@ test('Selected vehicle preload is consumed once, mismatched models use their own
   await run('model-3','retry',undefined,takePrefetched);assert.deepEqual(calls,['different','retry']);
  }finally{globalThis.fetch=previous;if(previousEarly===undefined)delete globalThis.__draftPreparedVehicle;else globalThis.__draftPreparedVehicle=previousEarly;}
 });
+
+test('Parent starts the exact saved vehicle, environment and Traffic requests before UI imports',async()=>{
+ const {startStartupAssets}=await import('../startup-bundles.mjs');
+ for(const [search,saved,model] of [['?qa=cold',{active:'parking',shared:{model:'ix'}},'ix'],['',{active:'outdoor',boards:{outdoor:{params:{model:'xc90'}}}},'xc90'],['?qa=1',{shared:{model:'invalid'}},'model-3'],['?qa=cold',{shared:{model:'x6'}},'x6']]){
+  const calls=[],keys=[],scope={location:{search},document:{baseURI:'https://example.test/DriveScene-Studio/studio/ui-draft/'},localStorage:{getItem(key){keys.push(key);return JSON.stringify(saved)}},setTimeout:()=>1,clearTimeout(){},fetch:async url=>{calls.push(url);return new Response(new Uint8Array([1,2]))}};
+  const requests=startStartupAssets(scope);assert.equal(requests.size,3);await Promise.all(requests.values());
+  assert.equal(new Set(calls).size,3);assert.ok(calls.some(url=>url.includes(model==='x6'?'ego-vehicle-ready.glb.gz':`prepared/${model}/model.glb.gz`)));
+  assert.ok(calls.some(url=>url.includes('studio-environment')));assert.ok(calls.some(url=>url.includes('traffic-model-y')));
+  assert.equal(keys[0],'drivescene-ui-draft-project-v2'+(search==='?qa=cold'?'-qa-cold':search==='?qa=1'?'-qa':''));
+ }
+});
+
+test('Generated parent UI is bundled and engine consumes parent assets without preloading an unused poster',async()=>{
+ const html=await readFile(new URL('../index.html',import.meta.url),'utf8'),engine=await readFile(new URL('../engine.html',import.meta.url),'utf8'),bundle=await readFile(new URL('../draft.bundle.js',import.meta.url),'utf8');
+ assert.ok(html.indexOf('id="startup-assets"')<html.indexOf('<title>'));assert.match(html,/src="draft.bundle.js\?v=cold-clipping-20261028"/);
+ assert.doesNotMatch(bundle,/from\s*["']\.\//);assert.doesNotMatch(bundle,/fetch\(["']\.\/icons.json/);
+ assert.doesNotMatch(engine,/link\.as="image"/);assert.match(engine,/requests\.delete\(key\);return await early/);
+});
+
+
+test('Inline engine styles retain the source cascade and have no unresolved relative CSS assets',async()=>{
+ const source=await readFile(new URL('../../engine/index.html',import.meta.url),'utf8');
+ const result=await readFile(new URL('../engine.html',import.meta.url),'utf8');
+ const styles=[new URL('../engine.css',import.meta.url),...[...source.matchAll(/<link[^>]*rel="stylesheet"[^>]*href="([^"?]+)/g)].map(m=>new URL('../../engine/'+m[1],import.meta.url))];
+ let previous=-1;
+ for(const url of styles){const css=await readFile(url,'utf8');assert.doesNotMatch(css,/@import|url\(/);const at=result.indexOf(`<style>${css}</style>`,previous+1);assert.ok(at>previous,'Stylesheet order must stay identical: '+url.pathname);previous=at;}
+ assert.doesNotMatch(result,/<link[^>]*rel="stylesheet"/);
+});

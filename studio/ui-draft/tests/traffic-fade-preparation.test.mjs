@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import {patchRendererPreparation} from '../runtime-patches.mjs';
 
 const original=await readFile(new URL('../../engine/prepare-renderer.js',import.meta.url),'utf8');
-const source=patchRendererPreparation(original).replace("from 'three'",`from '${import.meta.resolve('three')}'`);
+const source=patchRendererPreparation(original).replace("from '../ui-draft/scene-preparation.js'",`from '${new URL('../scene-preparation.js',import.meta.url).href}'`).replace("from '../ui-draft/preparation-batches.js'",`from '${new URL('../preparation-batches.js',import.meta.url).href}'`).replace("from 'three'",`from '${import.meta.resolve('three')}'`);
 const {prepareRenderer}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
 
 function fixture(fail=false){
@@ -16,9 +16,9 @@ function fixture(fail=false){
  const hidden=new THREE.Group();hidden.visible=false;scene.add(hidden);
  let current=target;
  const renderer={shadowMap:{autoUpdate:true,needsUpdate:false},renderBufferDirect(){},getRenderTarget:()=>current,setRenderTarget(value){current=value;},getViewport:()=>new THREE.Vector4(0,0,4,4),setViewport(){},
-  compileAsync(context){const material=context.children.find(o=>o.isMesh).material;calls.push({kind:'compile',material,transparent:material.transparent});
+  compileAsync(context){for(const mesh of context.children.filter(o=>o.isMesh)){const material=mesh.material;calls.push({kind:'compile',material,transparent:material.transparent});}
    return Promise.resolve().then(()=>{assert.equal(materials[0].transparent,false,'live traffic restored before asynchronous work');assert.equal(current,target);if(fail)throw Error('compile failure');});},
-  render(context){const material=context.children.find(o=>o.isMesh).material;calls.push({kind:'draw',material,transparent:material.transparent});}
+  render(context){for(const mesh of context.children.filter(o=>o.isMesh)){const material=mesh.material;calls.push({kind:'draw',material,transparent:material.transparent});}}
  };
  const draw=renderer.renderBufferDirect;
  const world={scene,renderer,performanceStats:{compiles:0},renderFrame(){if(this.suspended)return;for(const mesh of scene.children.filter(o=>o.isMesh))renderer.renderBufferDirect(camera,scene,mesh.geometry,mesh.material,mesh);}};

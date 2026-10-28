@@ -5,7 +5,7 @@ import {patchApp} from '../runtime-patches.mjs';
 const source = await readFile(new URL('../draft.js', import.meta.url), 'utf8');
 
 test('Initial layout is synchronous; later resize frames preserve the same rectangle', () => {
-  const block = source.slice(source.indexOf('function sizeBoard('), source.indexOf('\nfunction waitFor('));
+  const block = source.slice(source.indexOf('function sizeBoard('), source.indexOf('\nasync function holdFrame('));
   for (const [viewport, bounds] of [[1280, {width: 792, height: 676}], [800, {width: 744, height: 420}], [390, {width: 390, height: 300}]]) {
     const style = {}, pending = [], resizes = [];
     const nodes = {stage: {getBoundingClientRect: () => bounds}, artboard: {style}};
