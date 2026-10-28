@@ -67,3 +67,17 @@ test('The real export handler normalizes stale Parking video before opening Save
     assert.deepEqual(calls, [['save', 'png'], ['render', 'png']]);
   }
 });
+
+test('Video cannot open Save As or render before its lazy codec probe is ready', async () => {
+  const source=await readFile(new URL('../draft.js',import.meta.url),'utf8');
+  const block=source.slice(source.indexOf('async function exportCurrent('),source.indexOf('\nfunction tooltipHide('));
+  const calls=[],nodes={'export-label':{},export:{style:{setProperty(){}}}};
+  const run=new Function('$','bridge','chooseExportDestination',`let exporting=false,ready=true,previewBusy=false,sceneUpdating=false,vehicleUpdating=false,themeTransition=null,videoReady=false,videoExtension='mp4',duration=.1;
+    const syncExportControls=()=> 'video',feedback=()=>{},lockControls=()=>{},holdFrame=async()=>{},releaseFrame=async()=>{},probeVideo=async()=>{},board=()=>({type:'road'}),params=()=>({weather:'default'}),writeExportFile=async()=>{};
+    const document={body:{dataset:{}}},window={dispatchEvent(){}},CustomEvent=function(){};
+    ${block}
+    return {run:exportCurrent,ready(){videoReady=true}};
+  `)(id=>nodes[id],()=>({async export(){calls.push('render');return {blob:'video',audit:{}}}}),async()=>{calls.push('save');return {name:'road.mp4'}});
+  await run.run();assert.deepEqual(calls,[]);
+  run.ready();await run.run();assert.deepEqual(calls,['save','render']);
+});
