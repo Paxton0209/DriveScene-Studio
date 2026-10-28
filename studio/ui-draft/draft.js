@@ -2,7 +2,7 @@ import {indoorShadowValues} from './indoor-shadow-settings.js';
 import {vehicleShadowPreset} from './vehicle-shadow-settings.js';
 import {indoorFinishValues} from './indoor-finish-settings.js';
 import {createProject,sceneTypes,setProjectWeather,setProjectVehicle} from './artboards.js?v=traffic33-20261025';
-import {revealScene} from './scene-reveal.js';
+import {revealScene} from './scene-reveal.js?v=responsive-startup-20261027';
 import {mountFormatSelect} from './format-select.js?v=parking-export-20261027';
 import {syncExportFormat} from './export-format.js';
 import {morphSegment,glideIndicator,reducedMotion} from './motion-runtime.js';
@@ -52,8 +52,9 @@ function layoutBoard(){const bounds=$('stage').getBoundingClientRect(),mobile=in
 function waitFor(predicate,timeout=12000){const start=performance.now();return new Promise((resolve,reject)=>{const poll=()=>{try{if(predicate()){resolve();return}}catch{}if(performance.now()-start>timeout){reject(Error('Scene update timed out'));return}setTimeout(poll,32)};poll()})}
 async function holdFrame(retain=false){if(retain&&!$('frame-cover').hidden)return;const cover=$('frame-cover'),source=bridge().canvas;if(cover.width!==source.width||cover.height!==source.height){cover.width=source.width;cover.height=source.height}cover.getContext('2d').drawImage(source,0,0);cover.hidden=false}
 async function releaseFrame(){if(reducedMotion()){$('frame-cover').hidden=true;return}const fade=$('frame-cover').animate([{opacity:1},{opacity:0}],{duration:200,easing:'ease-out'});await fade.finished.catch(()=>{});$('frame-cover').hidden=true}
-let sceneSelection=Promise.resolve(),pendingScene=null;
-function selectScene(type){if(!ready){pendingScene=type;return Promise.resolve();}if(exporting||previewBusy||vehicleUpdating||type===project.active&&!sceneUpdating)return Promise.resolve();const request=++sceneRequest;sceneUpdating=true;sceneSelection=sceneSelection.catch(()=>{}).then(async()=>{while(themeTransition)await themeTransition.finished.catch(()=>{});return request===sceneRequest?performScene(type,request):undefined;});return sceneSelection;}
+let sceneSelection=Promise.resolve(),pendingScene=null,sceneReveal=null;
+function acknowledgeScene(type){document.querySelectorAll('[data-scene]').forEach(button=>{if(button.dataset.scene===type)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');});moveNav(false);}
+function selectScene(type){if(!ready){pendingScene=type;acknowledgeScene(type);return Promise.resolve();}if(exporting||previewBusy||vehicleUpdating||type===project.active&&!sceneUpdating)return Promise.resolve();const request=++sceneRequest;sceneUpdating=true;acknowledgeScene(type);sceneReveal?.abort();sceneSelection=sceneSelection.catch(()=>{}).then(async()=>{while(themeTransition)await themeTransition.finished.catch(()=>{});return request===sceneRequest?performScene(type,request):undefined;});return sceneSelection;}
 async function performScene(type,request){
  sceneUpdating=true;bridge().suspendIndicator();$('indicator-mute').hidden=true;$('theme').disabled=true;$('inspector-scroll').inert=true;$('scene-transport').disabled=true;
  await holdFrame(true);if(request!==sceneRequest)return;
@@ -69,12 +70,12 @@ async function performScene(type,request){
  }catch(error){if(request===sceneRequest)feedback(error.message);}
  finally{
   if(request===sceneRequest){
-   await revealScene({cover:$('frame-cover'),indicator:$('scene-nav').querySelector('.scene-indicator'),reduce:reducedMotion(),commit(){
-    document.querySelectorAll('[data-scene]').forEach(button=>{if(button.dataset.scene===type)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');});
-    moveNav(true);status=bridge().get({audit:false});renderInspector();renderTransport();
+   sceneReveal=new AbortController();
+   await revealScene({cover:$('frame-cover'),signal:sceneReveal.signal,reduce:reducedMotion(),commit(){
+    status=bridge().get({audit:false});renderInspector();renderTransport();
    }});
    if(request!==sceneRequest)return;
-   sceneUpdating=false;$('theme').disabled=false;$('inspector-scroll').inert=false;$('scene-transport').disabled=false;
+   sceneReveal=null;sceneUpdating=false;$('theme').disabled=false;$('inspector-scroll').inert=false;$('scene-transport').disabled=false;
    if($('export-preview').open)void refreshExportPreview();
   }
  }
@@ -164,7 +165,7 @@ window.addEventListener('message',event=>{if(event.source!==frame.contentWindow|
 new ResizeObserver(sizeBoard).observe($('stage'));new ResizeObserver(sizeSegments).observe($('scene-properties'));window.addEventListener('resize',sizeBoard);window.visualViewport?.addEventListener('resize',sizeBoard);
 renderNav();renderInspector();$('debug-links').hidden=!new URLSearchParams(location.search).has('debug');
 layoutBoard();
-const state=params(),initialLayout=({parking:{default:'10',raised:'16',bev:'14'},outdoor:{default:'17',raised:'18',bev:'19'}}[project.active]?.[state.camera])||state.layout,query=new URLSearchParams({review:'ui-draft',quality:'sr50',scene:initialLayout,mode:document.documentElement.dataset.theme||'light',lanes:state.lanes,view:state.camera,model:state.model,buildings:Number(state.buildings),trees:Number(state.trees),waterfront:Number(state.waterfront),roadworks:'0',vehicle:'1',weather:state.weather,path:Number(state.path),seed:board().seed});frame.src='./engine.html?'+query+'&runtime=startup-handoff-20261027';
+const state=params(),initialLayout=({parking:{default:'10',raised:'16',bev:'14'},outdoor:{default:'17',raised:'18',bev:'19'}}[project.active]?.[state.camera])||state.layout,query=new URLSearchParams({review:'ui-draft',quality:'sr50',scene:initialLayout,mode:document.documentElement.dataset.theme||'light',lanes:state.lanes,view:state.camera,model:state.model,buildings:Number(state.buildings),trees:Number(state.trees),waterfront:Number(state.waterfront),roadworks:'0',vehicle:'1',weather:state.weather,path:Number(state.path),traffic:Number(state.traffic),seed:board().seed});frame.src='./engine.html?'+query+'&runtime=responsive-startup-20261027';
 const spinner=$('loading').querySelector('.loading-spinner');for(let index=0;index<12;index++){const spoke=document.createElement('i');spoke.style.setProperty('--index',index);spinner.append(spoke)}const loadingTimer=setTimeout(()=>{$('loading').hidden=false},400);
 try{await waitFor(()=>api()?.get().ready&&api().draft?.get({audit:false}).ready,30000)}catch(error){clearTimeout(loadingTimer);$('loading').hidden=true;feedback('Scene could not load. Reload to retry.');const retry=document.createElement('button');retry.textContent='Reload';retry.className='raised';retry.onclick=()=>location.reload();$('feedback').append(retry);throw error;}clearTimeout(loadingTimer);ready=true;bridge().param('traffic',state.traffic);syncFinish();bridge().indicatorMuted(indicatorMuted);$('loading').hidden=true;for(const id of ['assist','export','scene-transport'])$(id).disabled=false;layoutBoard();bridge().completeStartup();status=bridge().get({audit:false});renderVehicles();renderAssist();renderTransport();
 window.draftController={project,selectScene,applyParam,bridge,get status(){return status},exportCurrent};

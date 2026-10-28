@@ -1,0 +1,569 @@
+{
+  "recorded_at": "2026-10-28T03:12:02.202025+00:00",
+  "runtime_version": "responsive-startup-20261027",
+  "runtime_sha256": "f6b895587111aec2dc1f7f0d5d86567c58e6f278c61584cb3d1c91c1ccbf6f5f",
+  "build": "passed",
+  "tests": {
+    "total": 273,
+    "passed": 273,
+    "failed": 0
+  },
+  "shared_engine_source": "unchanged",
+  "changes": {
+    "startup": "Await existing Traffic and Parking model readiness inside initial preparation, before shader warmup and first visible frame. Pass the saved Traffic preference into construction and retain that initialized value in the bridge. Preserve startup restoration at the saved endpoint.",
+    "navigation": "Acknowledge selection immediately using the existing indicator; separate that feedback from scene preparation and canvas fade. Cancel an obsolete reveal on a new request, retaining latest-selection serialization."
+  },
+  "measurements": {
+    "startup-delayed-before-ax": {
+      "readyMs": 369.09999999403954,
+      "first_visible": {
+        "t": 382,
+        "ms": 1.2,
+        "phase": "startup",
+        "busy": "false",
+        "visible": "visible",
+        "initial": true,
+        "models": false,
+        "traffic": true,
+        "cars": 0,
+        "group": true
+      },
+      "first_hidden": {
+        "t": 352,
+        "ms": 5.2,
+        "phase": "startup",
+        "busy": "true",
+        "visible": "hidden",
+        "initial": false,
+        "models": false,
+        "cars": 0,
+        "group": true
+      },
+      "model_late_frame": {
+        "t": 2225,
+        "ms": 2.3,
+        "phase": "startup",
+        "busy": "false",
+        "visible": "visible",
+        "initial": true,
+        "models": true,
+        "traffic": true,
+        "cars": 0,
+        "group": true
+      },
+      "visible_states": [
+        [
+          false,
+          true,
+          0
+        ],
+        [
+          true,
+          true,
+          0
+        ]
+      ],
+      "navigation": [],
+      "errors": []
+    },
+    "startup-delayed-after-ax": {
+      "readyMs": 2447.6999999955297,
+      "first_visible": {
+        "t": 2448,
+        "ms": 0.3,
+        "phase": "startup",
+        "busy": "false",
+        "visible": "visible",
+        "initial": true,
+        "models": true,
+        "traffic": true,
+        "cars": 5,
+        "group": true
+      },
+      "first_hidden": {
+        "t": 2420,
+        "ms": 12.6,
+        "phase": "startup",
+        "busy": "true",
+        "visible": "hidden",
+        "initial": false,
+        "models": true,
+        "traffic": true,
+        "cars": 5,
+        "group": true
+      },
+      "model_late_frame": {
+        "t": 2420,
+        "ms": 12.6,
+        "phase": "startup",
+        "busy": "true",
+        "visible": "hidden",
+        "initial": false,
+        "models": true,
+        "traffic": true,
+        "cars": 5,
+        "group": true
+      },
+      "visible_states": [
+        [
+          true,
+          true,
+          5
+        ]
+      ],
+      "navigation": [],
+      "errors": []
+    },
+    "startup-delayed-off-fixed-ax": {
+      "readyMs": 2438.2000000029802,
+      "first_visible": {
+        "t": 2410,
+        "ms": 0.1,
+        "phase": "startup",
+        "busy": "false",
+        "visible": "visible",
+        "initial": true,
+        "models": true,
+        "traffic": false,
+        "cars": 0,
+        "group": true
+      },
+      "first_hidden": {
+        "t": 2377,
+        "ms": 5.8,
+        "phase": "startup",
+        "busy": "true",
+        "visible": "hidden",
+        "initial": false,
+        "models": true,
+        "traffic": false,
+        "cars": 0,
+        "group": true
+      },
+      "model_late_frame": {
+        "t": 2377,
+        "ms": 5.8,
+        "phase": "startup",
+        "busy": "true",
+        "visible": "hidden",
+        "initial": false,
+        "models": true,
+        "traffic": false,
+        "cars": 0,
+        "group": true
+      },
+      "visible_states": [
+        [
+          true,
+          false,
+          0
+        ]
+      ],
+      "navigation": [],
+      "errors": []
+    },
+    "startup-delayed-road-after-ax": {
+      "readyMs": 2673.2000000029802,
+      "first_visible": {
+        "t": 2655,
+        "ms": 0.3,
+        "phase": "startup",
+        "busy": "false",
+        "visible": "visible",
+        "initial": true,
+        "models": true,
+        "traffic": true,
+        "cars": 0
+      },
+      "first_hidden": {
+        "t": 2638,
+        "ms": 6.7,
+        "phase": "startup",
+        "busy": "true",
+        "visible": "hidden",
+        "initial": false,
+        "models": true,
+        "traffic": true,
+        "cars": 0
+      },
+      "model_late_frame": {
+        "t": 2638,
+        "ms": 6.7,
+        "phase": "startup",
+        "busy": "true",
+        "visible": "hidden",
+        "initial": false,
+        "models": true,
+        "traffic": true,
+        "cars": 0
+      },
+      "visible_states": [
+        [
+          true,
+          true,
+          0
+        ]
+      ],
+      "navigation": [],
+      "errors": []
+    },
+    "startup-normal-final-ax": {
+      "readyMs": 513,
+      "first_visible": {
+        "t": 486,
+        "ms": 0.1,
+        "phase": "startup",
+        "busy": "false",
+        "visible": "visible",
+        "initial": true,
+        "models": true,
+        "traffic": true,
+        "cars": 5,
+        "group": true
+      },
+      "first_hidden": {
+        "t": 459,
+        "ms": 12.5,
+        "phase": "startup",
+        "busy": "true",
+        "visible": "hidden",
+        "initial": false,
+        "models": true,
+        "traffic": true,
+        "cars": 5,
+        "group": true
+      },
+      "model_late_frame": {
+        "t": 459,
+        "ms": 12.5,
+        "phase": "startup",
+        "busy": "true",
+        "visible": "hidden",
+        "initial": false,
+        "models": true,
+        "traffic": true,
+        "cars": 5,
+        "group": true
+      },
+      "visible_states": [
+        [
+          true,
+          true,
+          5
+        ]
+      ],
+      "navigation": [],
+      "errors": []
+    },
+    "navigation-normal-final-ax": {
+      "readyMs": 513,
+      "first_visible": {
+        "t": 486,
+        "ms": 0.1,
+        "phase": "startup",
+        "busy": "false",
+        "visible": "visible",
+        "initial": true,
+        "models": true,
+        "traffic": true,
+        "cars": 5,
+        "group": true
+      },
+      "first_hidden": {
+        "t": 459,
+        "ms": 12.5,
+        "phase": "startup",
+        "busy": "true",
+        "visible": "hidden",
+        "initial": false,
+        "models": true,
+        "traffic": true,
+        "cars": 5,
+        "group": true
+      },
+      "model_late_frame": {
+        "t": 459,
+        "ms": 12.5,
+        "phase": "startup",
+        "busy": "true",
+        "visible": "hidden",
+        "initial": false,
+        "models": true,
+        "traffic": true,
+        "cars": 5,
+        "group": true
+      },
+      "visible_states": [
+        [
+          true,
+          true,
+          5
+        ],
+        [
+          true,
+          false,
+          5
+        ],
+        [
+          true,
+          false,
+          0
+        ]
+      ],
+      "navigation": [
+        {
+          "scene": "elevated",
+          "selectionMs": 1,
+          "readyMs": 420.8999999985099
+        },
+        {
+          "scene": "ramp",
+          "selectionMs": 0.5,
+          "readyMs": 357
+        },
+        {
+          "scene": "junction",
+          "selectionMs": 0.6000000014901161,
+          "readyMs": 337.5
+        },
+        {
+          "scene": "parking",
+          "selectionMs": 1.3999999985098839,
+          "readyMs": 356.79999999701977
+        },
+        {
+          "scene": "outdoor",
+          "selectionMs": 1,
+          "readyMs": 353.90000000596046
+        },
+        {
+          "scene": "road",
+          "selectionMs": 1.3000000044703484,
+          "readyMs": 308
+        },
+        {
+          "scene": "elevated",
+          "selectionMs": 0.7999999970197678,
+          "readyMs": 222.60000000149012
+        },
+        {
+          "scene": "road",
+          "selectionMs": 1,
+          "readyMs": 222.79999999701977
+        }
+      ],
+      "errors": []
+    },
+    "navigation-after-ax": {
+      "readyMs": 2446.39999999851,
+      "first_visible": {
+        "t": 2416,
+        "ms": 0.1,
+        "phase": "startup",
+        "busy": "false",
+        "visible": "visible",
+        "initial": true,
+        "models": true,
+        "traffic": true,
+        "cars": 5,
+        "group": true
+      },
+      "first_hidden": {
+        "t": 2394,
+        "ms": 11.8,
+        "phase": "startup",
+        "busy": "true",
+        "visible": "hidden",
+        "initial": false,
+        "models": true,
+        "traffic": true,
+        "cars": 5,
+        "group": true
+      },
+      "model_late_frame": {
+        "t": 2394,
+        "ms": 11.8,
+        "phase": "startup",
+        "busy": "true",
+        "visible": "hidden",
+        "initial": false,
+        "models": true,
+        "traffic": true,
+        "cars": 5,
+        "group": true
+      },
+      "visible_states": [
+        [
+          true,
+          true,
+          5
+        ],
+        [
+          true,
+          false,
+          5
+        ],
+        [
+          true,
+          false,
+          0
+        ]
+      ],
+      "navigation": [
+        {
+          "scene": "elevated",
+          "selectionMs": 0.7000000029802322,
+          "readyMs": 427.70000000298023
+        },
+        {
+          "scene": "ramp",
+          "selectionMs": 0.6000000014901161,
+          "readyMs": 357.20000000298023
+        },
+        {
+          "scene": "junction",
+          "selectionMs": 0.6000000014901161,
+          "readyMs": 399.5
+        },
+        {
+          "scene": "parking",
+          "selectionMs": 0.6000000014901161,
+          "readyMs": 331.20000000298023
+        },
+        {
+          "scene": "outdoor",
+          "selectionMs": 0.5,
+          "readyMs": 353.8999999985099
+        },
+        {
+          "scene": "road",
+          "selectionMs": 0.7999999970197678,
+          "readyMs": 281.6000000014901
+        },
+        {
+          "scene": "elevated",
+          "selectionMs": 0.6000000014901161,
+          "readyMs": 221
+        },
+        {
+          "scene": "road",
+          "selectionMs": 0.8000000044703484,
+          "readyMs": 227.10000000149012
+        }
+      ],
+      "errors": []
+    },
+    "startup-trace-before-ax": {
+      "readyMs": 578.1000000014901,
+      "first_visible": {
+        "t": 557,
+        "ms": 0.1,
+        "phase": "startup",
+        "busy": "false",
+        "visible": "visible",
+        "initial": true,
+        "models": true,
+        "traffic": true,
+        "cars": 5,
+        "group": true
+      },
+      "first_hidden": {
+        "t": 485,
+        "ms": 6.4,
+        "phase": "startup",
+        "busy": "true",
+        "visible": "hidden",
+        "initial": false,
+        "models": true,
+        "cars": 0,
+        "group": true
+      },
+      "model_late_frame": {
+        "t": 485,
+        "ms": 6.4,
+        "phase": "startup",
+        "busy": "true",
+        "visible": "hidden",
+        "initial": false,
+        "models": true,
+        "cars": 0,
+        "group": true
+      },
+      "visible_states": [
+        [
+          true,
+          true,
+          5
+        ],
+        [
+          true,
+          false,
+          5
+        ],
+        [
+          true,
+          false,
+          0
+        ]
+      ],
+      "navigation": [
+        {
+          "scene": "elevated",
+          "selectionMs": 212.10000000149012,
+          "readyMs": 412.80000000447035
+        },
+        {
+          "scene": "ramp",
+          "selectionMs": 138,
+          "readyMs": 325.19999999552965
+        },
+        {
+          "scene": "junction",
+          "selectionMs": 151.5,
+          "readyMs": 336.40000000596046
+        },
+        {
+          "scene": "parking",
+          "selectionMs": 121.70000000298023,
+          "readyMs": 323.40000000596046
+        },
+        {
+          "scene": "outdoor",
+          "selectionMs": 119.30000000447035,
+          "readyMs": 317
+        },
+        {
+          "scene": "road",
+          "selectionMs": 70.5,
+          "readyMs": 262.6000000014901
+        },
+        {
+          "scene": "elevated",
+          "selectionMs": 23.899999998509884,
+          "readyMs": 214.09999999403954
+        },
+        {
+          "scene": "road",
+          "selectionMs": 27.200000002980232,
+          "readyMs": 223.90000000596046
+        }
+      ],
+      "errors": []
+    }
+  },
+  "native_checks": [
+    "Rapid Elevated/Ramp/Junction/Indoor clicks settle to Indoor with matching canvas/inspector and released lock.",
+    "Indoor Traffic off/on in light and dark; Outdoor Traffic and light theme endpoint; image Export stays anchored.",
+    "Ordinary startup shows all five parked other vehicles in first sampled visible frame. Saved-off startup stays off in warm and visible frames.",
+    "Native Ramp click during the artificial model delay (before ready) is retained and settles to matching Ramp navigation/canvas/inspector."
+  ],
+  "protected": "450ms eased intact translation/clipping/opacity for enable; immediate off; pillar occlusion; material/camera settings and image-only Parking export.",
+  "raw_evidence": "outputs/startup-sweep-20261027/",
+  "limitations": [
+    "Artificial 2000ms NPC request delay is a race reproducer, not ordinary startup latency.",
+    "Selection measurements record DOM acknowledgement, not compositor presentation, GPU FPS or total scene completion.",
+    "Road frame car count is the Parking-group field and does not count road vehicles; actual Road frame was inspected.",
+    "Native endpoints and sampled startup frames do not establish every intermediate frame on every device.",
+    "User acceptance pending."
+  ]
+}

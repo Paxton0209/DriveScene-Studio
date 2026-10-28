@@ -64,7 +64,7 @@ export function patchApp(source){
  source=source.replaceAll("'material-draft'","'ui-draft'").replaceAll("'sr-theme'","'sr-ui-draft-theme'");
  source=source.replaceAll("history.replaceState(null,'',`?${q}`)","history.replaceState(null,'',location.pathname+`?${q}`)");
  source=replace(source,'createContinuousDriving(world,{onFrame(){if(performance.now()-lastDrivingAudit>180)',"createContinuousDriving(world,{random:world.draftSceneryRandom=makeRandom(Number(query.get('seed'))||110),onFrame(){if(world.root&&!world.initializingScene&&performance.now()-lastDrivingAudit>180)");
- source=replace(source,'createTrafficSystem(world):null',"createTrafficSystem(world,{random:world.draftTrafficRandom=makeRandom((Number(query.get('seed'))||110)+1),now:()=>world.draftTime??performance.now()}):null");
+ source=replace(source,'createTrafficSystem(world):null',"createTrafficSystem(world,{enabled:query.get('traffic')!=='0',random:world.draftTrafficRandom=makeRandom((Number(query.get('seed'))||110)+1),now:()=>world.draftTime??performance.now()}):null");
  source=replace(source,"continuousDrive.setPlaying(['road','elevated'].includes(selected));","if(!world.draftManaged)continuousDrive.setPlaying(['road','elevated'].includes(selected)&&!matchMedia('(prefers-reduced-motion: reduce)').matches);");
  source=replace(source,"if(key==='layout'){document.querySelector('[data-layout=\"'+value+'\"]')?.click();return;}","if(key==='layout'){preferences.get(selected).id=value;render(true,false,'draft');return;}");
  source=replace(source,"if(key==='path'&&!value&&driveArmTimer)","if(key==='path'&&!value&&driveArmTimer&&!world.draftManaged)");
@@ -80,6 +80,9 @@ export function patchApp(source){
  source=replace(source,"preferences.get('junction').junctionPosition=query.get('position')==='approaching'||(first.key==='junction'&&query.get('view')==='low'&&!query.has('position'))?'approaching':'near';","preferences.get('junction').junctionPosition='approaching';");
  source=source.replaceAll("if(!reduced)playThemeSound(theme==='dark');",'').replaceAll("if(mode!==value&&!matchMedia('(prefers-reduced-motion: reduce)').matches)playThemeSound(value==='dark');",'');
  source=replace(source,"mode=value;requestedTheme=value;render(false);await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));","mode=value;requestedTheme=value;render(false);");
+ // Traffic is part of the initial scene, including its final shader variants.
+ // Wait inside the existing preparation lifecycle before any warm or visible frame.
+ source=replace(source,'try{let requested;','try{await world.draftPrepareStartup?.();let requested;');
  // The parent completes saved settings and raster sizing before publishing its first frame.
  source=replace(source,"preview.setAttribute('aria-busy',String(world.initializingScene||","preview.setAttribute('aria-busy',String(world.draftInitialFrameReady!==true||world.initializingScene||");
  source=replace(source,'function rememberPreview(immediate=false){',"function rememberPreview(immediate=false){if(query.get('review')==='ui-draft')return;");
