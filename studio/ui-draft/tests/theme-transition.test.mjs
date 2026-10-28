@@ -25,7 +25,8 @@ test('Theme changes retain the sampled Junction pose before the first visible fr
  for(const scene of ['junction','road','parking'])for(const elapsed of [0,1.8,3.5])for(const animate of [false,true]){
   const expected={carZ:38-elapsed*10,cameraY:8.5+elapsed*6};
   const world={suspended:false,draftThemeTone:{value:0},pose:{...expected}};
-  const frames=[],snapshots=[];let samples=0;
+  const frames=[],snapshots=[],prepared=[];let samples=0;
+  world.draftPrepareAppearance=async()=>{assert.equal(world.suspended,true);prepared.push({...world.pose})};
   const theme=new Function('world','api','current','seekJunction','appearance','appearanceSnapshot','renderOnce','publish','schedule',`return async function(value,{animate=false}={}){${body}}`)(
    world,{async theme(){assert.equal(world.suspended,true);world.pose={carZ:38,cameraY:8.5}}},()=>scene,
    ()=>{assert.equal(world.suspended,true);samples++;world.pose={...expected}},
@@ -34,7 +35,7 @@ test('Theme changes retain the sampled Junction pose before the first visible fr
   );
   await theme('dark',{animate});
   const retained=scene==='junction'?expected:{carZ:38,cameraY:8.5};
-  assert.deepEqual(frames,[retained]);assert.equal(samples,scene==='junction'?1:0);
+  assert.deepEqual(prepared,[retained]);assert.deepEqual(frames,[retained]);assert.equal(samples,scene==='junction'?1:0);
   if(animate)assert.deepEqual(snapshots,[retained]);
   assert.equal(world.draftThemeTone.value,1);
  }

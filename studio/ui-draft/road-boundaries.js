@@ -59,7 +59,7 @@ export function raisedCurb(points,material,{width=1.0,height=.22,base=-.10,offse
    const clearance=.45*Math.hypot(dx,dz);widths[i]=Math.min(widths[i],clearance);widths[j]=Math.min(widths[j],clearance);
   }
  }
- const tapered=widths.map((value,i)=>{let result=value;for(let j=Math.max(0,i-24);j<=Math.min(points.length-1,i+24);j++){const distance=Math.hypot(points[i][0]-points[j][0],points[i][1]-points[j][1]);result=Math.min(result,widths[j]+distance*.45);}return result;});
+ const tapered=limitInnerRadius?widths.map((value,i)=>{let result=value;for(let j=Math.max(0,i-24);j<=Math.min(points.length-1,i+24);j++){const distance=Math.hypot(points[i][0]-points[j][0],points[i][1]-points[j][1]);result=Math.min(result,widths[j]+distance*.45);}return result;}):widths;
  for(let i=0;i<points.length;i++){
   const before=points[Math.max(0,i-1)],after=points[Math.min(points.length-1,i+1)];
   const dx=after[0]-before[0],dz=after[1]-before[1],length=Math.hypot(dx,dz)||1;
@@ -91,7 +91,9 @@ export function raisedCurb(points,material,{width=1.0,height=.22,base=-.10,offse
  const mesh=new Mesh(geometry,material);mesh.name='Raised road curb';mesh.castShadow=false;mesh.receiveShadow=false;mesh.userData.roadCurb=true;return mesh;
 }
 
-export function installRampCurbs(world,inner,outer,sign=1){
+export function installRampCurbs(world,inner,outer,sign=1){for(const step of rampCurbSteps(world,inner,outer,sign)){} }
+
+export function* rampCurbSteps(world,inner,outer,sign=1){
  // Straight mainline sections have their own fixed curbs. Retaining them in
  // the moving branch creates coplanar faces that flicker at grazing angles.
  const half=inner[0][0],epsilon=1e-6;
@@ -100,5 +102,5 @@ export function installRampCurbs(world,inner,outer,sign=1){
  let end=outer.length-1;while(end>0&&Math.abs(outer[end-1][0]-half)<epsilon)end--;
  // The shared curvature-continuous nose accommodates the 1m curb without folding.
  // Keep a constant section so its top and the paint remain concentric.
- for(const points of [inner.slice(start),outer.slice(0,end+1)])if(points.length>1)world.root.add(raisedCurb(points,world.mat.curb,{offset:-.50*sign,height:RAMP_CURB_TOP+.10}));
+ for(const points of [inner.slice(start),outer.slice(0,end+1)])if(points.length>1){world.root.add(raisedCurb(points,world.mat.curb,{offset:-.50*sign,height:RAMP_CURB_TOP+.10}));yield;}
 }

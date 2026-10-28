@@ -5,7 +5,7 @@ import {installRampPassage,advanceRampPassage} from '../ramp-passage.js';
 import {RAMP_SPEED} from '../road-mark-motion.js';
 import * as THREE from 'three';
 import {isolatedRuntimePlugin} from '../runtime-patches.mjs';
-import {installRampCurbs,rampNose,rampInset,RAMP_PAINT_INSET} from '../road-boundaries.js';
+import {installRampCurbs,rampCurbSteps,rampNose,rampInset,RAMP_PAINT_INSET} from '../road-boundaries.js';
 
 function fixture(id){
  const root=new Group(),roadMaterial=new MeshBasicMaterial(),whitePaint=new MeshBasicMaterial();
@@ -51,8 +51,8 @@ test('Actual Exit/Merge asphalt keeps upward normals along densely sampled strai
  let load;
  isolatedRuntimePlugin().setup({onLoad(_options,handler){load=handler}});
  const {contents}=await load({path:new URL('../../engine/world.js',import.meta.url).pathname});
- const body=contents.slice(contents.indexOf('ramp(id,w){')+'ramp(id,w){'.length,contents.indexOf('\n parking(id){'));
- const ramp=new Function('THREE','rampNose','rampInset','RAMP_PAINT_INSET','installRampCurbs','installRampPassage',`return function(id,w){${body.slice(0,body.lastIndexOf('}'))}}`)(THREE,rampNose,rampInset,RAMP_PAINT_INSET,installRampCurbs,installRampPassage);
+ const body=contents.slice(contents.indexOf('*rampSteps(id,w){')+'*rampSteps(id,w){'.length,contents.indexOf('\n parking(id){'));
+ const ramp=new Function('THREE','rampNose','rampInset','RAMP_PAINT_INSET','rampCurbSteps','installRampPassage',`return function*(id,w){${body.slice(0,body.lastIndexOf('}'))}}`)(THREE,rampNose,rampInset,RAMP_PAINT_INSET,rampCurbSteps,installRampPassage);
  for(const id of ['06','07'])for(const width of [7.4,11.1]){
   const root=new Group(),road=new MeshBasicMaterial(),whitePaint=new MeshBasicMaterial(),curb=new MeshBasicMaterial();
   let asphalt,badBefore=0;
@@ -68,7 +68,7 @@ test('Actual Exit/Merge asphalt keeps upward normals along densely sampled strai
    dashed(){},pathRibbon(){},prepareStructurePaint(){},
    road(offset,width,near,far,height){const mesh=new Mesh(new PlaneGeometry(width,near-far),road);mesh.position.set(offset,height+.015,(near+far)/2);root.add(mesh)},box(w,h,d,x,y,z){const mesh=new Mesh(new BoxGeometry(w,h,d),curb);mesh.position.set(x,y,z);root.add(mesh);return mesh}
   };
-  ramp.call(world,id,width);
+  const stages=ramp.call(world,id,width);let stageCount=0;for(const stage of stages)stageCount++;assert.ok(stageCount>=7,'Ramp preparation yields between independent geometry stages');
   assert.ok(badBefore>100,'fixture reproduces collinear triangulation normal corruption');
   const normal=asphalt.geometry.getAttribute('normal');
   for(let i=0;i<normal.count;i++)assert.deepEqual([normal.getX(i),normal.getY(i),normal.getZ(i)],[0,1,0]);
