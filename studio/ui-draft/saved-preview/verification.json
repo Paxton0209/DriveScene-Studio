@@ -1,0 +1,48 @@
+{
+  "snapshot": "2026-10-27",
+  "scope": "Isolated UI draft latest saved version",
+  "clean_install": {
+    "studio": "passed",
+    "studio/ui-draft": "passed"
+  },
+  "build": "passed",
+  "tests": {
+    "total": 256,
+    "pass": 256,
+    "fail": 0
+  },
+  "rebuild_files": {
+    "runtime.bundle.js": {
+      "sha256": "293d8239151174a3717d5f7020f7b2fefedcb9f1bde44cc3529cb4f30ad51eb7",
+      "clean_rebuild_identical": true
+    },
+    "engine.html": {
+      "sha256": "bcae78697b6f4c5f147fe031e83d047729a00989a9228c6792a8e536a0d34ecb",
+      "clean_rebuild_identical": true
+    },
+    "traffic-model-y.prepared.json.gz": {
+      "sha256": "c8ed7484e1dc717505662a1499578daf08c5e75457f329e652071ae36be5f037",
+      "clean_rebuild_identical": true
+    },
+    "vehicles/framing-hulls.json": {
+      "sha256": "d5cbf2218552d3bb87afbfb9a75b2f3e44f85063d837c608b329315fe78e11c2",
+      "clean_rebuild_identical": true
+    }
+  },
+  "native_preview": {
+    "checked": [
+      "Road paused Traffic off/on",
+      "Indoor Traffic off/on and refresh",
+      "Outdoor Traffic off/on",
+      "Parking light/dark theme endpoints"
+    ],
+    "fixed_during_review": "Parking now restores depth writing after the fully transparent first entry frame; nearest exterior surface occlusion is preserved.",
+    "preview": "/studio/ui-draft/?qa=traffic-opacity-20261027&paused=1"
+  },
+  "limits": [
+    "Native checks used sampled frames, not high-speed motion capture.",
+    "No all-device frame-rate, no-flicker or pixel-perfect acceptance claim.",
+    "Existing first Ramp preparation long task and fine material seams remain separately tracked."
+  ],
+  "shared_engine_source": "unchanged"
+}

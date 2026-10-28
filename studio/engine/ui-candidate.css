@@ -1,0 +1,7 @@
+:root[data-nav-design="1"] .structure-items .scene[aria-current=true] { color:var(--text); font-weight:600; }
+:root[data-nav-design="1"] .structure-items .scene { padding-inline:12px; white-space:nowrap; }
+.workspace .dimensions { left:8px; bottom:8px; padding:4px 8px; border-radius:var(--ui-radius); color:#fff; background:rgb(17 20 24 / .72); font-size:12px; line-height:1.5; text-shadow:none; }
+.workspace .preview[data-mode=light] .dimensions { color:#fff; background:rgb(17 20 24 / .24); text-shadow:0 1px 2px rgb(0 0 0 / .35); }
+@media (max-width:760px) {
+  :root[data-nav-design="1"] .structure-items .scene { margin-inline-start:0; max-width:100%; }
+}

@@ -1,0 +1,402 @@
+{
+  "subjective": "待用户验收",
+  "measurements": [],
+  "flows": [],
+  "motion": [],
+  "errors": [],
+  "video": {
+    "format": "video",
+    "width": 1920,
+    "height": 1080,
+    "duration": 5,
+    "frames": 150,
+    "startDistance": 1291.359999999926,
+    "exportEndDistance": 1374.7999999999179,
+    "extension": "mp4",
+    "wasPlaying": true,
+    "before": {
+      "ready": true,
+      "playing": true,
+      "requestedPlaying": true,
+      "exporting": false,
+      "distance": 1288.5599999999263,
+      "originEpoch": 1,
+      "loopTime": 76.69999999999821,
+      "scene": "road",
+      "features": {
+        "path": false,
+        "weather": "default"
+      },
+      "path": {
+        "kind": "lane",
+        "visible": true,
+        "reveal": 1,
+        "revealing": true,
+        "themeColor": "#2689d8",
+        "gradient": [
+          "#2865ba",
+          "#2689d8",
+          "#4272aa"
+        ],
+        "nearWidth": 1,
+        "width": 1,
+        "fadeStart": 0.38,
+        "revealMs": 350,
+        "retractMs": 144,
+        "retractReferenceVerified": false,
+        "timingMs": {
+          "baseFill": [
+            150,
+            500
+          ]
+        },
+        "sweepEase": "single full-duration cubic-bezier front",
+        "sweepKeyframes": [
+          [
+            240,
+            0
+          ],
+          [
+            280,
+            0.1
+          ],
+          [
+            320,
+            0.267
+          ],
+          [
+            360,
+            0.369
+          ],
+          [
+            400,
+            0.513
+          ],
+          [
+            440,
+            0.559
+          ],
+          [
+            480,
+            0.605
+          ],
+          [
+            520,
+            0.641
+          ],
+          [
+            560,
+            0.672
+          ],
+          [
+            600,
+            0.728
+          ],
+          [
+            640,
+            0.749
+          ],
+          [
+            680,
+            0.774
+          ],
+          [
+            720,
+            0.79
+          ],
+          [
+            760,
+            0.805
+          ],
+          [
+            800,
+            0.831
+          ],
+          [
+            840,
+            0.841
+          ],
+          [
+            880,
+            0.851
+          ],
+          [
+            920,
+            0.862
+          ],
+          [
+            1040,
+            0.9
+          ],
+          [
+            1160,
+            0.94
+          ],
+          [
+            1320,
+            1
+          ]
+        ],
+        "sweepAdvanceMs": 0,
+        "tailStartMs": null,
+        "tailDurationScale": null,
+        "sharedFillSweepFront": true,
+        "sweepBand": null,
+        "particles": false,
+        "particleSpacing": 0.96,
+        "nearContactShade": 0.86,
+        "edgeColor": "#548fcd",
+        "edgeBlend": 0.72,
+        "edgeWidth": 0.045,
+        "receivesDirectionalShadow": true,
+        "startS": 9.71,
+        "endS": 89.71000000000001,
+        "length": 80,
+        "start": [
+          1.85,
+          -1.7100000000000009
+        ],
+        "end": [
+          1.85,
+          -81.71000000000001
+        ],
+        "y": 0.022,
+        "exit": "opacity fade",
+        "blockedByRoadworks": false,
+        "onRoad": {
+          "samples": 123,
+          "misses": 0
+        },
+        "informationOverlay": true,
+        "motion": {
+          "preset": "flow"
+        },
+        "motionFrame": {
+          "elapsed": 1320,
+          "front": 1.1199999999999999,
+          "appearance": 1,
+          "outline": 1,
+          "fill": 1,
+          "feather": 0.105,
+          "handoff": 0.17,
+          "particles": 0.42,
+          "bandLength": 0.65,
+          "bandBlend": 0
+        },
+        "singleLayer": true,
+        "pathDelayMs": 150,
+        "totalActivationMs": 850
+      },
+      "sound": {
+        "ready": true,
+        "plays": 0,
+        "failures": 0,
+        "state": "suspended",
+        "durationMs": 400,
+        "cue": "08K"
+      },
+      "pooledObjects": 72,
+      "objects": 370,
+      "logicalTime": 76745.19999998836,
+      "raster": {
+        "width": 1440,
+        "height": 810,
+        "cssWidth": 720,
+        "cssHeight": 405,
+        "devicePixelRatio": 2
+      }
+    },
+    "after": {
+      "ready": true,
+      "playing": true,
+      "requestedPlaying": true,
+      "exporting": false,
+      "distance": 1296.3999999999255,
+      "originEpoch": 1,
+      "loopTime": 77.16666666666485,
+      "scene": "road",
+      "features": {
+        "path": false,
+        "weather": "default"
+      },
+      "path": {
+        "kind": "lane",
+        "visible": false,
+        "reveal": 0,
+        "revealing": false,
+        "themeColor": "#2689d8",
+        "gradient": [
+          "#2865ba",
+          "#2689d8",
+          "#4272aa"
+        ],
+        "nearWidth": 1,
+        "width": 1,
+        "fadeStart": 0.38,
+        "revealMs": 350,
+        "retractMs": 144,
+        "retractReferenceVerified": false,
+        "timingMs": {
+          "baseFill": [
+            150,
+            500
+          ]
+        },
+        "sweepEase": "single full-duration cubic-bezier front",
+        "sweepKeyframes": [
+          [
+            240,
+            0
+          ],
+          [
+            280,
+            0.1
+          ],
+          [
+            320,
+            0.267
+          ],
+          [
+            360,
+            0.369
+          ],
+          [
+            400,
+            0.513
+          ],
+          [
+            440,
+            0.559
+          ],
+          [
+            480,
+            0.605
+          ],
+          [
+            520,
+            0.641
+          ],
+          [
+            560,
+            0.672
+          ],
+          [
+            600,
+            0.728
+          ],
+          [
+            640,
+            0.749
+          ],
+          [
+            680,
+            0.774
+          ],
+          [
+            720,
+            0.79
+          ],
+          [
+            760,
+            0.805
+          ],
+          [
+            800,
+            0.831
+          ],
+          [
+            840,
+            0.841
+          ],
+          [
+            880,
+            0.851
+          ],
+          [
+            920,
+            0.862
+          ],
+          [
+            1040,
+            0.9
+          ],
+          [
+            1160,
+            0.94
+          ],
+          [
+            1320,
+            1
+          ]
+        ],
+        "sweepAdvanceMs": 0,
+        "tailStartMs": null,
+        "tailDurationScale": null,
+        "sharedFillSweepFront": true,
+        "sweepBand": null,
+        "particles": false,
+        "particleSpacing": 0.96,
+        "nearContactShade": 0.86,
+        "edgeColor": "#548fcd",
+        "edgeBlend": 0.72,
+        "edgeWidth": 0.045,
+        "receivesDirectionalShadow": true,
+        "startS": 9.71,
+        "endS": 89.71000000000001,
+        "length": 80,
+        "start": [
+          1.85,
+          -1.7100000000000009
+        ],
+        "end": [
+          1.85,
+          -81.71000000000001
+        ],
+        "y": 0.022,
+        "exit": "opacity fade",
+        "blockedByRoadworks": false,
+        "onRoad": {
+          "samples": 123,
+          "misses": 0
+        },
+        "informationOverlay": true,
+        "motion": {
+          "preset": "flow"
+        },
+        "motionFrame": {
+          "elapsed": 0,
+          "front": -0.06,
+          "appearance": 0,
+          "outline": 0,
+          "fill": 0,
+          "feather": 0.105,
+          "handoff": 0.17,
+          "particles": 0.42,
+          "bandLength": 0.65,
+          "bandBlend": 0
+        },
+        "singleLayer": true,
+        "pathDelayMs": 150,
+        "totalActivationMs": 850
+      },
+      "sound": {
+        "ready": true,
+        "plays": 0,
+        "failures": 0,
+        "state": "suspended",
+        "durationMs": 400,
+        "cue": "08K"
+      },
+      "pooledObjects": 72,
+      "objects": 370,
+      "logicalTime": 77211.86666665495,
+      "raster": {
+        "width": 1440,
+        "height": 810,
+        "cssWidth": 720,
+        "cssHeight": 405,
+        "devicePixelRatio": 2
+      }
+    }
+  }
+}

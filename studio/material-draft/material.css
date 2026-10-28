@@ -1,0 +1,44 @@
+
+.drive-motion-icon{overflow:visible}.drive-playback:active{scale:.96}
+
+:root[data-choice-input=pointer] #product button:focus,:root[data-choice-input=pointer] #product input:focus,:root[data-choice-input=pointer] #product input:focus+.toggle-track{outline:none!important;box-shadow:none!important}
+.assistance-control .assist-icon{width:20px;height:20px;border-radius:50%;padding:2px;background:#828990;color:#fff;transition:background-color 220ms ease,transform 220ms ease}.assistance-control[aria-pressed=true] .assist-icon{background:#168bfa;transform:scale(1.04)}.assistance-control:active .assist-icon{transform:scale(.92)}
+
+.assistance-control .assist-icon{padding:0;background:none;color:#858b93}.assistance-control[aria-pressed=true] .assist-icon{background:none;color:#087cf4}.assist-disc{fill:currentColor}
+
+.assistance-control{position:relative;isolation:isolate;overflow:hidden;gap:8px}
+.assistance-control .assist-icon{flex:none;transition:color 320ms cubic-bezier(.22,.61,.36,1),transform 220ms ease;position:relative;z-index:1}
+.assistance-control span{position:relative;z-index:1}
+.assist-click-pixels{position:absolute;inset:0;pointer-events:none;z-index:0}
+.assist-click-pixels i{position:absolute;width:6px;height:6px;border-radius:0;animation:assist-pixel 550ms ease-out both;animation-delay:var(--pixel-delay)}
+@keyframes assist-pixel{0%{opacity:0}22%{opacity:var(--pixel-peak)}100%{opacity:0}}
+@media(prefers-reduced-motion:reduce){.assist-click-pixels{display:none}.assistance-control .assist-icon{transition:none}}
+
+/* This special control uses pixels as its sole spatial feedback. */
+#product .play.assistance-control:active:not(:disabled){transform:none;scale:1}
+.assistance-control .assist-icon,.assistance-control[aria-pressed=true] .assist-icon,.assistance-control:active .assist-icon{transform:none}
+.assistance-control{justify-content:flex-start;padding-inline-start:calc(50% - 58px)}
+.assistance-control span{white-space:nowrap}
+
+.assistance-control{display:grid;grid-template-columns:20px 64px;column-gap:8px;justify-content:center;align-items:center;padding-inline:0}
+.environment-field:has(input:disabled){opacity:.42}.environment-field input:disabled{cursor:default}
+
+#product .assistance-control{grid-template-columns:20px 58px;column-gap:6px;outline:none;box-shadow:none;transition:background-color 240ms ease,color 240ms ease}
+#product .assistance-control .assist-icon{margin:0}
+#product .assistance-control[aria-pressed=true]{background:#e8f2ff;box-shadow:none;color:#263d57}
+#product.dark .assistance-control[aria-pressed=true]{background:#172d43;box-shadow:none;color:#f3f6fa}
+:root[data-choice-input=keyboard] #product .assistance-control:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+
+@container(min-width:761px){
+ #product[data-layout=triple] #scene-nav{overflow-y:auto;overflow-x:hidden;gap:20px;scrollbar-width:thin}
+ #scene-nav .scene-folder{display:flex;align-items:center;gap:8px;width:100%;min-height:40px;padding:8px 10px;text-align:start;color:var(--muted);font-size:12px;font-weight:500;background:transparent;border-radius:6px}
+ #scene-nav .scene-folder:hover{color:var(--text);background:transparent}
+ #scene-nav .scene-folder .folder-chevron{width:10px;height:10px;flex:none;transition:transform 180ms ease}
+ #scene-nav .scene-folder[aria-expanded=true] .folder-chevron{transform:rotate(90deg)}
+ #scene-nav .scene-folder svg{flex:none}
+ #scene-nav .scene-items{padding-inline-start:22px;gap:4px}
+ #scene-nav .scene-items[hidden]{display:none}
+ #product #scene-nav .scene-choice{min-height:42px;padding:10px 12px;font-size:13px}
+ #scene-nav[data-selection-visible=false] .scene-indicator,#scene-nav[data-selection-visible=false]::before{display:none}
+}
+@media(prefers-reduced-motion:reduce){#scene-nav .scene-folder .folder-chevron{transition:none}}

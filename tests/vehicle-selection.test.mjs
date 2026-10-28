@@ -95,3 +95,16 @@ test('a previous vehicle request cannot close a reopened picker',async context=>
  view.nodes['vehicle-picker'].close();view.nodes['vehicle-picker-trigger'].dispatchEvent(new Event('click'));complete();await new Promise(setImmediate);
  assert.equal(view.nodes['vehicle-picker'].open,true);assert.equal(view.nodes['vehicle-current'].textContent,'BMW iX');assert.equal(view.nodes['vehicle-feedback'].hidden,true);
 });
+
+test('pointer opening focuses the dialog while keyboard opening focuses the current card',async context=>{
+ const view=fixture(context,async()=>{});
+ document.dispatchEvent(new Event('pointerdown'));
+ view.nodes['vehicle-picker-trigger'].dispatchEvent(new Event('click'));
+ assert.equal(document.documentElement.dataset.vehicleInput,'pointer');
+ assert.equal(document.activeElement,view.nodes['vehicle-picker']);
+ view.nodes['vehicle-picker'].close();
+ const key=new Event('keydown');Object.defineProperty(key,'key',{value:'Tab'});document.dispatchEvent(key);
+ view.nodes['vehicle-picker-trigger'].dispatchEvent(new Event('click'));
+ assert.equal(document.documentElement.dataset.vehicleInput,'keyboard');
+ assert.equal(document.activeElement,view.nodes['vehicle-option-x6']);
+});

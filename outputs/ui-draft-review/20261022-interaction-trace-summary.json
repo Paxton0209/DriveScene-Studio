@@ -1,0 +1,244 @@
+{
+  "events": 209819,
+  "longEvents": [],
+  "top": [
+    {
+      "name": "FireAnimationFrame",
+      "ms": 46.978,
+      "args": {
+        "data": {
+          "frame": "8C6822E900B556276B20FB0267121587",
+          "id": 31625
+        }
+      }
+    },
+    {
+      "name": "v8.callFunction",
+      "ms": 46.974,
+      "args": {}
+    },
+    {
+      "name": "FireAnimationFrame",
+      "ms": 44.743,
+      "args": {
+        "data": {
+          "frame": "8C6822E900B556276B20FB0267121587",
+          "id": 34815
+        }
+      }
+    },
+    {
+      "name": "v8.callFunction",
+      "ms": 44.737,
+      "args": {}
+    },
+    {
+      "name": "FireIdleCallback",
+      "ms": 43.805,
+      "args": {
+        "data": {
+          "allottedMilliseconds": 1.241,
+          "frame": "8C6822E900B556276B20FB0267121587",
+          "id": 360,
+          "timedOut": false
+        }
+      }
+    },
+    {
+      "name": "v8.callFunction",
+      "ms": 43.79,
+      "args": {}
+    },
+    {
+      "name": "FunctionCall",
+      "ms": 43.784,
+      "args": {
+        "data": {
+          "columnNumber": 20164,
+          "frame": "8C6822E900B556276B20FB0267121587",
+          "functionName": "t",
+          "isolate": "8443720216571832338",
+          "lineNumber": 4646,
+          "sampleTraceId": 6589666878982070,
+          "scriptId": "22",
+          "url": "http://127.0.0.1:18034/studio/ui-draft/runtime.bundle.js?v=refine-20261022e"
+        }
+      }
+    },
+    {
+      "name": "FireAnimationFrame",
+      "ms": 42.242,
+      "args": {
+        "data": {
+          "frame": "8C6822E900B556276B20FB0267121587",
+          "id": 31682
+        }
+      }
+    },
+    {
+      "name": "v8.callFunction",
+      "ms": 42.237,
+      "args": {}
+    },
+    {
+      "name": "FireAnimationFrame",
+      "ms": 42.215,
+      "args": {
+        "data": {
+          "frame": "8C6822E900B556276B20FB0267121587",
+          "id": 34872
+        }
+      }
+    },
+    {
+      "name": "v8.callFunction",
+      "ms": 42.209,
+      "args": {}
+    },
+    {
+      "name": "FireAnimationFrame",
+      "ms": 39.945,
+      "args": {
+        "data": {
+          "frame": "8C6822E900B556276B20FB0267121587",
+          "id": 28530
+        }
+      }
+    },
+    {
+      "name": "v8.callFunction",
+      "ms": 39.941,
+      "args": {}
+    },
+    {
+      "name": "FireAnimationFrame",
+      "ms": 36.717,
+      "args": {
+        "data": {
+          "frame": "8C6822E900B556276B20FB0267121587",
+          "id": 28472
+        }
+      }
+    },
+    {
+      "name": "v8.callFunction",
+      "ms": 36.713,
+      "args": {}
+    },
+    {
+      "name": "FireAnimationFrame",
+      "ms": 35.975,
+      "args": {
+        "data": {
+          "frame": "8C6822E900B556276B20FB0267121587",
+          "id": 34829
+        }
+      }
+    },
+    {
+      "name": "v8.callFunction",
+      "ms": 35.972,
+      "args": {}
+    },
+    {
+      "name": "FireAnimationFrame",
+      "ms": 35.639,
+      "args": {
+        "data": {
+          "frame": "8C6822E900B556276B20FB0267121587",
+          "id": 28506
+        }
+      }
+    },
+    {
+      "name": "v8.callFunction",
+      "ms": 35.634,
+      "args": {}
+    },
+    {
+      "name": "FireAnimationFrame",
+      "ms": 35.387,
+      "args": {
+        "data": {
+          "frame": "8C6822E900B556276B20FB0267121587",
+          "id": 34849
+        }
+      }
+    },
+    {
+      "name": "v8.callFunction",
+      "ms": 35.382,
+      "args": {}
+    },
+    {
+      "name": "FireAnimationFrame",
+      "ms": 35.334,
+      "args": {
+        "data": {
+          "frame": "8C6822E900B556276B20FB0267121587",
+          "id": 28486
+        }
+      }
+    },
+    {
+      "name": "v8.callFunction",
+      "ms": 35.33,
+      "args": {}
+    },
+    {
+      "name": "FireAnimationFrame",
+      "ms": 35.329,
+      "args": {
+        "data": {
+          "frame": "8C6822E900B556276B20FB0267121587",
+          "id": 31659
+        }
+      }
+    },
+    {
+      "name": "v8.callFunction",
+      "ms": 35.324,
+      "args": {}
+    },
+    {
+      "name": "FireAnimationFrame",
+      "ms": 35.311,
+      "args": {
+        "data": {
+          "frame": "8C6822E900B556276B20FB0267121587",
+          "id": 31639
+        }
+      }
+    },
+    {
+      "name": "v8.callFunction",
+      "ms": 35.306,
+      "args": {}
+    },
+    {
+      "name": "FireAnimationFrame",
+      "ms": 34.895,
+      "args": {
+        "data": {
+          "frame": "8C6822E900B556276B20FB0267121587",
+          "id": 34886
+        }
+      }
+    },
+    {
+      "name": "v8.callFunction",
+      "ms": 34.89,
+      "args": {}
+    },
+    {
+      "name": "FireAnimationFrame",
+      "ms": 34.343,
+      "args": {
+        "data": {
+          "frame": "8C6822E900B556276B20FB0267121587",
+          "id": 31696
+        }
+      }
+    }
+  ]
+}

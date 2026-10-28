@@ -1,0 +1,84 @@
+[
+  {
+    "name": "Scene restoration stays silent",
+    "passed": true,
+    "detail": {
+      "before": 0,
+      "after": 0
+    }
+  },
+  {
+    "name": "Parameters, vehicle and theme stay silent",
+    "passed": true,
+    "detail": {
+      "before": 0,
+      "after": 0
+    }
+  },
+  {
+    "name": "Explicit Assist on plays once",
+    "passed": true,
+    "detail": {
+      "before": 0,
+      "after": 1,
+      "sound": {
+        "ready": true,
+        "plays": 1,
+        "failures": 0,
+        "state": "running",
+        "durationMs": 400,
+        "cue": "08K"
+      }
+    }
+  },
+  {
+    "name": "Repeated same state does not replay",
+    "passed": true,
+    "detail": {
+      "before": 1,
+      "after": 1
+    }
+  },
+  {
+    "name": "Assist off does not play enable cue",
+    "passed": true,
+    "detail": {
+      "before": 1,
+      "after": 1
+    }
+  },
+  {
+    "name": "Inspector groups align",
+    "passed": true,
+    "detail": [
+      {
+        "id": "vehicle-strip",
+        "left": 990,
+        "right": 1230
+      },
+      {
+        "id": "scene-properties",
+        "left": 990,
+        "right": 1230
+      },
+      {
+        "id": "layers",
+        "left": 990,
+        "right": 1230
+      },
+      {
+        "id": "",
+        "left": 990,
+        "right": 1230
+      }
+    ]
+  },
+  {
+    "name": "Theme icon reduced to 18px",
+    "passed": true,
+    "detail": {
+      "width": 18,
+      "height": 18
+    }
+  }
+]

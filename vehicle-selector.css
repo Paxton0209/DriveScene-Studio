@@ -40,3 +40,10 @@
 @media(max-width:400px) { .vehicle-picker { padding:20px; } .vehicle-options { gap:10px; } .vehicle-name { inset-inline:10px; } .vehicle-feedback[data-loading=true] { inset-block-start:26px; inset-inline-end:56px; } }
 @media (min-width:761px) and (max-width:1099.98px), (min-width:761px) and (max-aspect-ratio:1.3999) { .vehicle-entry { width:calc((100% - 16px)/2); } }
 @media(hover:hover) { .vehicle-option:not([aria-pressed=true]):hover::after { border-color:var(--muted); } }
+
+/* Selection and keyboard focus share one edge; pointer use leaves no focus halo. */
+.vehicle-picker:focus{outline:none}
+.vehicle-picker .vehicle-option:focus-visible{outline:none}
+:root[data-vehicle-input=keyboard] .vehicle-option:focus-visible::after{border-color:var(--text)}
+:root[data-vehicle-input=keyboard] .vehicle-option[aria-pressed=true]:focus-visible::after{border-color:#007aff}
+:root[data-vehicle-input=pointer] .vehicle-entry-button:focus,:root[data-vehicle-input=pointer] .vehicle-picker button:focus{outline:none}

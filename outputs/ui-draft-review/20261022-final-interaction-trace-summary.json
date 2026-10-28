@@ -1,0 +1,116 @@
+{
+  "events": 131215,
+  "long": [
+    {
+      "name": "FireAnimationFrame",
+      "ms": 130.373,
+      "args": {
+        "data": {
+          "frame": "23316ECACBC7F1B1598044E34CD26BE7",
+          "id": 1633
+        }
+      }
+    },
+    {
+      "name": "v8.callFunction",
+      "ms": 130.369,
+      "args": {}
+    },
+    {
+      "name": "v8.callFunction",
+      "ms": 162.996,
+      "args": {}
+    },
+    {
+      "name": "FunctionCall",
+      "ms": 162.796,
+      "args": {
+        "data": {
+          "columnNumber": 49,
+          "frame": "5DC2ED0B1C3C38B8E0D345F351EE2DEC",
+          "functionName": "",
+          "isolate": "15160747306224391100",
+          "lineNumber": 71,
+          "sampleTraceId": 7456366923550915,
+          "scriptId": "14",
+          "url": "http://127.0.0.1:18034/studio/ui-draft/draft.js?v=refine-20261022e"
+        }
+      }
+    },
+    {
+      "name": "FireAnimationFrame",
+      "ms": 52.846,
+      "args": {
+        "data": {
+          "frame": "23316ECACBC7F1B1598044E34CD26BE7",
+          "id": 2585
+        }
+      }
+    },
+    {
+      "name": "v8.callFunction",
+      "ms": 52.843,
+      "args": {}
+    },
+    {
+      "name": "FireAnimationFrame",
+      "ms": 56.164,
+      "args": {
+        "data": {
+          "frame": "23316ECACBC7F1B1598044E34CD26BE7",
+          "id": 3564
+        }
+      }
+    },
+    {
+      "name": "v8.callFunction",
+      "ms": 56.161,
+      "args": {}
+    },
+    {
+      "name": "FireAnimationFrame",
+      "ms": 51.804,
+      "args": {
+        "data": {
+          "frame": "23316ECACBC7F1B1598044E34CD26BE7",
+          "id": 3579
+        }
+      }
+    },
+    {
+      "name": "v8.callFunction",
+      "ms": 51.795,
+      "args": {}
+    },
+    {
+      "name": "FireAnimationFrame",
+      "ms": 51.284,
+      "args": {
+        "data": {
+          "frame": "23316ECACBC7F1B1598044E34CD26BE7",
+          "id": 3717
+        }
+      }
+    },
+    {
+      "name": "v8.callFunction",
+      "ms": 51.281,
+      "args": {}
+    },
+    {
+      "name": "FireAnimationFrame",
+      "ms": 52.068,
+      "args": {
+        "data": {
+          "frame": "23316ECACBC7F1B1598044E34CD26BE7",
+          "id": 3733
+        }
+      }
+    },
+    {
+      "name": "v8.callFunction",
+      "ms": 52.039,
+      "args": {}
+    }
+  ]
+}

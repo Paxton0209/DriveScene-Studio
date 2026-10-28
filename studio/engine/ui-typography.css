@@ -1,0 +1,16 @@
+:root { --type-caption:12px; --type-control:14px; --type-heading:16px; --weight-normal:400; --weight-emphasis:500; }
+header .wordmark { font-size:var(--type-heading); font-weight:var(--weight-emphasis); }
+.site-version,.site-signature,.credits { font-size:var(--type-caption); font-weight:var(--weight-normal); }
+:root[data-nav-design="1"] .structure-heading { font-size:var(--type-caption); font-weight:var(--weight-normal); }
+:root[data-nav-design="1"] .structure-items .scene { font-size:var(--type-control); font-weight:var(--weight-normal); }
+:root[data-nav-design="1"] .structure-items .scene[aria-current=true] { font-weight:var(--weight-emphasis); }
+.workspace .choice-label,.workspace .option-label,.workspace .settings-label,.workspace .scene-options .road-settings-label { font-size:var(--type-caption); font-weight:var(--weight-normal); }
+.workspace .setting-title { font-size:var(--type-control); font-weight:var(--weight-normal); }
+.workspace .scene-options .view-segments button,.workspace .scene-options .road-option .view-segments button,.workspace .junction-play-copy { font-size:var(--type-control); font-weight:var(--weight-normal); }
+.workspace .scene-options .view-segments button[aria-pressed=true] { font-weight:var(--weight-emphasis); }
+.vehicle-picker-header h2,.export-heading h2 { font-size:var(--type-heading); line-height:1.5; font-weight:var(--weight-emphasis); letter-spacing:0; }
+.vehicle-name { font-size:var(--type-control); line-height:1.5; font-weight:var(--weight-normal); }
+.vehicle-option[aria-pressed=true] .vehicle-name { font-weight:var(--weight-emphasis); }
+.vehicle-feedback,.vehicle-picker-hint,#export-dialog-size,.export-detail,.export-feedback { font-size:var(--type-caption); line-height:1.5; font-weight:var(--weight-normal); }
+.export-choice > span { font-size:var(--type-control); font-weight:var(--weight-normal); }
+.export-submit { font-size:var(--type-control); font-weight:var(--weight-emphasis); }

@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>DriveScene Studio · Workbench</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#007AFF}a:hover{color:#0062CC}
+button{font-family:inherit}
+</style>
+</helmet>
+<div style="height: 100vh; min-height: 640px; display: flex; flex-direction: column; background: {{t.bg}}; color: {{t.text}}; font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 13px; line-height: 18px; -webkit-font-smoothing: antialiased; font-feature-settings: 'tnum' 1, 'cv11' 1">
+
+<svg width="0" height="0" style="position: absolute" aria-hidden="true">
+<defs>
+<linearGradient id="icAsph" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#737B8D"></stop><stop offset="1" stop-color="#474E5D"></stop></linearGradient>
+<linearGradient id="icAsphSide" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5E6575"></stop><stop offset="1" stop-color="#3C4250"></stop></linearGradient>
+<linearGradient id="icPillar" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#D3D8E0"></stop><stop offset="1" stop-color="#A9B1BE"></stop></linearGradient>
+<linearGradient id="icBlue" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2B8EFF"></stop><stop offset="1" stop-color="#007AFF"></stop></linearGradient>
+<linearGradient id="icRoof" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#C9CFD8"></stop><stop offset="1" stop-color="#9CA5B3"></stop></linearGradient>
+<linearGradient id="icTree" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#A2D396"></stop><stop offset="1" stop-color="#6CAA68"></stop></linearGradient>
+</defs>
+</svg>
+
+<header style="flex: 0 0 auto; height: 44px; display: flex; align-items: center; justify-content: space-between; padding: 0 8px; box-sizing: border-box; border-bottom: 1px solid {{t.line}}">
+<div style="display: flex; align-items: center; gap: 6px; min-width: 0">
+
+<div style="display: flex; align-items: baseline; gap: 8px; min-width: 0; white-space: nowrap; overflow: hidden"><span style="font-weight: 600">DriveScene Studio</span>
+<span style="color: {{t.muted}}; font-size: 12px; overflow: hidden; text-overflow: ellipsis"><br></span>
+</div>
+</div>
+<div style="display: flex; align-items: center; gap: 4px">
+<button type="button" onClick="{{toggleTheme}}" aria-label="Switch theme" title="Appearance" style="{{iconBtn}}"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="3"></circle><path d="M8 1.5v1.3M8 13.2v1.3M1.5 8h1.3M13.2 8h1.3M3.4 3.4l.9.9M11.7 11.7l.9.9M3.4 12.6l.9-.9M11.7 4.3l.9-.9"></path></svg></button>
+
+</div>
+</header>
+
+<div style="flex: 1 1 auto; min-height: 0; display: flex; flex-wrap: wrap">
+
+<nav aria-label="Scenes" style="flex: 0 0 216px; box-sizing: border-box; padding: 8px; border-right: 1px solid {{t.line}}; display: flex; flex-direction: column; gap: 2px">
+<div style="padding: 8px 8px 4px; font-size: 11px; font-weight: 600; color: {{t.muted}}">Driving</div>
+<button type="button" onClick="{{go.road}}" style="{{nav.road}}"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><rect x="2" y="2" width="16" height="16" rx="4.4" fill="url(#icAsph)"></rect><path d="M9.8 5.4H10.2Q11.1 5.4 11.353 6.264L13.547 13.736Q13.8 14.6 12.9 14.6H7.1Q6.2 14.6 6.453 13.736L8.647 6.264Q8.9 5.4 9.8 5.4Z" fill="#FFFFFF"></path><path d="M10 7.4v1.3M10 10.6v2.2" stroke="#5A6171" stroke-width="1.1" stroke-linecap="round"></path></svg>Road</button>
+<button type="button" onClick="{{go.elevated}}" style="{{nav.elevated}}"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><rect x="2" y="2" width="16" height="16" rx="4.4" fill="url(#icAsph)"></rect><path d="M5.8 8h8.4" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"></path><path d="M7.8 8v6M12.2 8v6" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"></path></svg>Elevated</button>
+<button type="button" onClick="{{go.ramp}}" style="{{nav.ramp}}"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><rect x="2" y="2" width="16" height="16" rx="4.4" fill="url(#icAsph)"></rect><path d="M6.6 14.2c0-4 2.5-6.5 7-7.6" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"></path><path d="M11.5 5.7l2.1.9-.9 2.1" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"></path></svg>Ramp</button>
+<div style="padding: 14px 8px 4px; font-size: 11px; font-weight: 600; color: {{t.muted}}">Intersection</div>
+<button type="button" onClick="{{go.junction}}" style="{{nav.junction}}"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><rect x="2" y="2" width="16" height="16" rx="4.4" fill="url(#icAsph)"></rect><path d="M8.2 5.6v2.6H5.6M11.8 5.6v2.6h2.6M8.2 14.4v-2.6H5.6M11.8 14.4v-2.6h2.6" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"></path></svg>Junction</button>
+<div style="padding: 14px 8px 4px; font-size: 11px; font-weight: 600; color: {{t.muted}}">Parking</div>
+<button type="button" onClick="{{go.indoor}}" style="{{nav.indoor}}"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><rect x="2" y="2" width="16" height="16" rx="4.4" fill="url(#icBlue)"></rect><path d="M8.3 13.8V6.4h2.2a2.05 2.05 0 0 1 0 4.1H8.3" fill="none" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12.6 15.4 15.9 13l3.3 2.4v3.4a.9.9 0 0 1-.9.9h-4.8a.9.9 0 0 1-.9-.9z" fill="url(#icRoof)" stroke="{{t.bg}}" stroke-width="1.4" stroke-linejoin="round" paint-order="stroke"></path></svg>Indoor parking</button>
+<button type="button" onClick="{{go.outdoor}}" style="{{nav.outdoor}}"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><rect x="2" y="2" width="16" height="16" rx="4.4" fill="url(#icBlue)"></rect><path d="M8.3 13.8V6.4h2.2a2.05 2.05 0 0 1 0 4.1H8.3" fill="none" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path><rect x="15.4" y="16.2" width="1.2" height="3.4" rx="0.6" fill="#8A6A4E"></rect><circle cx="16" cy="14.6" r="3.3" fill="url(#icTree)" stroke="{{t.bg}}" stroke-width="1.4" paint-order="stroke"></circle></svg>Outdoor parking</button>
+</nav>
+
+<main style="flex: 999 1 560px; min-width: 0; min-height: 420px; position: relative; overflow: hidden; background: {{t.canvas}}">
+<div style="position: absolute; inset: 48px 40px 40px; container-type: size">
+<div style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(100cqw, calc(100cqh * 16 / 9)); aspect-ratio: 16 / 9; border-radius: 4px; background: {{t.canvas}}; box-shadow: {{t.frame}}">
+<div style="position: absolute; left: 0; right: 0; bottom: 100%; padding-bottom: 6px; display: flex; justify-content: space-between; font-size: 11px; line-height: 14px; color: {{t.muted}}"><span><span style="font-weight: 500">{{title}}</span> · {{subtitle}}</span><span>1920 × 1080</span></div>
+<div style="position: absolute; inset: 0; overflow: hidden; border-radius: 4px">
+<sc-if value="{{imgRoadLightPath}}" hint-placeholder-val="{{ true }}"><img src="/_blob/57b29ad0a68f5c77bfb7f86e3af5be53" alt="Six-lane road scene with assist path, low camera, light theme" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block"></sc-if>
+<sc-if value="{{imgRoadLight}}" hint-placeholder-val="{{ false }}"><img src="/_blob/6f33d9b12af6ced56814ffca46bb307a" alt="Six-lane road scene, low camera, light theme" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block"></sc-if>
+<sc-if value="{{imgRoadDark}}" hint-placeholder-val="{{ false }}"><img src="/_blob/fd3f43b41cd3e63fa0db115b44842cb2" alt="Six-lane road scene, low camera, dark theme" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block"></sc-if>
+<sc-if value="{{imgJunction}}" hint-placeholder-val="{{ false }}"><img src="/_blob/a1a5b521e17ec46ac82ac43bf42d167c" alt="Intersection scene, high camera" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block"></sc-if>
+<sc-if value="{{imgOther}}" hint-placeholder-val="{{ false }}"><div style="position: absolute; inset: 0; display: grid; place-items: center; color: {{t.muted}}; font-size: 12px">[该场景渲染 · 版式同 Road]</div></sc-if>
+
+<sc-if value="{{showTimeline}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%); width: min(520px, calc(100% - 32px)); height: 40px; box-sizing: border-box; display: flex; align-items: center; gap: 10px; padding: 0 8px 0 6px; border-radius: 20px; background: {{t.glass}}; -webkit-backdrop-filter: blur(20px) saturate(1.6); backdrop-filter: blur(20px) saturate(1.6); box-shadow: {{t.float}}">
+<button type="button" onClick="{{togglePlay}}" aria-label="{{playAria}}" title="Play / Pause  Space" style="{{iconBtn}}; border-radius: 14px; color: {{t.text}}">
+<sc-if value="{{playing}}" hint-placeholder-val="{{ true }}"><svg width="12" height="12" viewBox="0 0 14 14" fill="currentColor" aria-hidden="true"><rect x="3" y="2.5" width="2.6" height="9" rx="0.8"></rect><rect x="8.4" y="2.5" width="2.6" height="9" rx="0.8"></rect></svg></sc-if>
+<sc-if value="{{paused}}" hint-placeholder-val="{{ false }}"><svg width="12" height="12" viewBox="0 0 14 14" fill="currentColor" aria-hidden="true"><path d="M4.4 2.6v8.8a.6.6 0 0 0 .9.5l7-4.4a.6.6 0 0 0 0-1L5.3 2.1a.6.6 0 0 0-.9.5z"></path></svg></sc-if>
+</button>
+<div style="flex: 1; position: relative; height: 16px; display: flex; align-items: center">
+<div style="position: absolute; left: 0; right: 0; height: 3px; border-radius: 2px; background: {{t.track}}"></div>
+<div style="position: absolute; left: 0; width: 38%; height: 3px; border-radius: 2px; background: {{t.text}}"></div>
+<div style="position: absolute; left: 38%; width: 10px; height: 10px; margin-left: -5px; border-radius: 5px; background: #FFFFFF; box-shadow: 0 0 0 0.5px rgba(0,0,0,0.2), 0 1px 3px rgba(0,0,0,0.25)"></div>
+</div>
+<button type="button" aria-label="Replay from start" title="Replay  R" style="{{iconBtn}}; border-radius: 14px"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.8 8a5.2 5.2 0 1 0 1.6-3.8"></path><path d="M2.6 2.4v3h3"></path></svg></button>
+</div>
+</sc-if>
+</div>
+</div>
+</div>
+</main>
+
+<aside aria-label="Inspector" style="flex: 0 0 272px; min-width: 0; overflow-y: auto; border-left: 1px solid {{t.line}}; background: {{t.bg}}">
+
+<section style="padding: 0 16px 20px">
+<h2 style="{{secHead}}; justify-content: space-between"><span>Vehicle</span><span style="font-size: 12px; font-weight: 400; color: {{t.muted}}">{{carName}}</span></h2>
+<div role="radiogroup" aria-label="Vehicle" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2px; height: 40px; padding: 2px; box-sizing: border-box; border-radius: 8px; background: {{t.seg}}; box-shadow: {{t.trackShadow}}"><button type="button" role="radio" aria-checked="{{car.m3}}" aria-label="Tesla Model 3" title="Tesla Model 3" onClick="{{pickCar.m3}}" style="{{carChip.m3}}"><img src="/_blob/0f3b6a0b1d72dfe5702d261ff606fae4" alt="" style="width: 48px; height: 31px; object-fit: contain"></button><button type="button" role="radio" aria-checked="{{car.x6}}" aria-label="BMW X6" title="BMW X6" onClick="{{pickCar.x6}}" style="{{carChip.x6}}"><img src="/_blob/17625ac11b6d4748ebf937cf948055fe" alt="" style="width: 48px; height: 31px; object-fit: contain"></button><button type="button" role="radio" aria-checked="{{car.ix}}" aria-label="BMW iX" title="BMW iX" onClick="{{pickCar.ix}}" style="{{carChip.ix}}"><img src="/_blob/13e03d5dda30d40e443adb2eb347aca7" alt="" style="width: 48px; height: 31px; object-fit: contain"></button><button type="button" role="radio" aria-checked="{{car.xc90}}" aria-label="Volvo XC90" title="Volvo XC90" onClick="{{pickCar.xc90}}" style="{{carChip.xc90}}"><img src="/_blob/54077368522c8206ccf1691c92e89342" alt="" style="width: 48px; height: 31px; object-fit: contain"></button></div>
+<button type="button" role="switch" aria-checked="{{assistOn}}" onClick="{{toggleAssist}}" title="Driving assist  A" style="{{assistStyle}}">
+<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="{{wheelBg}}" style="transition: fill 200ms"></circle><path fill="#FFFFFF" d="M12 3C13.1819 3 14.3524 3.23325 15.4443 3.68555C16.5361 4.13784 17.5286 4.8001 18.3643 5.63574C19.1999 6.47139 19.8622 7.46386 20.3145 8.55566C20.7667 9.64759 21 10.8181 21 12C21 13.1819 20.7667 14.3524 20.3145 15.4443C19.8622 16.5361 19.1999 17.5286 18.3643 18.3643C17.5286 19.1999 16.5361 19.8622 15.4443 20.3145C14.3524 20.7667 13.1819 21 12 21C9.61305 21 7.32357 20.0521 5.63574 18.3643C3.94791 16.6764 3 14.3869 3 12C3 9.61305 3.94791 7.32357 5.63574 5.63574C7.32357 3.94791 9.61305 3 12 3ZM4.8457 12.8018C5.02659 14.4163 5.74928 15.9309 6.90918 17.0908C8.03223 18.2139 9.48807 18.9254 11.0449 19.1338C10.9587 15.494 8.04806 13.3111 4.8457 12.8018ZM19.1533 12.8018C15.9513 13.3113 13.0403 15.4943 12.9541 19.1338C14.5113 18.9255 15.9675 18.2141 17.0908 17.0908C18.2507 15.931 18.9724 14.4162 19.1533 12.8018ZM12 4.7998C10.0904 4.7998 8.25944 5.55892 6.90918 6.90918C5.82089 7.99747 5.11694 9.39799 4.88477 10.9004H19.1152C18.8831 9.39799 18.1791 7.99747 17.0908 6.90918C15.7406 5.55892 13.9096 4.7998 12 4.7998Z"></path></svg>
+<span>{{assistLabel}}</span>
+</button>
+</section>
+
+<section style="border-top: 1px solid {{t.line}}; padding: 0 16px 20px">
+<h2 style="{{secHead}}">Road</h2>
+<div style="display: flex; flex-direction: column; gap: 10px">
+<sc-if value="{{isRoad}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; align-items: center; gap: 12px"><span style="{{fieldLabel}}">Lanes</span><div role="radiogroup" aria-label="Lanes" style="{{segTrack}}"><sc-for list="{{lanes}}" as="o" hint-placeholder-count="3"><button type="button" role="radio" aria-checked="{{o.on}}" onClick="{{o.pick}}" style="{{o.style}}">{{o.label}}</button></sc-for></div></div>
+</sc-if>
+<div style="display: flex; align-items: center; gap: 12px"><span style="{{fieldLabel}}">Camera</span><div role="radiogroup" aria-label="Camera" style="{{segTrack}}"><sc-for list="{{cams}}" as="o" hint-placeholder-count="2"><button type="button" role="radio" aria-checked="{{o.on}}" onClick="{{o.pick}}" style="{{o.style}}">{{o.label}}</button></sc-for></div></div>
+<div style="display: flex; align-items: center; gap: 12px"><span style="{{fieldLabel}}">Weather</span><div role="radiogroup" aria-label="Weather" style="{{segTrack}}">
+<button type="button" role="radio" aria-checked="{{wx.clear.on}}" aria-label="Clear" title="Clear" onClick="{{wx.clear.pick}}" style="{{wx.clear.style}}"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="2.8"></circle><path d="M8 1.8v1.4M8 12.8v1.4M1.8 8h1.4M12.8 8h1.4M3.6 3.6l1 1M11.4 11.4l1 1M3.6 12.4l1-1M11.4 4.6l1-1"></path></svg></button>
+<button type="button" role="radio" aria-checked="{{wx.cloudy.on}}" aria-label="Cloudy" title="Cloudy" onClick="{{wx.cloudy.pick}}" style="{{wx.cloudy.style}}"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><path d="M4.6 12.5h6.9a2.7 2.7 0 0 0 .2-5.4 3.8 3.8 0 0 0-7.3 1A2.2 2.2 0 0 0 4.6 12.5z"></path></svg></button>
+<button type="button" role="radio" aria-checked="{{wx.rain.on}}" aria-label="Rain" title="Rain" onClick="{{wx.rain.pick}}" style="{{wx.rain.style}}"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.6 9.8h6.9a2.6 2.6 0 0 0 .2-5.2 3.6 3.6 0 0 0-7 1A2.1 2.1 0 0 0 4.6 9.8z"></path><path d="M5.5 12l-.6 1.6M8.3 12l-.6 1.6M11.1 12l-.6 1.6"></path></svg></button>
+<button type="button" role="radio" aria-checked="{{wx.snow.on}}" aria-label="Snow" title="Snow" onClick="{{wx.snow.pick}}" style="{{wx.snow.style}}"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.6 9.8h6.9a2.6 2.6 0 0 0 .2-5.2 3.6 3.6 0 0 0-7 1A2.1 2.1 0 0 0 4.6 9.8z"></path><path d="M5.4 12.6h.01M8 13.4h.01M10.6 12.6h.01"></path></svg></button>
+</div></div>
+</div>
+</section>
+
+<section style="border-top: 1px solid {{t.line}}; padding: 0 16px 20px">
+<h2 style="{{secHead}}">Layers</h2>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px">
+<sc-for list="{{layers}}" as="l" hint-placeholder-count="5"><button type="button" aria-pressed="{{l.on}}" onClick="{{l.flip}}" title="{{l.tip}}" style="{{l.chip}}">{{l.label}}</button></sc-for>
+</div>
+</section>
+
+<section style="border-top: 1px solid {{t.line}}; padding: 0 16px 20px">
+<h2 style="{{secHead}}">Export</h2>
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: center; gap: 12px"><span style="{{fieldLabel}}">Format</span>
+<button type="button" aria-haspopup="listbox" style="flex: 1; display: flex; align-items: center; justify-content: space-between; height: 28px; padding: 0 8px 0 10px; border: 0; border-radius: 6px; background: {{t.seg}}; box-shadow: {{t.trackShadow}}; color: {{t.text}}; font-size: 12px; font-weight: 500; cursor: default"><span>PNG</span><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="color: {{t.muted}}" aria-hidden="true"><path d="m5 6 3-3 3 3M5 10l3 3 3-3"></path></svg></button></div>
+<div style="display: flex; align-items: center; gap: 12px; height: 20px"><span style="{{fieldLabel}}">Size</span><span style="font-size: 12px">1920 × 1080</span></div>
+<button type="button" style="display: flex; align-items: center; justify-content: center; gap: 8px; height: 28px; margin-top: 2px; border: 0; border-radius: 6px; background: {{t.btn}}; color: {{t.btnText}}; font-size: 12px; font-weight: 500; box-shadow: {{t.segShadow}}; cursor: default">Export<span style="color: {{t.btnHint}}; font-weight: 400">⌘E</span></button>
+</div>
+</section>
+</aside>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"scene":{"editor":"enum","options":["road","elevated","ramp","junction","indoor","outdoor"],"default":"road"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  state = { car: 'm3', scene: null, dark: null, assist: true, traffic: true, playing: true, lanes: '6', camera: 'low', weather: 'clear', buildings: true, trees: true, coast: false, roadworks: false };
+
+  renderVals() {
+    const s = this.state || {};
+    const dark = s.dark ?? this.props.dark ?? false;
+    const scene = s.scene ?? this.props.scene ?? 'road';
+    const accent = dark ? '#0A84FF' : '#007AFF';
+    const t = dark ? {
+      bg: '#1C1C1F', canvas: '#111113', line: '#2C2C31', text: '#F2F2F4', muted: '#A1A1AA',
+      seg: '#26262B', segOn: '#46464D', sel: 'rgba(255,255,255,0.08)', track: '#3A3A40', boxOff: '#5A5A62',
+      segShadow: '0 1px 3px rgba(0,0,0,0.35), 0 1px 1px rgba(0,0,0,0.2)',
+      trackShadow: 'inset 0 1px 2px rgba(0,0,0,0.28)',
+      glass: 'rgba(40,40,44,0.66)', float: '0 4px 16px rgba(0,0,0,0.3), 0 1px 3px rgba(0,0,0,0.2), inset 0 0.5px 0 rgba(255,255,255,0.1)',
+      btn: '#46464D', btnText: '#F2F2F4', btnHint: '#A1A1AA',
+      frame: '0 1px 2px rgba(0,0,0,0.3), 0 8px 28px rgba(0,0,0,0.35)', chipOn: 'rgba(10,132,255,0.22)', chipOnText: '#0A84FF'
+    } : {
+      bg: '#FBFBFC', canvas: '#ECEDEF', line: '#E6E6E9', text: '#18181B', muted: '#66666E',
+      seg: '#EFEFF2', segOn: '#FFFFFF', sel: 'rgba(24,24,27,0.06)', track: 'rgba(24,24,27,0.18)', boxOff: '#B8B8C0',
+      segShadow: '0 1px 3px rgba(0,0,0,0.08), 0 1px 1px rgba(0,0,0,0.04)',
+      trackShadow: 'inset 0 1px 1.5px rgba(0,0,0,0.05)',
+      glass: 'rgba(255,255,255,0.7)', float: '0 4px 16px rgba(0,0,0,0.10), 0 1px 3px rgba(0,0,0,0.06), inset 0 0.5px 0 rgba(255,255,255,0.8)',
+      btn: '#FFFFFF', btnText: '#18181B', btnHint: '#66666E',
+      frame: '0 1px 2px rgba(0,0,0,0.05), 0 8px 28px rgba(0,0,0,0.07)', chipOn: 'rgba(0,122,255,0.10)', chipOnText: '#007AFF'
+    };
+
+    const set = (patch) => () => this.setState(patch);
+    const segStyle = (on) => 'flex: 1; display: grid; place-items: center; height: 24px; margin: 0; padding: 0; border: 0; border-radius: 4px; font-size: 12px; cursor: default; font-weight: 500; cursor: pointer; transition: background 140ms, color 140ms, box-shadow 140ms; background: ' + (on ? t.segOn : 'transparent') + '; color: ' + (on ? t.text : t.muted) + '; box-shadow: ' + (on ? t.segShadow : 'none') + ';';
+    const seg = (key, opts) => opts.map(([v, label]) => ({ label, on: s[key] === v, pick: set({ [key]: v }), style: segStyle(s[key] === v) }));
+    const wx = {};
+    ['clear', 'cloudy', 'rain', 'snow'].forEach((k) => { wx[k] = { on: s.weather === k, pick: set({ weather: k }), style: segStyle(s.weather === k) }; });
+
+    const checks = [['assist', 'Assist path', 'A']].map(([k, label, key]) => {
+      const on = !!s[k];
+      return { on, label, key, tip: label + '  ' + key, flip: () => this.setState({ [k]: !s[k] }),
+        box: 'flex: 0 0 auto; width: 14px; height: 14px; display: grid; place-items: center; border-radius: 4px; box-sizing: border-box; transition: background 120ms, box-shadow 120ms; background: ' + (on ? accent : 'transparent') + '; box-shadow: ' + (on ? '0 1px 2px rgba(0,122,255,0.3)' : 'inset 0 0 0 1px ' + t.boxOff) + ';' };
+    });
+    const layers = [['traffic', 'Traffic'], ['buildings', 'Buildings'], ['trees', 'Trees'], ['coast', 'Coast'], ['roadworks', 'Roadworks']].map(([k, label]) => {
+      const on = !!s[k];
+      return { on, off: !on, label, tip: (on ? 'Hide ' : 'Show ') + label, flip: () => this.setState({ [k]: !s[k] }),
+        chip: 'display: flex; align-items: center; justify-content: center; height: 28px; padding: 0 6px; border: 0; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: default; transition: background 140ms, color 140ms; background: ' + (on ? t.chipOn : t.seg) + '; color: ' + (on ? t.chipOnText : t.muted) + ';',
+        dot: 'width: 6px; height: 6px; border-radius: 3px; flex: none; transition: background 140ms; background: ' + (on ? accent : 'transparent') + '; box-shadow: ' + (on ? 'none' : 'inset 0 0 0 1px ' + t.boxOff) + ';',
+        eye: 'display: grid; place-items: center; width: 20px; height: 20px; color: ' + (on ? t.text : t.muted) + '; opacity: ' + (on ? 0.85 : 0.7) + ';' };
+    });
+
+    const scenes = ['road', 'elevated', 'ramp', 'junction', 'indoor', 'outdoor'];
+    const nav = {}, go = {};
+    scenes.forEach((k) => {
+      const on = scene === k;
+      nav[k] = 'display: flex; align-items: center; gap: 6px; width: 100%; height: 30px; padding: 0 8px; box-sizing: border-box; border: 0; border-radius: 6px; font-size: 13px; text-align: left; cursor: pointer; transition: background 120ms; color: ' + t.text + '; background: ' + (on ? t.sel : 'transparent') + '; font-weight: ' + (on ? 500 : 400) + ';';
+      go[k] = set({ scene: k, playing: true });
+    });
+
+
+    const carNames = { m3: 'Tesla Model 3', x6: 'BMW X6', ix: 'BMW iX', xc90: 'Volvo XC90' };
+    const carKey = s.car || 'm3';
+    const car = {}, pickCar = {}, carChip = {};
+    Object.keys(carNames).forEach((k) => {
+      const on = carKey === k; car[k] = on; pickCar[k] = set({ car: k });
+      carChip[k] = 'display: grid; place-items: center; min-width: 0; height: 36px; padding: 0; border: 0; border-radius: 6px; cursor: default; transition: background 140ms, box-shadow 140ms; background: ' + (on ? t.segOn : 'transparent') + '; box-shadow: ' + (on ? t.segShadow : 'none') + '; opacity: ' + (on ? 1 : 0.72) + ';';
+    });
+    const names = { road: 'Road', elevated: 'Elevated', ramp: 'Ramp', junction: 'Junction', indoor: 'Indoor parking', outdoor: 'Outdoor parking' };
+    const isRoad = scene === 'road';
+    const isJunction = scene === 'junction';
+    const playing = s.playing !== false;
+    const subtitle = isRoad ? (s.lanes + ' lanes · ' + (s.camera === 'low' ? 'Low' : 'High') + ' camera') : isJunction ? 'Event playback' : 'Continuous drive';
+
+    return {
+      t, title: names[scene], subtitle,
+      iconBtn: 'display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 6px; background: transparent; color: ' + t.muted + '; cursor: pointer',
+      segTrack: 'flex: 1; display: flex; gap: 2px; height: 28px; padding: 2px; box-sizing: border-box; border-radius: 6px; background: ' + t.seg + '; box-shadow: ' + t.trackShadow,
+      secHead: 'display: flex; align-items: center; height: 44px; margin: 0; font-size: 13px; font-weight: 600; color: ' + t.text,
+      fieldLabel: 'flex: 0 0 56px; font-size: 12px; color: ' + t.muted,
+      car, pickCar, carChip, carName: carNames[carKey], assistLabel: s.assist ? 'Driving assist on' : 'Driving assist',
+      rowBtn: 'display: flex; align-items: center; gap: 8px; width: 100%; height: 26px; padding: 0 8px; box-sizing: border-box; border: 0; border-radius: 6px; background: transparent; color: ' + t.text + '; font-size: 13px; text-align: left; cursor: pointer',
+      playing, paused: !playing,
+      playAria: playing ? 'Pause' : 'Play',
+      togglePlay: () => this.setState({ playing: !playing }),
+      toggleTheme: () => this.setState({ dark: !dark }),
+      nav, go, isRoad, isJunction, showCorner: true, showTimeline: false,
+      assistOn: !!s.assist, wheelBg: s.assist ? accent : '#79838D', toggleAssist: () => this.setState({ assist: !s.assist }),
+      assistStyle: 'display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 32px; margin-top: 12px; border: 0; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: default; transition: background 200ms, color 200ms, box-shadow 200ms; ' + (s.assist ? 'background: ' + t.chipOn + '; color: ' + t.chipOnText + '; box-shadow: none;' : 'background: ' + t.btn + '; color: ' + t.text + '; box-shadow: ' + t.segShadow + ';'),
+      imgRoadLightPath: isRoad && !dark && !!s.assist, imgRoadLight: isRoad && !dark && !s.assist, imgRoadDark: isRoad && dark, imgJunction: isJunction, imgOther: !isRoad && !isJunction,
+      lightThumb: !dark, darkThumb: dark,
+      lanes: seg('lanes', [['2', '2'], ['4', '4'], ['6', '6']]),
+      cams: seg('camera', [['low', 'Low'], ['high', 'High']]),
+      wx, checks, layers
+    };
+  }
+}
+</script>
+</body>
+</html>

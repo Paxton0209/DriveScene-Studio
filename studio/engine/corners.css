@@ -1,0 +1,12 @@
+:root { --ui-radius: 8px; }
+.preview, .view-segments, .view-segments::before, .view-segments button, .toggle, .download, .junction-play, #scene-picker, .theme-toggle, .scene, .nav-pill, .back-link, .back-link:focus-visible, #status button { border-radius: var(--ui-radius); corner-shape: squircle; }
+.workspace .scene-options .view-segments::before,
+.workspace .scene-options .view-segments button { border-radius: max(0px, calc(var(--ui-radius) - 3px)); }
+.workspace .track { border-radius: 999px; corner-shape: round; }
+.workspace .track::after { border-radius: 50%; corner-shape: round; }
+:root[data-nav-design="1"] .structure-items .scene { border-radius: var(--ui-radius); }
+[data-corners=fallback] [data-continuous] { border-radius: 0 !important; clip-path: var(--continuous-clip); }
+[data-corners=fallback] .view-segments::before { border-radius: 0 !important; clip-path: var(--selection-clip); }
+[data-corners=fallback] [data-continuous]:focus-visible,
+[data-corners=fallback] .toggle:has(input:focus-visible),
+[data-corners=fallback] .view-segments:has(button:focus-visible) { outline-offset: -3px; }

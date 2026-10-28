@@ -1,0 +1,12 @@
+{
+  "selected": "09",
+  "enter": "../../sound-review/earshot/audio/09-on.wav",
+  "exit": "09-first-note-off.wav",
+  "method": "forward first onset, cut before the second onset at 230ms",
+  "reversed": false,
+  "enterDurationMs": 615.0,
+  "exitDurationMs": 230.0,
+  "tailFadeMs": 18,
+  "sourceSha256": "d3dda92ff428abf4ceb50769f8923ec4edc237331e06dbf9eede1f5a1726615e",
+  "exitSha256": "7d75760e3d7babd093a11dfba4a8040e95d728a8855aa075fc499ced357b87c8"
+}

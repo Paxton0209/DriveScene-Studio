@@ -1,0 +1,50 @@
+[
+  {
+    "id": "ref-tesla",
+    "brand": "特斯拉",
+    "status": "社区录音 · 版本未注明",
+    "description": "2021年上传的独立开启音片段；车型和软件版本未注明，归属待实车核验。",
+    "src": "references/tesla-community.wav",
+    "durationMs": 750,
+    "url": "https://www.youtube.com/watch?v=mp5MaTyXnV4&t=0",
+    "sourceLabel": "查看原始上传 · 0.54–1.29s",
+    "referenceOnly": true,
+    "cueTitle": "社区标注的开启音"
+  },
+  {
+    "id": "ref-xpeng",
+    "brand": "小鹏 P7",
+    "status": "2020 · NGP 工程版",
+    "description": "新出行实车拍摄的开启提示，含语音与道路环境声；对应工程测试版。",
+    "src": "references/xpeng-p7-engineering.wav",
+    "durationMs": 5000,
+    "url": "https://www.xchuxing.com/article/27492",
+    "sourceLabel": "查看原始开启视频 · 文章第五节",
+    "referenceOnly": true,
+    "cueTitle": "NGP工程版开启现场"
+  },
+  {
+    "id": "ref-nio",
+    "brand": "蔚来 ES6",
+    "status": "2021 · 实车语音确认",
+    "description": "TESTV实车片段中的“领航开始”语音；具体软件版本未披露。",
+    "src": "references/nio-es6-2021.wav",
+    "durationMs": 1100,
+    "url": "https://www.youtube.com/watch?v=qkpU3lz1PIU&t=288",
+    "sourceLabel": "查看原片 · 4:48 开启确认",
+    "referenceOnly": true,
+    "cueTitle": "领航开始 · 语音确认"
+  },
+  {
+    "id": "ref-li",
+    "brand": "理想 L9",
+    "status": "2024 · OTA 6.5.0",
+    "description": "陈小飞实车开启现场片段，含讲解与环境声，可对照屏幕状态核实；非独立音效文件。",
+    "src": "references/li-l9-650-recording.wav",
+    "durationMs": 5000,
+    "url": "https://www.youtube.com/watch?v=VV42U33jx08&t=25",
+    "sourceLabel": "查看原片 · 0:25–0:30 开启现场",
+    "referenceOnly": true,
+    "cueTitle": "OTA6.5.0开启现场（含讲解）"
+  }
+]

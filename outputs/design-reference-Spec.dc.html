@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>DriveScene 设计规范</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 1440px; height: 1000px; box-sizing: border-box; padding: 48px 56px; background: #FBFBFC; color: #18181B; font-family: Inter, -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Segoe UI', sans-serif; font-size: 13px; line-height: 20px; -webkit-font-smoothing: antialiased; font-feature-settings: 'tnum' 1; display: flex; flex-direction: column; gap: 32px">
+
+<div style="display: flex; align-items: baseline; justify-content: space-between">
+<div style="display: flex; align-items: baseline; gap: 14px">
+<h1 style="margin: 0; font-size: 22px; line-height: 28px; font-weight: 600; letter-spacing: -0.01em">设计规范</h1>
+<span style="color: #66666E">所有尺寸只能取自下列刻度；不在表里的数值视为错误</span>
+</div>
+<span style="color: #66666E; font-size: 12px">4pt 网格 · v1</span>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 40px">
+
+<section style="display: flex; flex-direction: column; gap: 14px">
+<h2 style="margin: 0; font-size: 11px; line-height: 16px; font-weight: 600; color: #66666E">间距</h2>
+<div style="display: flex; flex-direction: column; gap: 8px; font-size: 12px">
+<div style="display: flex; align-items: center; gap: 12px"><span style="width: 4px; height: 12px; background: #0A6CFF; border-radius: 1px"></span><span style="width: 28px; font-weight: 500">4</span><span style="color: #66666E">图标与文字的最小间隙</span></div>
+<div style="display: flex; align-items: center; gap: 12px"><span style="width: 8px; height: 12px; background: #0A6CFF; border-radius: 1px"></span><span style="width: 28px; font-weight: 500">8</span><span style="color: #66666E">控件之间、侧栏内边距</span></div>
+<div style="display: flex; align-items: center; gap: 12px"><span style="width: 12px; height: 12px; background: #0A6CFF; border-radius: 1px"></span><span style="width: 28px; font-weight: 500">12</span><span style="color: #66666E">分组内容与下一分隔线</span></div>
+<div style="display: flex; align-items: center; gap: 12px"><span style="width: 16px; height: 12px; background: #0A6CFF; border-radius: 1px"></span><span style="width: 28px; font-weight: 500">16</span><span style="color: #66666E">面板左右边距（唯一值）</span></div>
+<div style="display: flex; align-items: center; gap: 12px"><span style="width: 24px; height: 12px; background: #0A6CFF; border-radius: 1px"></span><span style="width: 28px; font-weight: 500">24</span><span style="color: #66666E">弹层内边距</span></div>
+<div style="display: flex; align-items: center; gap: 12px"><span style="width: 40px; height: 12px; background: #0A6CFF; border-radius: 1px"></span><span style="width: 28px; font-weight: 500">40</span><span style="color: #66666E">画板到画布边缘</span></div>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 14px">
+<h2 style="margin: 0; font-size: 11px; line-height: 16px; font-weight: 600; color: #66666E">高度 · 圆角</h2>
+<div style="display: grid; grid-template-columns: 56px 1fr; row-gap: 8px; font-size: 12px; align-items: center">
+<span style="font-weight: 500">20</span><span style="color: #66666E">分段内选中块 · 圆角 4</span>
+<span style="font-weight: 500">24</span><span style="color: #66666E">分段控件、小选择框 · 圆角 6</span>
+<span style="font-weight: 500">26</span><span style="color: #66666E">列表行（复选、图层）· 圆角 6</span>
+<span style="font-weight: 500">28</span><span style="color: #66666E">按钮、图标按钮 · 圆角 6</span>
+<span style="font-weight: 500">30</span><span style="color: #66666E">侧栏行 · 圆角 6</span>
+<span style="font-weight: 500">32</span><span style="color: #66666E">分组标题行；圆形播放键 · 圆角 16</span>
+<span style="font-weight: 500">44</span><span style="color: #66666E">工具栏</span>
+</div>
+<div style="font-size: 12px; color: #66666E">圆角只有四档：4 内嵌 / 6 控件 / 8 容器（画面、弹层、车型位）/ 16 圆形。嵌套圆角 = 外圆角 − 内边距（6 − 2 = 4）。</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 14px">
+<h2 style="margin: 0; font-size: 11px; line-height: 16px; font-weight: 600; color: #66666E">字体</h2>
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; justify-content: space-between; align-items: baseline"><span style="font-size: 13px; font-weight: 600">场景名</span><span style="font-size: 12px; color: #66666E">13 / 600</span></div>
+<div style="display: flex; justify-content: space-between; align-items: baseline"><span style="font-size: 13px">行标签 · 车名</span><span style="font-size: 12px; color: #66666E">13 / 400·500</span></div>
+<div style="display: flex; justify-content: space-between; align-items: baseline"><span style="font-size: 12px; font-weight: 500">控件文字</span><span style="font-size: 12px; color: #66666E">12 / 500</span></div>
+<div style="display: flex; justify-content: space-between; align-items: baseline"><span style="font-size: 12px; color: #66666E">左列字段名</span><span style="font-size: 12px; color: #66666E">12 / 400 灰</span></div>
+<div style="display: flex; justify-content: space-between; align-items: baseline"><span style="font-size: 11px; font-weight: 600; color: #66666E">分组标题</span><span style="font-size: 12px; color: #66666E">11 / 600 灰</span></div>
+</div>
+<div style="font-size: 12px; color: #66666E">左列字段名固定 56 宽，所有右侧控件左缘对齐在同一条竖线上。</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 14px">
+<h2 style="margin: 0; font-size: 11px; line-height: 16px; font-weight: 600; color: #66666E">层级</h2>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+<div style="height: 56px; border-radius: 8px; background: #EFEFF2; box-shadow: inset 0 1px 1.5px rgba(0,0,0,0.05); display: grid; place-items: center; font-size: 11px; color: #66666E">E−1 凹槽</div>
+<div style="height: 56px; border-radius: 8px; background: #FBFBFC; box-shadow: inset 0 0 0 1px #E6E6E9; display: grid; place-items: center; font-size: 11px; color: #66666E">E0 平面</div>
+<div style="height: 56px; border-radius: 8px; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0,0,0,0.07), 0 1px 1px rgba(0,0,0,0.04); display: grid; place-items: center; font-size: 11px; color: #66666E">E1 凸起</div>
+<div style="height: 56px; border-radius: 8px; background: #FFFFFF; box-shadow: 0 10px 30px rgba(0,0,0,0.10), 0 2px 6px rgba(0,0,0,0.05); display: grid; place-items: center; font-size: 11px; color: #66666E">E2 弹层</div>
+</div>
+<div style="font-size: 12px; color: #66666E">只有四级。画板阴影：0 1px 2px 5% + 0 8px 28px 7%，不加描边。</div>
+</section>
+</div>
+
+<div style="height: 1px; background: #E6E6E9"></div>
+
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 56px">
+
+<section style="display: flex; flex-direction: column; gap: 16px">
+<h2 style="margin: 0; font-size: 11px; line-height: 16px; font-weight: 600; color: #66666E">材质 · 纯色 + 投影</h2>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; align-items: end">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; gap: 2px; height: 24px; padding: 2px; box-sizing: border-box; border-radius: 6px; background: #EFEFF2; box-shadow: inset 0 1px 1.5px rgba(0,0,0,0.05)">
+<span style="flex: 1; display: grid; place-items: center; border-radius: 4px; font-size: 12px; font-weight: 500; color: #66666E">Low</span>
+<span style="flex: 1; display: grid; place-items: center; border-radius: 4px; font-size: 12px; font-weight: 500; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0,0,0,0.07), 0 1px 1px rgba(0,0,0,0.04)">High</span>
+</div>
+<span style="font-size: 12px; color: #66666E">凹槽轨道 + 凸起滑块</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span style="display: grid; place-items: center; height: 28px; border-radius: 6px; font-size: 12px; font-weight: 500; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0,0,0,0.07), 0 1px 1px rgba(0,0,0,0.04)">Export Road</span>
+<span style="font-size: 12px; color: #66666E">普通按钮 · E1</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span style="display: flex; align-items: center; gap: 8px; height: 26px; padding: 0 8px; font-size: 13px"><span style="width: 14px; height: 14px; display: grid; place-items: center; border-radius: 4px; background: #0A6CFF; box-shadow: 0 1px 2px rgba(10,108,255,0.3)"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m2.5 6.2 2.3 2.3 4.7-5"></path></svg></span>Assist path</span>
+<span style="font-size: 12px; color: #66666E">强调色纯色 + 同色投影</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span style="display: grid; place-items: center; width: 32px; height: 32px; border-radius: 16px; background: rgba(255,255,255,0.7); box-shadow: 0 4px 16px rgba(0,0,0,0.10), 0 1px 3px rgba(0,0,0,0.06), inset 0 0.5px 0 rgba(255,255,255,0.8)"><svg width="12" height="12" viewBox="0 0 14 14" fill="#18181B" aria-hidden="true"><rect x="3" y="2.5" width="2.6" height="9" rx="0.8"></rect><rect x="8.4" y="2.5" width="2.6" height="9" rx="0.8"></rect></svg></span>
+<span style="font-size: 12px; color: #66666E">毛玻璃：只用于压在画面上的控件</span>
+</div>
+</div>
+<div style="font-size: 12px; line-height: 18px; color: #66666E">苹果的做法：纯色面 + 柔和投影，不用渐变，不用深色描边。凸起面纯白（深色 #46464D），两层投影：0 1px 3px 8% + 0 1px 1px 4%；凹槽只有向内柔影；强调色纯色，投影带一点同色。</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 16px">
+<h2 style="margin: 0; font-size: 11px; line-height: 16px; font-weight: 600; color: #66666E">状态 · 每个可交互元素都必须有这六种</h2>
+<div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; font-size: 12px; text-align: center">
+<div style="display: flex; flex-direction: column; gap: 8px"><span style="height: 28px; border-radius: 6px; display: grid; place-items: center">Road</span><span style="color: #66666E">静止</span></div>
+<div style="display: flex; flex-direction: column; gap: 8px"><span style="height: 28px; border-radius: 6px; display: grid; place-items: center; background: rgba(24,24,27,0.04)">Road</span><span style="color: #66666E">悬停 4%</span></div>
+<div style="display: flex; flex-direction: column; gap: 8px"><span style="height: 28px; border-radius: 6px; display: grid; place-items: center; background: rgba(24,24,27,0.08); transform: scale(0.97)">Road</span><span style="color: #66666E">按下 8% · 0.97</span></div>
+<div style="display: flex; flex-direction: column; gap: 8px"><span style="height: 28px; border-radius: 6px; display: grid; place-items: center; background: rgba(24,24,27,0.06); font-weight: 500">Road</span><span style="color: #66666E">选中 6%</span></div>
+<div style="display: flex; flex-direction: column; gap: 8px"><span style="height: 28px; border-radius: 6px; display: grid; place-items: center; box-shadow: 0 0 0 2px #FBFBFC, 0 0 0 4px rgba(10,108,255,0.55)">Road</span><span style="color: #66666E">键盘焦点</span></div>
+<div style="display: flex; flex-direction: column; gap: 8px"><span style="height: 28px; border-radius: 6px; display: grid; place-items: center; opacity: 0.4">Road</span><span style="color: #66666E">禁用 40%</span></div>
+</div>
+<div style="font-size: 12px; line-height: 18px; color: #66666E">切换用 ui-motion.js 的形变接续（选中层 320ms / toggle 224ms）；悬停 120ms；按下 0.97 弹簧，图标按钮 0.94；文案替换为短模糊交叉淡入。减少动态效果时只保留淡入淡出。</div>
+</section>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

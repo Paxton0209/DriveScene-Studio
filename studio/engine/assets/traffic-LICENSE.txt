@@ -1,0 +1,57 @@
+THIRD-PARTY ASSET ATTRIBUTION
+================================
+
+This project contains 3D models from the "Generic passenger car pack" by Comrade1280,
+originally published on Sketchfab and used under the Creative Commons Attribution 4.0 License.
+
+Original Asset Information:
+- Title: Generic passenger car pack
+- Author: Comrade1280
+- Source: https://sketchfab.com/3d-models/generic-passenger-car-pack-20f9af9b8a404d5cb022ac6fe87f21f5
+- License: Creative Commons Attribution 4.0 International (CC BY 4.0)
+- Published: August 15th, 2017
+
+Creative Commons Attribution 4.0 International License
+=====================================================
+
+You are free to:
+- Share — copy and redistribute the material in any medium or format
+- Adapt — remix, transform, and build upon the material for any purpose, even commercially.
+
+Under the following terms:
+- Attribution — You must give appropriate credit, provide a link to the license, and indicate if changes were made. You may do so in any reasonable manner, but not in any way that suggests the licensor endorses you or your use.
+
+No additional restrictions — You may not apply legal terms or technological measures that legally restrict others from doing anything the license permits.
+
+For the full license text, see: https://creativecommons.org/licenses/by/4.0/
+
+Attribution Notice:
+"Generic passenger car pack" by Comrade1280 (https://sketchfab.com/comrade1280) is licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)
+
+Modified for use in this Unity project:
+- Imported to Unity and configured as prefabs
+- Applied custom materials and textures
+- Integrated with custom scripts for vehicle simulation
+
+CURRENT NEUTRAL TRAFFIC ASSETS (2026-10-20)
+Sedan: Audi A7 Sportback 2018 — KiW
+https://sketchfab.com/3d-models/95700e5a98904b3591c6a03a4b67787b
+https://sketchfab.com/QlER5
+SUV: 2015 Hyundai Tucson — razor24
+https://sketchfab.com/3d-models/7674a3bd168a451daf73fc0a33d39589
+https://sketchfab.com/razor24
+License: Creative Commons Attribution 4.0
+https://creativecommons.org/licenses/by/4.0/
+Changes: baked transforms, dequantization, normalized dimensions, geometry simplification,
+removal/flattening of brand trim and details, closed neutral fascia, opaque sealed core,
+new neutral materials and reduced reflectivity. No manufacturer endorsement implied.
+
+ACTIVE TRAFFIC ASSET (2026-10-20 / finish-110)
+Tesla Model Y — Nieve5677
+https://sketchfab.com/3d-models/tesla-model-y-bc8ac22c744b4d11b92f2f31ab0297d0
+https://sketchfab.com/niev
+License: Creative Commons Attribution 4.0
+https://creativecommons.org/licenses/by/4.0/
+Changes: orientation, scale, neutral opaque materials, omitted emblem/interior details,
+smooth closed lower grille and tire sidewalls, independently simplified rims.
+Original visible body and glazing surfaces retained. No manufacturer endorsement implied.

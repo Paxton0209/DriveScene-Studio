@@ -1,0 +1,365 @@
+/* One shared shell aligns the brand, navigation, preview and footer. */
+:root {
+  --page: #f6f7f8;
+  --control-height: 48px;
+  --header-rgb: 246 247 248;
+  --control-surface: #e9ebee;
+  --control-hover: #e2e5e9;
+  /* Reserve the largest controls footprint so switching scenes never moves the shell. */
+  --workspace-width: min(1280px, calc(clamp(140px, 100dvh - var(--header-height) - 343px, 720px) * 16 / 9));
+  --desktop-nav-width: 184px;
+  --desktop-column-gap: 40px;
+  --desktop-gutter: 40px;
+  --shell-width: min(1600px, calc(var(--workspace-width) + var(--desktop-nav-width) + var(--desktop-column-gap) + var(--desktop-gutter) * 2));
+}
+:root[data-theme=dark] {
+  --page: #191a1c;
+  --header-rgb: 25 26 28;
+  --control-surface: #2b2e32;
+  --control-hover: #2d3034;
+}
+body { min-height: 100dvh; display: flex; flex-direction: column; }
+header, .site-signature { width: 100%; flex-shrink: 0; }
+main {
+  flex: 1;
+  padding-top: 16px;
+  padding-bottom: 20px;
+}
+:root[data-nav-design="1"] main {
+  grid-template-columns: var(--desktop-nav-width) minmax(0, 1fr);
+  column-gap: var(--desktop-column-gap);
+}
+.workspace {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  max-width: none;
+  justify-self: stretch;
+}
+/* Normal flow keeps labels and controls from sliding behind the preview. */
+.preview-shell {
+  position: relative;
+  padding-bottom: 12px;
+}
+.workspace .preview { border-radius: var(--ui-radius); background-color: transparent; }
+.workspace .preview[aria-busy="false"] { background-image: none; }
+.workspace .dimensions {
+  left: 14px;
+  bottom: 16px;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: .02em;
+}
+.workspace .download {
+  width: 40px;
+  height: 40px;
+  right: 6px;
+  bottom: 6px;
+  border-radius: var(--ui-radius);
+  color: #fff;
+  background: rgb(28 30 33 / .22);
+  filter: none;
+  backdrop-filter: blur(12px);
+}
+.workspace .preview[data-mode=light] .download {
+  color: rgb(0 0 0 / .70);
+  background: rgb(255 255 255 / .64);
+  filter: none;
+}
+.workspace .download:disabled { opacity: .4; }
+.workspace .preview-settings { margin-top: 0; }
+.workspace .preview-settings button, .workspace .toggle input {
+  scroll-margin-top: calc(var(--header-height) + 12px);
+  scroll-margin-bottom: 12px;
+}
+.workspace .scene-options #road-controls,
+.workspace #camera-control {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.road-settings-label { display: none; }
+.workspace .scene-options .toolbar { display: block; min-height: 0; }
+.workspace .choice-row,
+.workspace .scene-options .road-option {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 8px;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+}
+.workspace .choice-label,
+.workspace .option-label {
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+.workspace .scene-options .view-segments {
+  width: 100%;
+  min-width: 0;
+  min-height: var(--control-height);
+  margin: 0;
+  padding: 3px;
+  gap: 0;
+  border-radius: var(--ui-radius);
+  overflow: hidden;
+  background: var(--control-surface);
+}
+.workspace .scene-options .view-segments::before {
+  top: 3px;
+  bottom: 3px;
+  border-radius: var(--ui-radius);
+  box-shadow: 0 1px 3px rgb(0 0 0 / .06), 0 1px 1px rgb(0 0 0 / .03);
+}
+:root[data-theme=dark] .workspace .scene-options .view-segments::before { box-shadow: none; }
+.workspace .scene-options .view-segments button,
+.workspace .scene-options .road-option .view-segments button {
+  flex: 1;
+  min-width: 0;
+  min-height: 42px;
+  padding: 7px 6px;
+  border-radius: var(--ui-radius);
+  font-size: 12px;
+  line-height: 24px;
+  font-weight: 400;
+  color: var(--text-secondary);
+}
+.workspace .scene-options .view-segments button[aria-pressed=true] { color: var(--text); font-weight: 600; }
+.workspace #parking-control { grid-column: 1 / -1; }
+.workspace .junction-transport { margin: 0; }
+.workspace .junction-transport { position: relative; display: grid; place-items: center; width: 100%; min-height: var(--control-height); --progress: 0; }
+.workspace .junction-play { position: absolute; inset: 0; width: 100%; height: 100%; min-height: inherit; border-radius: var(--ui-radius); background: var(--control-surface); box-shadow: none; }
+.workspace .junction-play[data-motion-state="playing"] { background: color-mix(in srgb, var(--control-surface) 40%, transparent); opacity: 1; cursor: default; }
+.workspace .junction-play:not(:disabled):hover { background: var(--control-surface); box-shadow: none; }
+.workspace .junction-play-copy { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; line-height: 20px; pointer-events: none; }
+#junction-play-label { text-align: center; }
+.workspace .junction-play-copy .junction-motion-icon { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; overflow: visible; }
+.workspace .junction-play-copy { color: var(--text); }
+.junction-motion-icon .progress-track { opacity: 1; }
+.junction-motion-icon .progress-value { opacity: 0; stroke-dasharray: 1; stroke-dashoffset: calc(1 - var(--progress)); }
+.junction-playing { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+.workspace .environment-control { margin-top: 18px; }
+.workspace .settings-label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+}
+.workspace .switches {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px 16px;
+}
+.workspace .toggle {
+  min-width: 0;
+  min-height: var(--control-height);
+  padding: 10px 12px;
+  gap: 8px;
+  border: 0;
+  border-radius: var(--ui-radius);
+  background: var(--control-surface);
+}
+.workspace .setting-title {
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 500;
+}
+.workspace .track { width: 32px; height: 20px; }
+.workspace .track::after { width: 14px; height: 14px; }
+.workspace .toggle input:checked + .track::after { transform: translateX(12px); }
+.workspace .toggle input:checked:active + .track::after { transform: translateX(9px); }
+.workspace .toggle input:active + .track::after { width: 17px; }
+.workspace .toggle:has(input:focus-visible) { outline: 2px solid #007aff; outline-offset: 3px; }
+.workspace .toggle input:focus-visible + .track { outline: none; }
+.workspace .view-segments:has(button:focus-visible) { outline: 2px solid #007aff; outline-offset: 3px; }
+.workspace .view-segments button:focus-visible { outline: none; }
+:root[data-nav-design="1"] #scenes > .nav-pill:not([hidden]),
+:root[data-nav-design="1"] .scene,
+#scene-picker { border-radius: var(--ui-radius); }
+.theme-toggle, .back-link, #status button { border-radius: var(--ui-radius); }
+@media (hover:hover) and (pointer:fine) {
+  .workspace .toggle:hover { background: var(--control-hover); }
+  .workspace .download:not(:disabled):hover { background: rgb(28 30 33 / .38); }
+  .workspace .preview[data-mode=light] .download:not(:disabled):hover { background: rgb(255 255 255 / .9); }
+}
+/* The header ends before the pinned frame; its old fade must not blur the image. */
+header:not(.credits-open) .header-backdrop { bottom: 0; }
+@media (min-width:761px) {
+  header, main, .site-signature {
+    width: 100%;
+    max-width: var(--shell-width);
+    padding-inline: var(--desktop-gutter);
+  }
+  .footer-inner { padding-top: 12px; }
+  .site-signature { padding-bottom: 16px; }
+  .social-links a { min-height: 32px; }
+  main { align-items: stretch; }
+  aside { align-self: start; }
+  :root[data-nav-design="1"] .structure-heading { min-height: 20px; }
+  .workspace { display: grid; align-content: start; }
+}
+@media (min-width:1001px) and (max-width:1250px) {
+  :root { --desktop-gutter: 30px; }
+}
+@media (max-width:1000px) and (min-width:761px) {
+  :root { --desktop-nav-width: 168px; --desktop-column-gap: 28px; --desktop-gutter: 24px; }
+}
+@media (max-width:760px) {
+  :root { --mobile-gutter: 20px; }
+  main { padding-top: 12px; }
+  .workspace { max-width: none; }
+  .preview-shell { padding-bottom: 14px; }
+  .workspace .scene-options #road-controls,
+  .workspace #camera-control { gap: 12px; }
+  .workspace .switches { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 12px; }
+  .workspace .environment-control { margin-top: 16px; }
+  .workspace .download { width: 44px; height: 44px; right: 4px; bottom: 4px; }
+  .workspace .dimensions { left: 12px; bottom: 18px; font-size: 9px; }
+  .site-signature { margin-top: 12px; }
+  .footer-inner { padding-top: 14px; }
+  main { justify-content: flex-start; }
+  .workspace { flex: 1; display: flex; flex-direction: column; }
+  .workspace .preview-settings { flex: 1; display: flex; flex-direction: column; justify-content: space-evenly; }
+}
+/* Tall phones have room for calmer spacing and larger touch surfaces. */
+@media (max-width:760px) and (min-height:700px) {
+  :root { --control-height: clamp(48px, 6.4dvh, 60px); }
+  .preview-shell { padding-bottom: clamp(18px, 2.6dvh, 26px); }
+  .workspace .scene-options .view-segments,
+  .workspace .junction-play,
+  .workspace .junction-transport,
+  .workspace .toggle { min-height: var(--control-height); }
+  .workspace .scene-options .view-segments button { min-height: clamp(42px, calc(6.4dvh - 6px), 54px); }
+  .workspace .switches { row-gap: clamp(10px, 1.6dvh, 16px); }
+  .workspace .environment-control { margin-top: clamp(20px, 3dvh, 28px); }
+  .workspace .settings-label { margin-bottom: 12px; }
+}
+@media (max-width:359px) {
+  :root { --mobile-gutter: 16px; }
+  .workspace .scene-options #road-controls,
+  .workspace #camera-control,
+  .workspace .switches { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 8px; }
+  .workspace .scene-options .view-segments button,
+  .workspace .scene-options .road-option .view-segments button { font-size: 11px; padding-inline: 2px; }
+  .workspace .toggle { padding-inline: 10px; }
+}
+/* On a short desktop or landscape tablet, use its spare width for the controls. */
+@media (min-width:1100px) and (max-height:800px), (min-width:761px) and (max-height:650px) {
+  :root { --shell-width: min(1600px, calc((100dvh - 189px) * 16 / 9 + 528px)); --desktop-nav-width: 160px; --desktop-column-gap: 24px; --desktop-gutter: 24px; }
+  main { padding-top: 16px; }
+  .workspace { display: grid; grid-template-columns: minmax(0, 1fr) 272px; gap: 24px; max-width: none; align-items: start; }
+  .preview-shell { padding: 0; }
+  .workspace .preview-settings { padding-top: 0; }
+  .workspace .preview-settings button, .workspace .toggle input { scroll-margin-top: calc(var(--header-height) + 24px); }
+  .workspace .scene-options #road-controls,
+  .workspace #camera-control { grid-template-columns: 1fr; gap: 12px; }
+  .workspace #parking-control { grid-column: auto; }
+  .workspace .switches { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 8px; }
+  .workspace .toggle { padding-inline: 10px; }
+  .workspace .environment-control { margin-top: 16px; }
+  #status { grid-column: 1 / -1; }
+}
+/* Keep settings and element columns stable across every scene family. */
+@media (min-width:1210px) and (min-height:820px) {
+  :root {
+    --desktop-nav-width: 160px;
+    --desktop-column-gap: 24px;
+    --desktop-gutter: 24px;
+    --workspace-width: min(1600px, calc(clamp(140px, 100dvh - var(--header-height) - 221px, 900px) * 16 / 9));
+    --shell-width: min(2048px, calc(var(--workspace-width) + var(--desktop-nav-width) + var(--desktop-column-gap) + var(--desktop-gutter) * 2));
+  }
+  .workspace .preview-settings {
+    display: grid;
+    grid-template-columns: 400px minmax(0, 1fr);
+    gap: 40px;
+    align-items: start;
+  }
+  .workspace .scene-options #road-controls { grid-template-columns: minmax(0, 1fr); }
+  main { padding-block: 12px; }
+  .site-signature { margin-top: 8px; padding-bottom: 12px; }
+  .footer-inner { padding-top: 8px; }
+  .social-links a { min-height: 24px; }
+  .workspace .scene-options #road-controls,
+  .workspace #camera-control { gap: 16px; }
+  .workspace .scene-options:has(#road-controls:not([hidden])) > .road-settings-label { display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px; line-height: 18px; font-weight: 500; }
+  .workspace .scene-options #road-controls { gap: 10px; }
+  .workspace .scene-options #road-controls .choice-row { flex-direction: row; align-items: center; gap: 12px; }
+  .workspace .scene-options #road-controls .option-label { width: 52px; flex-shrink: 0; }
+  .workspace .scene-options #road-controls .view-segments { flex: 1 1 0; width: auto; }
+  .workspace #camera-control:has(#layout-control:not([hidden])) { grid-template-columns: 240px 144px; }
+  .workspace .scene-options .view-segments button { font-size: 13px; }
+  .workspace .environment-control { margin-top: 0; width: 100%; max-width: 684px; justify-self: end; }
+  .workspace .switches { grid-template-columns: repeat(3, minmax(150px, 1fr)); gap: 10px 12px; }
+  .workspace .switches:not(:has(.toggle:not([hidden]) ~ .toggle:not([hidden]))) > .toggle:not([hidden]) { max-width: none; }
+  .workspace .toggle { padding-inline: 12px; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .workspace .toggle, .workspace .junction-play { transition: none; }
+}
+
+/* Resizing repositions choice indicators immediately, without crossing fields. */
+:root[data-resizing=true] .view-segments::before,
+.view-segments[data-resizing=true]::before,
+:root[data-resizing=true] #scenes > .nav-pill { transition: none !important; }
+
+/* Spread landscape desktops across the viewport, keeping the full scene visible. */
+@media (min-width:1100px) and (min-aspect-ratio:7/5) {
+  :root { --shell-width:1920px; --desktop-nav-width:160px; --desktop-column-gap:24px; --desktop-gutter:32px; }
+  .workspace { display:grid; grid-template-columns:minmax(0,1fr) 288px; gap:32px; align-items:start; }
+  .preview-shell { padding:0; }
+  .workspace .preview-settings { display:block; padding-top:0; }
+  .workspace .scene-options #road-controls,
+  .workspace #camera-control,
+  .workspace #camera-control:has(#layout-control:not([hidden])) { grid-template-columns:minmax(0,1fr); gap:16px; }
+  .workspace .scene-options:has(#road-controls:not([hidden])) > .road-settings-label { display:none; }
+  .workspace .scene-options #road-controls .choice-row { flex-direction:column; align-items:stretch; gap:8px; }
+  .workspace .scene-options #road-controls .option-label { width:auto; }
+  .workspace .scene-options #road-controls .view-segments { flex:0 0 auto; width:100%; }
+  .workspace .environment-control { margin-top:24px; width:100%; max-width:none; }
+  .workspace .switches { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px 12px; }
+  .workspace .toggle { padding-inline:12px; }
+  #status { grid-column:1/-1; }
+}
+
+/* Quiet settings: a single aligned list, with surfaces reserved for choices. */
+main { flex:0 0 auto; }
+.workspace .switches { display:flex; flex-direction:column; gap:4px; }
+.workspace .switches > .toggle:not([hidden]) { width:100%; max-width:none; min-height:var(--control-height); padding:12px 0; border-radius:0; background:transparent; border-bottom:1px solid var(--line); }
+.workspace .switches > .toggle:not([hidden]):not(:has(~ .toggle:not([hidden]))) { border-bottom-color:transparent; }
+.site-signature { margin-top:12px; }
+@media (min-width:761px) {
+  :root[data-nav-design="1"] .structure-heading { margin-top:-3px; }
+  .workspace .environment-control { max-width:320px; justify-self:end; }
+}
+@media (min-width:1100px) and (min-aspect-ratio:7/5) {
+  .workspace .preview-settings { margin-top:-3px; }
+  .workspace .environment-control { max-width:none; }
+}
+@media (max-width:760px) {
+  .workspace { flex:0 0 auto; }
+  .workspace .preview-settings { flex:0 0 auto; justify-content:flex-start; }
+  .workspace .environment-control { margin-top:24px; }
+  .workspace .switches > .toggle:not([hidden]) { min-height:var(--control-height); }
+}
+
+/* Below-canvas controls share two equal columns with the choices above. */
+@media (min-width:761px) and (max-width:1099.98px), (min-width:761px) and (max-aspect-ratio:1.3999) {
+  .workspace .preview-settings { display:block; }
+  .workspace .environment-control { width:100%; max-width:none; margin-top:24px; justify-self:stretch; }
+  .workspace .switches { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:4px 16px; }
+  .workspace .switches > .toggle:nth-last-child(-n+2 of :not([hidden])) { border-bottom-color:transparent; }
+  .workspace .scene-options #road-controls,
+  .workspace #camera-control,
+  .workspace #camera-control:has(#layout-control:not([hidden])) { grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+  .workspace .scene-options:has(#road-controls:not([hidden])) > .road-settings-label { display:none; }
+  .workspace .scene-options #road-controls .choice-row { flex-direction:column; align-items:stretch; gap:8px; }
+  .workspace .scene-options #road-controls .option-label { width:auto; }
+  .workspace .scene-options #road-controls .view-segments { flex:0 0 auto; width:100%; }
+}
