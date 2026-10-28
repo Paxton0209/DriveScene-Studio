@@ -4,7 +4,7 @@
 
 An open-source base for designing intelligent-driving SR visualizations and automotive cockpit interfaces, with configurable 3D driving and parking scene backgrounds. Choose a scenario, adjust its appearance and camera, and export a 1920 × 1080 PNG to use in your layout.
 
-[Open the live tool](https://paxton0209.github.io/DriveScene-Studio/) · Created by Peixin
+[Open the live tool](https://paxton0209.github.io/DriveScene-Studio/studio/ui-draft/) · Created by Peixin
 
 [![XERJ Corpus Hub contributor](https://hub.xerj.org/contributors/Paxton0209/badge.svg)](https://hub.xerj.org/contributors/Paxton0209)
 
