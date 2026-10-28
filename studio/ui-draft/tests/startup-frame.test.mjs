@@ -59,3 +59,20 @@ test('Initial label population skips the replacement blur; subsequent changes st
   replace(node, 'Outdoor parking');assert.equal(animations, 1);
   replace(node, 'Outdoor parking');assert.equal(animations, 1);
 });
+
+test('Initial Traffic preference is applied before construction and late model completion cannot miss the warmup',async()=>{
+ const bridgeSource=await readFile(new URL('../engine-bridge.js',import.meta.url),'utf8');
+ const method=bridgeSource.match(/world.draftPrepareStartup=async\(\)=>\{([^\n]+)\};/)[1];
+ let resolveTraffic,resolveParking;const traffic={ready:new Promise(done=>resolveTraffic=done),audit:()=>({})},parking={ready:new Promise(done=>resolveParking=done)};
+ const prepare=new Function('traffic','parking',`return async()=>{${method}}`)(traffic,parking);
+ let complete=false;const pending=prepare().then(()=>complete=true);
+ await Promise.resolve();assert.equal(complete,false);resolveTraffic();await Promise.resolve();assert.equal(complete,false);resolveParking();await pending;assert.equal(complete,true);
+ const fail=new Function('traffic','parking',`return async()=>{${method}}`)({ready:Promise.resolve(),audit:()=>({modelError:'Traffic unavailable'})},{ready:Promise.resolve()});
+ await assert.rejects(fail(),/Traffic unavailable/);
+ const shared=await readFile(new URL('../../engine/app.js',import.meta.url),'utf8'),patched=patchApp(shared);
+ assert.ok(patched.includes("enabled:query.get('traffic')!=='0'"));
+ assert.ok(patched.indexOf('await world.draftPrepareStartup?.()')<patched.indexOf('requested=state();await world.prepareInitialScene(requested)'));
+ assert.ok(source.includes('traffic:Number(state.traffic)'));
+ const preference=bridgeSource.match(/world.draftTrafficEnabled=([^;]+);/)[1];
+ for(const enabled of [false,true])assert.equal(new Function('traffic',`return ${preference}`)({audit:()=>({enabled})}),enabled);
+});

@@ -30,10 +30,11 @@ export function installDraftBridge({world,features,drive,traffic,api,current,upd
  function claimIndicatorAudio(){indicatorOwnsAudio=true;indicatorChannel?.postMessage('claim');}
  if(indicatorChannel)indicatorChannel.onmessage=()=>{indicatorOwnsAudio=false;stopIndicatorSound()};
  const query=new URLSearchParams(location.search);if(query.get('paused')==='1')playing=false;
- world.draftManaged=true;world.draftTime=performance.now();drive.pause();
+ world.draftManaged=true;world.draftTrafficEnabled=traffic.audit().enabled;world.draftTime=performance.now();drive.pause();
   // The sampled junction camera does not own world.cameraMotion.
   world.draftJunctionPlaying=()=>playing&&!themeHeld&&current()==='junction';
  const parking=createParkingMotion(world),junctionFeedback=createJunctionFeedback(world);const appearance=createAppearanceBlend(),draw=world.renderFrame;let renderedFrames=0;world.draftThemeTone={value:(world.state?.mode||query.get('mode'))==='dark'?1:0};
+ world.draftPrepareStartup=async()=>{await Promise.all([traffic.ready,parking.ready]);const error=traffic.audit().modelError;if(error)throw Error(error)};
  const vehicleWeather=createVehicleWeather(world),indoorDither=createIndoorDither();world.composer.addPass(indoorDither);world.draftIndoorDither=indoorDither;
  // Prepare the final shader variants before the existing offscreen vehicle warmup.
  world.draftPrepareVehicle=car=>{installRollingWheels(car);vehicleWeather.install(car);};
