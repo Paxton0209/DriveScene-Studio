@@ -1,0 +1,1200 @@
+{
+  "recorded_at": "2026-10-28T01:26:44.792077+00:00",
+  "runtime_version": "startup-handoff-20261027",
+  "runtime_sha256": "84c32707638302523096b988c6ea1161171b4a6c986ffc81b3de5bd5a857a810",
+  "build": "passed",
+  "tests": {
+    "total": 269,
+    "passed": 269,
+    "failed": 0
+  },
+  "shared_engine_source": "unchanged",
+  "changes": {
+    "startup": "Acquire warmed shader programs in the prepared live-material frame before releasing temporary warm materials; restore suspension in finally.",
+    "ramp": "Skip mathematically redundant constant-width curb taper; use equivalent generator construction with yields between independent geometry operations. Ramp layout uses existing prepared-scene path; Junction retains its structure motion.",
+    "appearance": "Prepare exact scene, car and theme program variants asynchronously before the live draw; cache successful preparation by scene root/car UUID/theme.",
+    "traffic": "One bridge draw per managed Traffic input, including playing roads; remove redundant inner draw and audit. Entry duration/geometry/opacity/clipping and immediate-off behavior unchanged."
+  },
+  "normal_control_runs": [
+    {
+      "name": "six-scene first matrix",
+      "operation_count": 90,
+      "startup": {
+        "readyMs": 670.1999999992549,
+        "runtime": "http://127.0.0.1:18045/studio/ui-draft/runtime.bundle.js?v=startup-handoff-20261027",
+        "resources": [
+          {
+            "name": "cropped/x6.png",
+            "duration": 4.399999998509884,
+            "bytes": 103257
+          },
+          {
+            "name": "cropped/ix.png",
+            "duration": 4.699999999254942,
+            "bytes": 109740
+          },
+          {
+            "name": "cropped/xc90.png",
+            "duration": 5.899999998509884,
+            "bytes": 106441
+          }
+        ]
+      },
+      "long_tasks": [],
+      "errors": [],
+      "operations": [
+        {
+          "phase": "scene/parking",
+          "ms": 284.80000000074506
+        },
+        {
+          "phase": "parking/traffic/true",
+          "ms": 27.099999997764826
+        },
+        {
+          "phase": "parking/traffic/false",
+          "ms": 1.3999999985098839
+        },
+        {
+          "phase": "parking/theme/dark",
+          "ms": 30.300000000745058
+        },
+        {
+          "phase": "parking/theme/light",
+          "ms": 3.7999999970197678
+        },
+        {
+          "phase": "parking/camera/raised",
+          "ms": 2.900000002235174
+        },
+        {
+          "phase": "parking/camera/bev",
+          "ms": 1.300000000745058
+        },
+        {
+          "phase": "parking/camera/default",
+          "ms": 2.5
+        },
+        {
+          "phase": "parking/vehicle/x6",
+          "ms": 59.099999997764826
+        },
+        {
+          "phase": "parking/vehicle/ix",
+          "ms": 36.20000000298023
+        },
+        {
+          "phase": "parking/vehicle/xc90",
+          "ms": 38.5
+        },
+        {
+          "phase": "parking/vehicle/model-3",
+          "ms": 15.100000001490116
+        },
+        {
+          "phase": "scene/outdoor",
+          "ms": 306.5
+        },
+        {
+          "phase": "outdoor/traffic/true",
+          "ms": 45.399999998509884
+        },
+        {
+          "phase": "outdoor/traffic/false",
+          "ms": 2.100000001490116
+        },
+        {
+          "phase": "outdoor/theme/dark",
+          "ms": 61.19999999925494
+        },
+        {
+          "phase": "outdoor/theme/light",
+          "ms": 9.399999998509884
+        },
+        {
+          "phase": "outdoor/camera/raised",
+          "ms": 6.599999997764826
+        },
+        {
+          "phase": "outdoor/camera/bev",
+          "ms": 2.300000000745058
+        },
+        {
+          "phase": "outdoor/camera/default",
+          "ms": 2.899999998509884
+        },
+        {
+          "phase": "outdoor/vehicle/x6",
+          "ms": 57.80000000074506
+        },
+        {
+          "phase": "outdoor/vehicle/ix",
+          "ms": 48.400000002235174
+        },
+        {
+          "phase": "outdoor/vehicle/xc90",
+          "ms": 60.5
+        },
+        {
+          "phase": "outdoor/vehicle/model-3",
+          "ms": 18.699999999254942
+        },
+        {
+          "phase": "scene/road",
+          "ms": 210.5
+        },
+        {
+          "phase": "road/traffic/true",
+          "ms": 8.400000002235174
+        },
+        {
+          "phase": "road/traffic/false",
+          "ms": 2.800000000745058
+        },
+        {
+          "phase": "road/theme/dark",
+          "ms": 46.399999998509884
+        },
+        {
+          "phase": "road/theme/light",
+          "ms": 8.699999999254942
+        },
+        {
+          "phase": "road/camera/high",
+          "ms": 16.600000001490116
+        },
+        {
+          "phase": "road/camera/low",
+          "ms": 15.5
+        },
+        {
+          "phase": "road/weather/snow",
+          "ms": 3.5
+        },
+        {
+          "phase": "road/weather/rain",
+          "ms": 2.400000002235174
+        },
+        {
+          "phase": "road/weather/default",
+          "ms": 2.600000001490116
+        },
+        {
+          "phase": "road/lanes/2",
+          "ms": 20.400000002235174
+        },
+        {
+          "phase": "road/lanes/4",
+          "ms": 18.699999999254942
+        },
+        {
+          "phase": "road/lanes/6",
+          "ms": 19.199999999254942
+        },
+        {
+          "phase": "road/buildings/true",
+          "ms": 12
+        },
+        {
+          "phase": "road/buildings/false",
+          "ms": 5.5
+        },
+        {
+          "phase": "road/trees/true",
+          "ms": 17.5
+        },
+        {
+          "phase": "road/trees/false",
+          "ms": 11.100000001490116
+        },
+        {
+          "phase": "road/waterfront/true",
+          "ms": 13.300000000745058
+        },
+        {
+          "phase": "road/waterfront/false",
+          "ms": 15.800000000745058
+        },
+        {
+          "phase": "road/roadworks/true",
+          "ms": 17.800000000745058
+        },
+        {
+          "phase": "road/roadworks/false",
+          "ms": 19.899999998509884
+        },
+        {
+          "phase": "road/vehicle/x6",
+          "ms": 33.100000001490116
+        },
+        {
+          "phase": "road/vehicle/ix",
+          "ms": 34.80000000074506
+        },
+        {
+          "phase": "road/vehicle/xc90",
+          "ms": 34
+        },
+        {
+          "phase": "road/vehicle/model-3",
+          "ms": 12.400000002235174
+        },
+        {
+          "phase": "scene/elevated",
+          "ms": 371.5
+        },
+        {
+          "phase": "elevated/traffic/true",
+          "ms": 8.5
+        },
+        {
+          "phase": "elevated/traffic/false",
+          "ms": 2.399999998509884
+        },
+        {
+          "phase": "elevated/theme/dark",
+          "ms": 30.700000002980232
+        },
+        {
+          "phase": "elevated/theme/light",
+          "ms": 9.5
+        },
+        {
+          "phase": "elevated/camera/high",
+          "ms": 17.699999999254942
+        },
+        {
+          "phase": "elevated/camera/low",
+          "ms": 19
+        },
+        {
+          "phase": "elevated/weather/snow",
+          "ms": 3.300000000745058
+        },
+        {
+          "phase": "elevated/weather/rain",
+          "ms": 3.300000000745058
+        },
+        {
+          "phase": "elevated/weather/default",
+          "ms": 2.7999999970197678
+        },
+        {
+          "phase": "elevated/vehicle/x6",
+          "ms": 35.600000001490116
+        },
+        {
+          "phase": "elevated/vehicle/ix",
+          "ms": 32.30000000074506
+        },
+        {
+          "phase": "elevated/vehicle/xc90",
+          "ms": 37
+        },
+        {
+          "phase": "elevated/vehicle/model-3",
+          "ms": 15.099999997764826
+        },
+        {
+          "phase": "scene/ramp",
+          "ms": 355.70000000298023
+        },
+        {
+          "phase": "ramp/traffic/true",
+          "ms": 8
+        },
+        {
+          "phase": "ramp/traffic/false",
+          "ms": 3.599999997764826
+        },
+        {
+          "phase": "ramp/theme/dark",
+          "ms": 41.600000001490116
+        },
+        {
+          "phase": "ramp/theme/light",
+          "ms": 25.199999999254942
+        },
+        {
+          "phase": "ramp/camera/high",
+          "ms": 20.199999999254942
+        },
+        {
+          "phase": "ramp/camera/low",
+          "ms": 18.100000001490116
+        },
+        {
+          "phase": "ramp/weather/snow",
+          "ms": 4.300000000745058
+        },
+        {
+          "phase": "ramp/weather/rain",
+          "ms": 3.599999997764826
+        },
+        {
+          "phase": "ramp/weather/default",
+          "ms": 3.599999997764826
+        },
+        {
+          "phase": "ramp/layout/07",
+          "ms": 336
+        },
+        {
+          "phase": "ramp/layout/06",
+          "ms": 226.5
+        },
+        {
+          "phase": "ramp/vehicle/x6",
+          "ms": 43.19999999925494
+        },
+        {
+          "phase": "ramp/vehicle/ix",
+          "ms": 40.599999997764826
+        },
+        {
+          "phase": "ramp/vehicle/xc90",
+          "ms": 40.80000000074506
+        },
+        {
+          "phase": "ramp/vehicle/model-3",
+          "ms": 17.5
+        },
+        {
+          "phase": "scene/junction",
+          "ms": 358.4000000022352
+        },
+        {
+          "phase": "junction/traffic/true",
+          "ms": 8.799999997019768
+        },
+        {
+          "phase": "junction/traffic/false",
+          "ms": 5.099999997764826
+        },
+        {
+          "phase": "junction/theme/dark",
+          "ms": 45.600000001490116
+        },
+        {
+          "phase": "junction/theme/light",
+          "ms": 8.400000002235174
+        },
+        {
+          "phase": "junction/layout/05",
+          "ms": 226.90000000223517
+        },
+        {
+          "phase": "junction/layout/08",
+          "ms": 268.80000000074506
+        },
+        {
+          "phase": "junction/vehicle/x6",
+          "ms": 65.39999999850988
+        },
+        {
+          "phase": "junction/vehicle/ix",
+          "ms": 51.899999998509884
+        },
+        {
+          "phase": "junction/vehicle/xc90",
+          "ms": 62.80000000074506
+        },
+        {
+          "phase": "junction/vehicle/model-3",
+          "ms": 18.5
+        }
+      ],
+      "call_summary": {
+        "instrumented_boundaries": 503,
+        "largest_boundaries": [
+          {
+            "phase": "outdoor/traffic/true/renderFrame",
+            "n": 13,
+            "total": 80.30000000819564,
+            "max": 43.400000002235174
+          },
+          {
+            "phase": "ramp/layout/07/buildStep2",
+            "n": 1,
+            "total": 38.20000000298023,
+            "max": 38.20000000298023
+          },
+          {
+            "phase": "ramp/layout/07/rampStep1",
+            "n": 1,
+            "total": 38.100000001490116,
+            "max": 38.100000001490116
+          },
+          {
+            "phase": "scene/ramp/rampStep1",
+            "n": 1,
+            "total": 34.19999999925494,
+            "max": 34.19999999925494
+          },
+          {
+            "phase": "scene/ramp/buildStep2",
+            "n": 1,
+            "total": 34.19999999925494,
+            "max": 34.19999999925494
+          },
+          {
+            "phase": "parking/traffic/true/renderFrame",
+            "n": 11,
+            "total": 54.49999999254942,
+            "max": 26.199999999254942
+          },
+          {
+            "phase": "outdoor/traffic/true/render",
+            "n": 130,
+            "total": 69,
+            "max": 24.300000000745058
+          },
+          {
+            "phase": "parking/traffic/false/render",
+            "n": 12,
+            "total": 24.5,
+            "max": 23.800000000745058
+          },
+          {
+            "phase": "ramp/theme/light/renderFrame",
+            "n": 2,
+            "total": 19.400000002235174,
+            "max": 19
+          },
+          {
+            "phase": "ramp/theme/light/render",
+            "n": 10,
+            "total": 18,
+            "max": 16.800000000745058
+          },
+          {
+            "phase": "junction/layout/08/update",
+            "n": 3,
+            "total": 15.900000002235174,
+            "max": 15.200000002980232
+          },
+          {
+            "phase": "startup/compileAsync",
+            "n": 150,
+            "total": 37.30000000074506,
+            "max": 14.900000002235174
+          },
+          {
+            "phase": "junction/layout/08/build",
+            "n": 1,
+            "total": 14.600000001490116,
+            "max": 14.600000001490116
+          },
+          {
+            "phase": "scene/outdoor/buildStep1",
+            "n": 1,
+            "total": 14.199999999254942,
+            "max": 14.199999999254942
+          },
+          {
+            "phase": "parking/traffic/true/render",
+            "n": 121,
+            "total": 47.399999994784594,
+            "max": 13.699999999254942
+          }
+        ]
+      }
+    },
+    {
+      "name": "extended Path and repeated Traffic",
+      "operation_count": 140,
+      "startup": {
+        "readyMs": 610.8999999985099,
+        "runtime": "http://127.0.0.1:18045/studio/ui-draft/runtime.bundle.js?v=startup-handoff-20261027",
+        "resources": []
+      },
+      "long_tasks": [],
+      "errors": [],
+      "operations": [
+        {
+          "phase": "scene/parking",
+          "ms": 279.19999999925494
+        },
+        {
+          "phase": "parking/traffic/true",
+          "ms": 33.5
+        },
+        {
+          "phase": "parking/traffic/false",
+          "ms": 1.3999999985098839
+        },
+        {
+          "phase": "parking/theme/dark",
+          "ms": 28.200000002980232
+        },
+        {
+          "phase": "parking/theme/light",
+          "ms": 3.5
+        },
+        {
+          "phase": "parking/camera/raised",
+          "ms": 2.699999999254942
+        },
+        {
+          "phase": "parking/camera/bev",
+          "ms": 1.1000000014901161
+        },
+        {
+          "phase": "parking/camera/default",
+          "ms": 2.199999999254942
+        },
+        {
+          "phase": "parking/vehicle/x6",
+          "ms": 54
+        },
+        {
+          "phase": "parking/vehicle/ix",
+          "ms": 34.599999997764826
+        },
+        {
+          "phase": "parking/vehicle/xc90",
+          "ms": 39
+        },
+        {
+          "phase": "parking/vehicle/model-3",
+          "ms": 15.399999998509884
+        },
+        {
+          "phase": "scene/outdoor",
+          "ms": 331.1000000014901
+        },
+        {
+          "phase": "outdoor/traffic/true",
+          "ms": 47.30000000074506
+        },
+        {
+          "phase": "outdoor/traffic/false",
+          "ms": 2.099999997764826
+        },
+        {
+          "phase": "outdoor/theme/dark",
+          "ms": 49.399999998509884
+        },
+        {
+          "phase": "outdoor/theme/light",
+          "ms": 7.600000001490116
+        },
+        {
+          "phase": "outdoor/camera/raised",
+          "ms": 2.699999999254942
+        },
+        {
+          "phase": "outdoor/camera/bev",
+          "ms": 1.8999999985098839
+        },
+        {
+          "phase": "outdoor/camera/default",
+          "ms": 2.599999997764826
+        },
+        {
+          "phase": "outdoor/vehicle/x6",
+          "ms": 49.5
+        },
+        {
+          "phase": "outdoor/vehicle/ix",
+          "ms": 48.099999997764826
+        },
+        {
+          "phase": "outdoor/vehicle/xc90",
+          "ms": 47.80000000074506
+        },
+        {
+          "phase": "outdoor/vehicle/model-3",
+          "ms": 15.699999999254942
+        },
+        {
+          "phase": "scene/road",
+          "ms": 213.19999999925494
+        },
+        {
+          "phase": "road/traffic/true",
+          "ms": 8.899999998509884
+        },
+        {
+          "phase": "road/traffic/false",
+          "ms": 3
+        },
+        {
+          "phase": "road/path/true",
+          "ms": 9.199999999254942
+        },
+        {
+          "phase": "road/path/false",
+          "ms": 3.699999999254942
+        },
+        {
+          "phase": "road/theme/dark",
+          "ms": 42.79999999701977
+        },
+        {
+          "phase": "road/theme/light",
+          "ms": 8.300000000745058
+        },
+        {
+          "phase": "road/camera/high",
+          "ms": 17.300000000745058
+        },
+        {
+          "phase": "road/camera/low",
+          "ms": 16.699999999254942
+        },
+        {
+          "phase": "road/weather/snow",
+          "ms": 2.800000000745058
+        },
+        {
+          "phase": "road/weather/rain",
+          "ms": 2.800000000745058
+        },
+        {
+          "phase": "road/weather/default",
+          "ms": 2.699999999254942
+        },
+        {
+          "phase": "road/lanes/2",
+          "ms": 20.199999999254942
+        },
+        {
+          "phase": "road/lanes/4",
+          "ms": 12.900000002235174
+        },
+        {
+          "phase": "road/lanes/6",
+          "ms": 16.199999999254942
+        },
+        {
+          "phase": "road/buildings/true",
+          "ms": 16
+        },
+        {
+          "phase": "road/buildings/false",
+          "ms": 9.899999998509884
+        },
+        {
+          "phase": "road/trees/true",
+          "ms": 17.800000000745058
+        },
+        {
+          "phase": "road/trees/false",
+          "ms": 5.699999999254942
+        },
+        {
+          "phase": "road/waterfront/true",
+          "ms": 19.599999997764826
+        },
+        {
+          "phase": "road/waterfront/false",
+          "ms": 13.199999999254942
+        },
+        {
+          "phase": "road/roadworks/true",
+          "ms": 13.199999999254942
+        },
+        {
+          "phase": "road/roadworks/false",
+          "ms": 16
+        },
+        {
+          "phase": "road/vehicle/x6",
+          "ms": 30.800000000745058
+        },
+        {
+          "phase": "road/vehicle/ix",
+          "ms": 172.30000000074506
+        },
+        {
+          "phase": "road/vehicle/xc90",
+          "ms": 42.5
+        },
+        {
+          "phase": "road/vehicle/model-3",
+          "ms": 9.899999998509884
+        },
+        {
+          "phase": "scene/elevated",
+          "ms": 378.29999999701977
+        },
+        {
+          "phase": "elevated/traffic/true",
+          "ms": 8.599999997764826
+        },
+        {
+          "phase": "elevated/traffic/false",
+          "ms": 3.300000000745058
+        },
+        {
+          "phase": "elevated/path/true",
+          "ms": 7.5
+        },
+        {
+          "phase": "elevated/path/false",
+          "ms": 5.899999998509884
+        },
+        {
+          "phase": "elevated/theme/dark",
+          "ms": 25.699999999254942
+        },
+        {
+          "phase": "elevated/theme/light",
+          "ms": 7.899999998509884
+        },
+        {
+          "phase": "elevated/camera/high",
+          "ms": 18.399999998509884
+        },
+        {
+          "phase": "elevated/camera/low",
+          "ms": 15.800000000745058
+        },
+        {
+          "phase": "elevated/weather/snow",
+          "ms": 3.199999999254942
+        },
+        {
+          "phase": "elevated/weather/rain",
+          "ms": 3.100000001490116
+        },
+        {
+          "phase": "elevated/weather/default",
+          "ms": 3.399999998509884
+        },
+        {
+          "phase": "elevated/vehicle/x6",
+          "ms": 34.19999999925494
+        },
+        {
+          "phase": "elevated/vehicle/ix",
+          "ms": 37.399999998509884
+        },
+        {
+          "phase": "elevated/vehicle/xc90",
+          "ms": 36.80000000074506
+        },
+        {
+          "phase": "elevated/vehicle/model-3",
+          "ms": 14.199999999254942
+        },
+        {
+          "phase": "scene/ramp",
+          "ms": 346.5
+        },
+        {
+          "phase": "ramp/traffic/true",
+          "ms": 5.5
+        },
+        {
+          "phase": "ramp/traffic/false",
+          "ms": 4.300000000745058
+        },
+        {
+          "phase": "ramp/path/true",
+          "ms": 8
+        },
+        {
+          "phase": "ramp/path/false",
+          "ms": 6.600000001490116
+        },
+        {
+          "phase": "ramp/theme/dark",
+          "ms": 44.900000002235174
+        },
+        {
+          "phase": "ramp/theme/light",
+          "ms": 24.600000001490116
+        },
+        {
+          "phase": "ramp/camera/high",
+          "ms": 17
+        },
+        {
+          "phase": "ramp/camera/low",
+          "ms": 16.699999999254942
+        },
+        {
+          "phase": "ramp/weather/snow",
+          "ms": 4.699999999254942
+        },
+        {
+          "phase": "ramp/weather/rain",
+          "ms": 2.7999999970197678
+        },
+        {
+          "phase": "ramp/weather/default",
+          "ms": 3.2000000029802322
+        },
+        {
+          "phase": "ramp/layout/07",
+          "ms": 350.30000000074506
+        },
+        {
+          "phase": "ramp/layout/06",
+          "ms": 221.69999999925494
+        },
+        {
+          "phase": "ramp/vehicle/x6",
+          "ms": 42.600000001490116
+        },
+        {
+          "phase": "ramp/vehicle/ix",
+          "ms": 39.900000002235174
+        },
+        {
+          "phase": "ramp/vehicle/xc90",
+          "ms": 42.100000001490116
+        },
+        {
+          "phase": "ramp/vehicle/model-3",
+          "ms": 19.300000000745058
+        },
+        {
+          "phase": "scene/junction",
+          "ms": 313.8999999985099
+        },
+        {
+          "phase": "junction/traffic/true",
+          "ms": 9.599999997764826
+        },
+        {
+          "phase": "junction/traffic/false",
+          "ms": 3.699999999254942
+        },
+        {
+          "phase": "junction/path/true",
+          "ms": 9.600000001490116
+        },
+        {
+          "phase": "junction/path/false",
+          "ms": 8.600000001490116
+        },
+        {
+          "phase": "junction/theme/dark",
+          "ms": 45
+        },
+        {
+          "phase": "junction/theme/light",
+          "ms": 7.5
+        },
+        {
+          "phase": "junction/layout/05",
+          "ms": 229.10000000149012
+        },
+        {
+          "phase": "junction/layout/08",
+          "ms": 286.9000000022352
+        },
+        {
+          "phase": "junction/vehicle/x6",
+          "ms": 64.39999999850988
+        },
+        {
+          "phase": "junction/vehicle/ix",
+          "ms": 49.69999999925494
+        },
+        {
+          "phase": "junction/vehicle/xc90",
+          "ms": 52.30000000074506
+        },
+        {
+          "phase": "junction/vehicle/model-3",
+          "ms": 17.899999998509884
+        },
+        {
+          "phase": "repeat/parking",
+          "ms": 297.19999999925494
+        },
+        {
+          "phase": "repeat/parking/traffic/on/0",
+          "ms": 45.19999999925494
+        },
+        {
+          "phase": "repeat/parking/traffic/off/0",
+          "ms": 3.5
+        },
+        {
+          "phase": "repeat/parking/traffic/on/1",
+          "ms": 10
+        },
+        {
+          "phase": "repeat/parking/traffic/off/1",
+          "ms": 4.899999998509884
+        },
+        {
+          "phase": "repeat/parking/traffic/on/2",
+          "ms": 10.5
+        },
+        {
+          "phase": "repeat/parking/traffic/off/2",
+          "ms": 5.200000002980232
+        },
+        {
+          "phase": "repeat/outdoor",
+          "ms": 336.0999999977648
+        },
+        {
+          "phase": "repeat/outdoor/traffic/on/0",
+          "ms": 45.100000001490116
+        },
+        {
+          "phase": "repeat/outdoor/traffic/off/0",
+          "ms": 3.900000002235174
+        },
+        {
+          "phase": "repeat/outdoor/traffic/on/1",
+          "ms": 9.5
+        },
+        {
+          "phase": "repeat/outdoor/traffic/off/1",
+          "ms": 4
+        },
+        {
+          "phase": "repeat/outdoor/traffic/on/2",
+          "ms": 10.800000000745058
+        },
+        {
+          "phase": "repeat/outdoor/traffic/off/2",
+          "ms": 4.300000000745058
+        },
+        {
+          "phase": "repeat/road",
+          "ms": 204.80000000074506
+        },
+        {
+          "phase": "repeat/road/traffic/on/0",
+          "ms": 9.699999999254942
+        },
+        {
+          "phase": "repeat/road/traffic/off/0",
+          "ms": 5.699999999254942
+        },
+        {
+          "phase": "repeat/road/traffic/on/1",
+          "ms": 9.300000000745058
+        },
+        {
+          "phase": "repeat/road/traffic/off/1",
+          "ms": 5.300000000745058
+        },
+        {
+          "phase": "repeat/road/traffic/on/2",
+          "ms": 8.900000002235174
+        },
+        {
+          "phase": "repeat/road/traffic/off/2",
+          "ms": 3.800000000745058
+        },
+        {
+          "phase": "repeat/elevated",
+          "ms": 210.39999999850988
+        },
+        {
+          "phase": "repeat/elevated/traffic/on/0",
+          "ms": 9.799999997019768
+        },
+        {
+          "phase": "repeat/elevated/traffic/off/0",
+          "ms": 4.200000002980232
+        },
+        {
+          "phase": "repeat/elevated/traffic/on/1",
+          "ms": 9.800000000745058
+        },
+        {
+          "phase": "repeat/elevated/traffic/off/1",
+          "ms": 4.600000001490116
+        },
+        {
+          "phase": "repeat/elevated/traffic/on/2",
+          "ms": 11.599999997764826
+        },
+        {
+          "phase": "repeat/elevated/traffic/off/2",
+          "ms": 4.099999997764826
+        },
+        {
+          "phase": "repeat/ramp",
+          "ms": 210.40000000223517
+        },
+        {
+          "phase": "repeat/ramp/traffic/on/0",
+          "ms": 3.2000000029802322
+        },
+        {
+          "phase": "repeat/ramp/traffic/off/0",
+          "ms": 3.600000001490116
+        },
+        {
+          "phase": "repeat/ramp/traffic/on/1",
+          "ms": 8.099999997764826
+        },
+        {
+          "phase": "repeat/ramp/traffic/off/1",
+          "ms": 4
+        },
+        {
+          "phase": "repeat/ramp/traffic/on/2",
+          "ms": 8.400000002235174
+        },
+        {
+          "phase": "repeat/ramp/traffic/off/2",
+          "ms": 5.199999999254942
+        },
+        {
+          "phase": "repeat/junction",
+          "ms": 216.80000000074506
+        },
+        {
+          "phase": "repeat/junction/traffic/on/0",
+          "ms": 8.199999999254942
+        },
+        {
+          "phase": "repeat/junction/traffic/off/0",
+          "ms": 5.100000001490116
+        },
+        {
+          "phase": "repeat/junction/traffic/on/1",
+          "ms": 9.699999999254942
+        },
+        {
+          "phase": "repeat/junction/traffic/off/1",
+          "ms": 6.099999997764826
+        },
+        {
+          "phase": "repeat/junction/traffic/on/2",
+          "ms": 7.899999998509884
+        },
+        {
+          "phase": "repeat/junction/traffic/off/2",
+          "ms": 5.800000000745058
+        }
+      ],
+      "call_summary": {
+        "instrumented_boundaries": 641,
+        "largest_boundaries": [
+          {
+            "phase": "outdoor/traffic/true/renderFrame",
+            "n": 12,
+            "total": 77.80000000447035,
+            "max": 45.30000000074506
+          },
+          {
+            "phase": "repeat/outdoor/traffic/on/0/renderFrame",
+            "n": 13,
+            "total": 75.69999999180436,
+            "max": 40.29999999701977
+          },
+          {
+            "phase": "repeat/parking/traffic/on/0/renderFrame",
+            "n": 13,
+            "total": 71.99999999627471,
+            "max": 39.80000000074506
+          },
+          {
+            "phase": "ramp/layout/07/rampStep1",
+            "n": 1,
+            "total": 39.19999999925494,
+            "max": 39.19999999925494
+          },
+          {
+            "phase": "ramp/layout/07/buildStep2",
+            "n": 1,
+            "total": 39.19999999925494,
+            "max": 39.19999999925494
+          },
+          {
+            "phase": "scene/ramp/rampStep1",
+            "n": 1,
+            "total": 34.30000000074506,
+            "max": 34.30000000074506
+          },
+          {
+            "phase": "scene/ramp/buildStep2",
+            "n": 1,
+            "total": 34.30000000074506,
+            "max": 34.30000000074506
+          },
+          {
+            "phase": "parking/traffic/true/renderFrame",
+            "n": 12,
+            "total": 62.00000000745058,
+            "max": 32.600000001490116
+          },
+          {
+            "phase": "parking/traffic/false/render",
+            "n": 12,
+            "total": 28.899999998509884,
+            "max": 28.399999998509884
+          },
+          {
+            "phase": "outdoor/traffic/true/render",
+            "n": 120,
+            "total": 67.99999999627471,
+            "max": 26.5
+          },
+          {
+            "phase": "repeat/outdoor/traffic/on/0/render",
+            "n": 130,
+            "total": 66.99999999254942,
+            "max": 23
+          },
+          {
+            "phase": "repeat/parking/traffic/on/0/render",
+            "n": 143,
+            "total": 61.8999999910593,
+            "max": 21.800000000745058
+          },
+          {
+            "phase": "ramp/theme/light/renderFrame",
+            "n": 2,
+            "total": 18.5,
+            "max": 18
+          },
+          {
+            "phase": "parking/traffic/true/render",
+            "n": 132,
+            "total": 53.900000005960464,
+            "max": 17.900000002235174
+          },
+          {
+            "phase": "scene/outdoor/buildStep1",
+            "n": 1,
+            "total": 16,
+            "max": 16
+          }
+        ]
+      }
+    }
+  ],
+  "baseline": {
+    "startup_long_task_ms": 145,
+    "startup_renderFrame_ms": 138.6,
+    "alternate_ramp_build_ms": 53.2,
+    "first_x6_renderFrame_ms": 419,
+    "intermediate_outdoor_first_traffic_ms": 60
+  },
+  "rendered_validation": {
+    "method": "Native browser screenshots of a separate sampled-frame gallery; gallery encoding timing excluded from normal matrix results.",
+    "frames": "Indoor light/dark 40/90/180/450ms, off and interrupted-off; native pillar overlap, intact proportions and ground emergence inspected. Road 2/4/6 lanes and High, Elevated, Ramp06/07 geometry/bounds gallery inspected.",
+    "evidence_directory": "outputs/startup-sweep-20261027",
+    "screenshots": [
+      "candidate-gallery-1.png",
+      "gallery-dark-entry.png",
+      "gallery-dark-40-90.png",
+      "gallery-dark-off-road2.png",
+      "gallery-road-lanes.png",
+      "gallery-elevated-ramp.png"
+    ]
+  },
+  "limits": [
+    "Local HTTP and current desktop WebGL environment; not a public cold-network latency or GPU FPS measurement.",
+    "Long Task threshold is 50ms; smaller frame misses remain possible. Largest measured first-matrix Traffic draw43.4ms and Ramp construction step38.2ms are retained in the raw calls.",
+    "Roadworks control is disabled in current product; programmatic no-op calls are not functional validation. Path toggles are covered by the extended run.",
+    "Visual acceptance remains with user; sampled frames are not high-speed compositor recording."
+  ],
+  "publication": "pending",
+  "user_acceptance": null
+}

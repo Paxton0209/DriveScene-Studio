@@ -57,6 +57,7 @@ export function patchApp(source){
  source=replace(source,"maxEntries:matchMedia('(max-width:760px)').matches?2:4","maxEntries:window.parent.matchMedia('(max-width:760px)').matches?2:4");
  source=replace(source,'preparationQueue.then(()=>prepareVehicleChoice(world,car))','preparationQueue.then(()=>{world.draftPrepareVehicle?.(car);return prepareVehicleChoice(world,car);})');
  source=replace(source,"delete preview.dataset.loadError;world.setVehicle(car,", "delete preview.dataset.loadError;world.draftPrepareVehicle?.(car);world.setVehicle(car,");
+ source=replace(source,"mark('update');world.renderFrame();mark('frame');","mark('update');await world.draftPrepareAppearance?.();world.renderFrame();mark('frame');");
  source=replace(source,"(['05','08','06','07'].includes(world.state?.id)&&!!world.cameraMotion)","(world.draftManaged?!!world.draftJunctionPlaying?.():['05','08','06','07'].includes(world.state?.id)&&!!world.cameraMotion)");
  source="import {previewPixels} from '../ui-draft/pixel-resolution.js';\nimport {installDraftBridge,makeRandom} from '../ui-draft/engine-bridge.js';\n"+source;
  source=replace(source,"function previewResolution(){const mobile=matchMedia('(max-width:760px)').matches;const width=Math.min(mobile?1280:1440,Math.max(640,Math.ceil(preview.clientWidth*Math.min(devicePixelRatio||1,2)/16)*16));return [width,Math.round(width*9/16)];}","function previewResolution(){const raster=previewPixels(preview.clientWidth,devicePixelRatio,window.parent.visualViewport?.scale??1);return [raster.width,raster.height];}");
@@ -67,6 +68,9 @@ export function patchApp(source){
  source=replace(source,"continuousDrive.setPlaying(['road','elevated'].includes(selected));","if(!world.draftManaged)continuousDrive.setPlaying(['road','elevated'].includes(selected)&&!matchMedia('(prefers-reduced-motion: reduce)').matches);");
  source=replace(source,"if(key==='layout'){document.querySelector('[data-layout=\"'+value+'\"]')?.click();return;}","if(key==='layout'){preferences.get(selected).id=value;render(true,false,'draft');return;}");
  source=replace(source,"if(key==='path'&&!value&&driveArmTimer)","if(key==='path'&&!value&&driveArmTimer&&!world.draftManaged)");
+ // Managed previews already publish state and draw through the bridge. Avoid
+ // a second full render and vertex-projection audit in the Traffic click task.
+ source=replace(source,"if(key==='traffic'){trafficSystem?.setEnabled(value);world.renderFrame();preview.dataset.audit=JSON.stringify(world.audit());return;}","if(key==='traffic'){trafficSystem?.setEnabled(value);if(!world.draftManaged){world.renderFrame();preview.dataset.audit=JSON.stringify(world.audit());}return;}");
  source=replace(source,"param(key,value){document.documentElement.dataset.choiceInput='pointer';","param(key,value,{sound=false,animate=true}={}){document.documentElement.dataset.choiceInput='pointer';");
  source=replace(source,"if(key==='path'&&!query.has('qa')","if(sound&&key==='path'&&!query.has('qa')");
  source=replace(source,'playPathSound,stopPathSound','playPathSound,playPathExitSound,stopPathSound');
@@ -83,6 +87,12 @@ export function patchApp(source){
  // old scene render followed by one render/two RAFs for every saved parameter.
  source=replace(source,'if(vehicleReady&&!versionFeatures.animating()','if(!world.draftManaged&&vehicleReady&&!versionFeatures.animating()');
  source=replace(source,' warmVehicle,',` warmVehicle,
+ async prepareDraftLayout(value){
+  preferences.get(selected).id=value;
+  const previousRoot=world.root,initializing=world.initializingScene;world.initializingScene=true;
+  try{await world.prepareInitialScene(state());}finally{world.initializingScene=initializing;}
+  render(true,false,'draft');if(world.root!==previousRoot)world.continuousDrive?.rebind();
+ },
  async prepareDraftScene(key,values){
   if(!preferences.has(key))throw Error('Unknown draft scene');
   cancelDriveArming();continuousDrive?.reset();selected=key;
@@ -361,8 +371,25 @@ export function isolatedRuntimePlugin(){return {name:'isolated-ui-draft',setup(b
   // Preparation records mirror passes before its final shadow draw. Discard
   // that vehicle capture with the existing ground capture invalidation.
   source=replace(source,'this.reflectionSceneRoot=null;this.preparedRoots.add(this.root);','this.reflectionSceneRoot=null;this.carReflectionKey=null;this.preparedRoots.add(this.root);');
+  // Initial scene suspension also covered the hand-off draw. A skipped draw
+  // disposed every warmed program before live materials could acquire it.
+  source=replace(source,' renderPreparedFrame(){\n  const prior=[];', ' renderPreparedFrame(){\n  const suspended=this.suspended;this.suspended=false;\n  const prior=[];');
+  source=replace(source,'finally{for(const [object,visible,culled]of prior)', 'finally{this.suspended=suspended;for(const [object,visible,culled]of prior)');
+
  }
  source=refineIndoorFinish(name,refineFigma(name,source));
+ if(name==='world.js'){
+  // Use the same construction path for synchronous callers and sliced scene
+  // preparation. Yield only after a complete independent geometry operation.
+  source=replace(source,'{installRampCurbs,rampNose,','{installRampCurbs,rampCurbSteps,rampNose,');
+  source=replace(source,' ramp(id,w){',' ramp(id,w){for(const step of this.rampSteps(id,w)){} }\n *rampSteps(id,w){');
+  source=replace(source,'   this.ramp(id,w);','   yield* this.rampSteps(id,w);');
+  source=replace(source,"shape.closePath();this.flatShape(shape,.015,'road');","shape.closePath();yield;this.flatShape(shape,.015,'road');yield;");
+  source=replace(source,"this.pathRibbon(inset(outer),.13,.028,'white');","this.pathRibbon(inset(outer),.13,.028,'white');yield;");
+  source=replace(source,'  const startTangent=nose.getTangent(0)', '  yield;const startTangent=nose.getTangent(0)');
+  source=replace(source,'installRampCurbs(this,inner,outer,sign);installRampPassage(this,id,w,draftRampStart,join);', 'yield* rampCurbSteps(this,inner,outer,sign);installRampPassage(this,id,w,draftRampStart,join);yield;');
+ }
+
  if(name==='traffic-vehicle.js'){
   source="import {createTrafficReveal,applyTrafficGrowth,trafficEntryOpacity} from '../ui-draft/traffic-reveal.js';\n"+source;
   source=replace(source,"const group=new THREE.Group();group.name='Traffic vehicles';", "const reveal=createTrafficReveal({enabled,now});const group=new THREE.Group();group.name='Traffic vehicles';");
