@@ -21,7 +21,7 @@ const api=()=>frame.contentWindow.layoutEngine,bridge=()=>api().draft,board=()=>
 const vehicles=[['model-3','Tesla Model 3'],['x6','BMW X6'],['ix','BMW iX'],['xc90','Volvo XC90']],thumb=id=>`./vehicles/cropped/${id}.png`;
 function persist(){try{localStorage.setItem(storageKey,JSON.stringify(project))}catch{feedback('Settings could not be saved')}}
 function feedback(text){$('feedback').textContent=text;$('feedback').hidden=!text}
-function syncExportControls(){const format=syncExportFormat($('format'),$('video-duration'),project.active,{videoAvailable});if(!exporting)$('export').disabled=!ready||previewBusy||sceneUpdating||vehicleUpdating||format==='video'&&!videoReady;return format;}
+function syncExportControls(){const format=syncExportFormat($('format'),$('video-duration'),project.active,{videoAvailable});if(!exporting&&!sceneUpdating)$('export').disabled=!ready||previewBusy||vehicleUpdating||format==='video'&&!videoReady;return format;}
 function replaceContent(element,content){if(element.innerHTML===content)return;const populated=!!element.innerHTML;element.getAnimations().forEach(animation=>animation.cancel());element.innerHTML=content;if(populated&&!reducedMotion())element.animate([{opacity:.2,filter:'blur(2px)'},{opacity:1,filter:'blur(0px)'}],{duration:160,easing:'ease-out'})}
 function renderTheme(){const dark=document.documentElement.dataset.theme==='dark';if(!$('theme').firstElementChild)replaceContent($('theme'),'<svg class="theme-icon" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><defs><mask id="draft-moon-cutout"><rect width="24" height="24" fill="white"/><circle class="moon-cutout" cx="25" cy="-2" r="6" fill="black"/></mask></defs><g mask="url(#draft-moon-cutout)"><circle class="sun-disc" cx="12" cy="12" r="4.5" fill="currentColor"/><g class="sun-rays" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></g></g></svg>');$('theme').setAttribute('aria-label',`Switch to ${dark?'light':'dark'} theme`);document.querySelectorAll('#ud-icAsph stop').forEach((stop,index)=>stop.setAttribute('stop-color',dark?['#7d8597','#535a6a'][index]:['#737b8d','#474e5d'][index]))}
 function renderNav(){let group='';$('scene-nav').innerHTML=icons.defs+sceneTypes.map(scene=>{const header=group===scene.group?'':`<div class="nav-title">${scene.group}</div>`;group=scene.group;return header+`<button class="scene-row" data-scene="${scene.id}" data-tip="${scene.label}" aria-label="${scene.label}" ${scene.id===project.active?'aria-current="page"':''}>${icons.nav[scene.icon||scene.id]}<span data-label="${scene.label}">${scene.label}</span></button>`}).join('');renderTheme();requestAnimationFrame(()=>moveNav(true))}
@@ -77,7 +77,7 @@ async function performScene(type,request){
     status=bridge().get({audit:false});renderInspector();renderTransport();
    }});
    if(request!==sceneRequest)return;
-   sceneReveal=null;sceneUpdating=false;$('theme').disabled=false;$('inspector-scroll').inert=false;$('scene-transport').disabled=false;
+   sceneReveal=null;sceneUpdating=false;syncExportControls();$('theme').disabled=false;$('inspector-scroll').inert=false;$('scene-transport').disabled=false;
    if($('export-preview').open)void refreshExportPreview();
   }
  }

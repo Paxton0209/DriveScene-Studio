@@ -9,7 +9,7 @@ test('Export cannot capture a partially restored scene or change themes during e
  assert.match(source,/finally\{exporting=false;lockControls\(false\)/);
  assert.match(source,/\$\('theme'\)\.disabled=busy/);
  assert.match(source,/await bridge\(\)\.param\('model',params\(\)\.model\)/);
- assert.match(source,/sceneUpdating=false;\$\('theme'\)\.disabled=false;\$\('inspector-scroll'\)\.inert=false/);
+ assert.match(source,/sceneUpdating=false;syncExportControls\(\);\$\('theme'\)\.disabled=false;\$\('inspector-scroll'\)\.inert=false/);
 });
 
 test('Discarded play, eye, checkbox and vehicle popover styles no longer ship in the workbench stylesheet',async()=>{
