@@ -130,7 +130,10 @@ export function patchVehicleMaterials(source){
 }
 
 export function patchLoadPrepared(source){
- source="import frameHulls from '../../../ui-draft/vehicles/framing-hulls.json';\n"+source;
+ source="import {takePrefetched} from '../../asset-request.js';\nimport frameHulls from '../../../ui-draft/vehicles/framing-hulls.json';\n"+source;
+ source=replace(source,'const response=await fetch(url,{signal});if(!response.ok)throw Error(`Vehicle download failed (${response.status})`);\n let bytes=await response.arrayBuffer();',`const early=globalThis.__draftPreparedVehicle;
+ const scope=early?.id===id?{request:early.request}:{};if(early?.id===id)delete globalThis.__draftPreparedVehicle;
+ let bytes=await takePrefetched('request',async()=>{const response=await fetch(url,{signal});if(!response.ok)throw Error(\`Vehicle download failed (\${response.status})\`);return response.arrayBuffer();},scope);`);
  return replace(source,'const surfaces=prepareVehicleMaterials(model,id,spec.length);',`const surfaces=await prepareVehicleMaterials(model,id,spec.length);
  const hulls=frameHulls[id],meshes=[];model.traverse(mesh=>{if(mesh.isMesh)meshes.push(mesh);});
  if(hulls?.length===meshes.length&&meshes.every((mesh,index)=>mesh.name===hulls[index].name&&mesh.geometry.attributes.position.count===hulls[index].count)){
@@ -160,18 +163,22 @@ const yieldToBrowser=`);
  // Scene switches suspend visible draws. Recording still needs to traverse the
  // incoming scene; restore suspension synchronously before preparation yields.
  source=replace(source,'try{world.renderFrame();}finally{renderer.renderBufferDirect=draw;',
-  'const suspended=world.suspended;try{world.suspended=false;world.renderFrame();}finally{world.suspended=suspended;renderer.renderBufferDirect=draw;');
- // Traffic fades change Three's opaque shader flag. Keep that variant on the
- // live material so disposing preparation copies cannot discard it again.
- source=replace(source,'jobs.push({camera,scene:contexts.get(targetScene),target:warmTarget,proxy,material:copy});',`jobs.push({camera,scene:contexts.get(targetScene),target:warmTarget,proxy,material:copy});
-  if(material.userData.trafficRole&&!material.transparent){
+  `const suspended=world.suspended,render=renderer.render;
+ renderer.render=function(...args){const passHidden=[],culled=[];scene.traverse(object=>{if(!object.visible){passHidden.push(object);object.visible=true;}if(object.isMesh&&object.frustumCulled){culled.push(object);object.frustumCulled=false;}});try{return render.apply(this,args);}finally{for(const object of passHidden)object.visible=false;for(const object of culled)object.frustumCulled=true;}};
+ try{world.suspended=false;world.renderFrame();}finally{world.suspended=suspended;renderer.render=render;renderer.renderBufferDirect=draw;`);
+ // Keep both traffic variants on the live material. Hidden cars do not take
+ // ownership of a program during the final frame, so disposing proxy copies
+ // would otherwise evict their base program before the first reveal.
+ source=replace(source,'if(material.isShaderMaterial){','if(material.userData.trafficRole||material.userData.draftTrafficPreparation)copy=material;else if(material.isShaderMaterial){');
+ source=replace(source,'jobs.push({camera,scene:contexts.get(targetScene),target:warmTarget,proxy,material:copy});',`jobs.push({camera,scene:contexts.get(targetScene),target:warmTarget,proxy,material:copy,liveMaterial:!!(material.userData.trafficRole||material.userData.draftTrafficPreparation)});
+  if(material.userData.trafficRole){
    const fading=clonePassObject(proxy);fading.material=material;
-   jobs.push({camera,scene:contexts.get(targetScene),target:warmTarget,proxy:fading,material,trafficFade:true});
+   jobs.push({camera,scene:contexts.get(targetScene),target:warmTarget,proxy:fading,material,liveMaterial:true,trafficFade:true,baseTransparent:material.transparent});
   }`);
- source=replace(source,'jobs.map(job=>job.material)','jobs.filter(job=>!job.trafficFade).map(job=>job.material)');
- source=replace(source,'const previous=renderer.getRenderTarget();renderer.setRenderTarget(job.target);','const previous=renderer.getRenderTarget(),transparent=job.material.transparent;if(job.trafficFade)job.material.transparent=true;renderer.setRenderTarget(job.target);');
+ source=replace(source,'jobs.map(job=>job.material)','jobs.filter(job=>!job.liveMaterial).map(job=>job.material)');
+ source=replace(source,'const previous=renderer.getRenderTarget();renderer.setRenderTarget(job.target);','const previous=renderer.getRenderTarget(),transparent=job.material.transparent;if(job.trafficFade)job.material.transparent=!job.baseTransparent;renderer.setRenderTarget(job.target);');
  source=replace(source,'job.proxy.removeFromParent();renderer.setRenderTarget(previous);}', 'job.proxy.removeFromParent();job.material.transparent=transparent;renderer.setRenderTarget(previous);}');
- source=replace(source,'const previous=renderer.getRenderTarget();\n  const viewport=', 'const previous=renderer.getRenderTarget(),transparent=job.material.transparent;if(job.trafficFade)job.material.transparent=true;\n  const viewport=');
+ source=replace(source,'const previous=renderer.getRenderTarget();\n  const viewport=', 'const previous=renderer.getRenderTarget(),transparent=job.material.transparent;if(job.trafficFade)job.material.transparent=!job.baseTransparent;\n  const viewport=');
  source=replace(source,'job.proxy.removeFromParent();renderer.setRenderTarget(previous);renderer.setViewport(viewport);','job.proxy.removeFromParent();job.material.transparent=transparent;renderer.setRenderTarget(previous);renderer.setViewport(viewport);');
  // The recorded jobs already contain the shadow passes. A one-pixel colour
  // warm draw must not allocate and redraw a full shadow atlas for every proxy.
@@ -185,6 +192,8 @@ const yieldToBrowser=`);
 export function isolatedRuntimePlugin(){return {name:'isolated-ui-draft',setup(build){build.onLoad({filter:/\/engine\/.*\.js$/},async args=>{
  let source=await readFile(args.path,'utf8');const name=args.path.split('/engine/').at(-1);
  if(name==='app.js')source=patchApp(source);
+ // The parent owns the visible vehicle selector; do not build a second hidden picker.
+ if(name==='vehicle-selector.js')source=replace(source," const element=(tag,className,text)=>"," if(new URLSearchParams(location.search).get('review')==='ui-draft')return {sync(){}};\n const element=(tag,className,text)=>");
  if(name==='vehicle-library/three/vehicle-materials.js')source=patchVehicleMaterials(source);
  if(name==='vehicle-library/three/load-prepared.js')source=patchLoadPrepared(source);
  if(name==='lane-geometry-cache.js')source=patchLaneGeometry(source);
@@ -272,6 +281,8 @@ export function isolatedRuntimePlugin(){return {name:'isolated-ui-draft',setup(b
 
  if(name==='traffic-model.js'){
   source="import {consolidateTrafficRear,refineTrafficBody} from '../ui-draft/traffic-surface.js';\n"+source;
+  source="import {takePrefetched} from './asset-request.js';\n"+source;
+  source=replace(source,"if(!bytes){const response=await fetch(new URL('../engine/assets/traffic-model-y.json.gz?v=1',import.meta.url));if(!response.ok)throw Error('Traffic model could not load');bytes=await response.arrayBuffer();}","if(!bytes)bytes=await takePrefetched('__draftTrafficRequest',async()=>{const response=await fetch(new URL('../engine/assets/traffic-model-y.json.gz?v=1',import.meta.url));if(!response.ok)throw Error('Traffic model could not load');return response.arrayBuffer();});");
   source=replace(source,"../engine/assets/traffic-model-y.json.gz?v=1","../ui-draft/traffic-model-y.prepared.json.gz?v=transport121");
   source=replace(source,'const data=JSON.parse(text),template=', 'let data=JSON.parse(text);if(!data.draftBodySurface)data=refineTrafficBody(consolidateTrafficRear(data));const template=');
   source=source.replace('a*.36*visibility','a*.55*visibility');

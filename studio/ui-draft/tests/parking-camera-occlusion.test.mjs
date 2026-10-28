@@ -45,7 +45,8 @@ test('Camera framing distance remains continuous while a far bay crosses a scree
 
 test('Parking traffic carries persistent transparency ownership and renders above contact AO',()=>{
  const root=new THREE.Group(),parking=new THREE.Group(),car=new THREE.Group();car.userData.trafficVehicle=true;
- const mesh=new THREE.Mesh(new THREE.BoxGeometry(2,2,4),new THREE.MeshPhysicalMaterial());car.add(mesh);parking.add(car);
+ const original=new THREE.MeshPhysicalMaterial();original.parkingReferenceShade={value:new THREE.Vector3(1,1,1)};original.customProgramCacheKey=()=> 'parking-shade';
+ const mesh=new THREE.Mesh(new THREE.BoxGeometry(2,2,4),original);car.add(mesh);parking.add(car);
  const camera=new THREE.PerspectiveCamera();camera.position.set(0,2,10);
  updateParkingOcclusion({root,car:new THREE.Group(),camera,draftTime:0},parking);
  assert.equal(mesh.material.userData.draftOcclusion,true);
@@ -175,4 +176,15 @@ test('Translucent pillars composite after entering traffic while vehicle depth r
  assert.ok(pillar.renderOrder>body.renderOrder);assert.equal(pillar.material.depthTest,true);assert.equal(pillar.material.depthWrite,false);
  const shell=body.children.find(o=>o.userData.draftOcclusionDepth);assert.equal(shell.visible,true);assert.equal(shell.material.transparent,false);assert.equal(shell.material.depthWrite,true);
  for(const progress of [.7,1]){vehicle.userData.draftTrafficEntryOpacity=progress;world.draftTime+=100;updateParkingOcclusion(world,parking);assert.ok(pillar.renderOrder>body.renderOrder);}
+});
+
+
+test('Disabled parking traffic owns final occlusion materials before its first reveal',()=>{
+ const root=new THREE.Group(),parking=new THREE.Group(),car=new THREE.Group();car.userData.trafficVehicle=true;car.visible=false;
+ const original=new THREE.MeshPhysicalMaterial();original.parkingReferenceShade={value:new THREE.Vector3(1,1,1)};original.customProgramCacheKey=()=> 'parking-shade';
+ const mesh=new THREE.Mesh(new THREE.BoxGeometry(2,2,4),original);car.add(mesh);parking.add(car);
+ const camera=new THREE.PerspectiveCamera();camera.position.set(0,2,10);const world={root,car:new THREE.Group(),camera,draftTime:0};
+ updateParkingOcclusion(world,parking);const prepared=mesh.material;
+ assert.equal(prepared.userData.draftOcclusion,true);assert.equal(prepared.parkingReferenceShade,original.parkingReferenceShade);assert.equal(prepared.customProgramCacheKey(),'parking-shade-occlusion');assert.equal(car.visible,false);assert.equal(car.userData.draftOcclusionAlpha,1);
+ car.visible=true;updateParkingOcclusion(world,parking);assert.equal(mesh.material,prepared,'first enable reuses the prepared shader');
 });

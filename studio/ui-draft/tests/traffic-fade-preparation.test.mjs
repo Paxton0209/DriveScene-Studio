@@ -29,12 +29,12 @@ test('Existing preparation covers traffic fade on the live material and preserve
  const f=fixture(),before=f.materials.map(m=>m.toJSON());
  await prepareRenderer(f.world);
  for(const kind of ['compile','draw']){
-  const calls=f.calls.filter(c=>c.kind===kind);assert.equal(calls.length,4);
+  const calls=f.calls.filter(c=>c.kind===kind);assert.equal(calls.length,5);
   assert.equal(calls.filter(c=>c.material===f.materials[0]&&c.transparent).length,1,'fade variant retained on actual traffic material');
   assert.equal(calls.filter(c=>c.material===f.materials[1]).length,0,'ordinary scene materials remain preparation copies');
  }
  assert.deepEqual(f.materials.map(m=>m.toJSON()),before);
- assert.equal(f.world.preparedMaterials.length,3);
+ assert.equal(f.world.preparedMaterials.length,1);
  assert.ok(f.world.preparedMaterials.every(m=>!f.materials.includes(m)),'caller disposal only owns copies');
  assert.equal(f.hidden.visible,false);assert.equal(f.world.renderer.renderBufferDirect,f.draw);assert.equal(f.world.renderer.getRenderTarget(),f.target);
 });
@@ -53,8 +53,8 @@ test('Suspended scene switches still prepare all render jobs and restore suspens
  assert.equal(f.world.suspended,true,'suspension restored before the first asynchronous yield');
  assert.equal(f.world.renderer.renderBufferDirect,f.draw);
  await preparation;
- assert.equal(f.calls.filter(c=>c.kind==='compile').length,4);
- assert.equal(f.calls.filter(c=>c.kind==='draw').length,4);
+ assert.equal(f.calls.filter(c=>c.kind==='compile').length,5);
+ assert.equal(f.calls.filter(c=>c.kind==='draw').length,5);
  assert.equal(f.world.suspended,true);assert.equal(f.hidden.visible,false);
 });
 
@@ -89,4 +89,45 @@ for(const failDraw of [false,true])test(`Warm colour draws skip redundant shadow
  if(failDraw)await assert.rejects(prepareRenderer(f.world),/draw failure/);else await prepareRenderer(f.world);
  assert.equal(f.world.renderer.shadowMap.autoUpdate,true);assert.equal(f.world.renderer.shadowMap.needsUpdate,true);
  assert.equal(f.world.renderer.getRenderTarget(),f.target);assert.equal(f.materials[0].transparent,false);
+});
+
+test('Disabled traffic is recorded after scene synchronization hides it again, then restored before yielding',async()=>{
+ const f=fixture(),material=new THREE.MeshPhysicalMaterial();material.userData.trafficRole='paint';
+ f.hidden.add(new THREE.Mesh(new THREE.PlaneGeometry(),material));
+ const render=f.world.renderer.render;
+ f.world.renderer.render=function(context,camera){
+  if(context!==f.world.scene)return render.call(this,context,camera);
+  context.traverseVisible(mesh=>{if(mesh.isMesh)this.renderBufferDirect(camera,context,mesh.geometry,mesh.material,mesh);});
+ };
+ const originalRender=f.world.renderer.render;
+ f.world.renderFrame=function(){f.hidden.visible=false;this.renderer.render(this.scene,new THREE.PerspectiveCamera());};
+ const preparation=prepareRenderer(f.world);
+ assert.equal(f.hidden.visible,false);assert.equal(f.world.renderer.render,originalRender);
+ await preparation;
+ assert.ok(f.calls.some(call=>call.kind==='compile'&&call.material===material&&call.transparent));
+ assert.equal(f.hidden.visible,false);assert.equal(f.world.renderer.render,originalRender);
+});
+
+
+test('Traffic created during scene synchronization is prepared and remains hidden afterward',async()=>{
+ const f=fixture(),material=new THREE.MeshPhysicalMaterial();material.userData.trafficRole='paint';
+ const car=new THREE.Group();car.visible=false;car.add(new THREE.Mesh(new THREE.PlaneGeometry(),material));
+ const render=f.world.renderer.render;f.world.renderer.render=function(context,camera){if(context!==f.world.scene)return render.call(this,context,camera);context.traverseVisible(mesh=>{if(mesh.isMesh)this.renderBufferDirect(camera,context,mesh.geometry,mesh.material,mesh);});};
+ f.world.renderFrame=function(){if(this.suspended)return;this.scene.add(car);car.visible=false;this.renderer.render(this.scene,new THREE.PerspectiveCamera());};
+ await prepareRenderer(f.world);assert.equal(car.visible,false);assert.ok(f.calls.some(c=>c.material===material),'new hidden traffic has a retained warm job');
+});
+
+test('Recording disables frustum culling for hidden traffic and restores it before yielding',async()=>{
+ const f=fixture(),mesh=f.world.scene.children.find(o=>o.isMesh),render=f.world.renderer.render;
+ f.world.renderer.render=function(context,camera){if(context!==f.world.scene)return render.call(this,context,camera);assert.equal(mesh.frustumCulled,false);this.renderBufferDirect(camera,context,mesh.geometry,mesh.material,mesh);};
+ f.world.renderFrame=function(){this.renderer.render(this.scene,new THREE.PerspectiveCamera());};
+ const preparation=prepareRenderer(f.world);assert.equal(mesh.frustumCulled,true);await preparation;assert.equal(mesh.frustumCulled,true);
+ for(const kind of ['compile','draw'])assert.ok(f.calls.some(c=>c.kind===kind&&c.material===f.materials[0]&&!c.transparent),'base shader retained on live traffic');
+});
+
+test('Reflection-pass visibility is restored within the pass before the world restores its environment',async()=>{
+ const f=fixture(),floor=f.world.scene.children.find(o=>o.isMesh),render=f.world.renderer.render;
+ f.world.renderer.render=function(context,camera){if(context!==f.world.scene)return render.call(this,context,camera);context.traverseVisible(mesh=>{if(mesh.isMesh)this.renderBufferDirect(camera,context,mesh.geometry,mesh.material,mesh);});};
+ f.world.renderFrame=function(){const previous=floor.visible;floor.visible=false;this.renderer.render(this.scene,new THREE.PerspectiveCamera());assert.equal(floor.visible,false,'reflection exclusion survives its warm render');floor.visible=previous;this.renderer.render(this.scene,new THREE.PerspectiveCamera());};
+ const preparation=prepareRenderer(f.world);assert.equal(floor.visible,true,'environment survives recording');await preparation;assert.equal(floor.visible,true);
 });

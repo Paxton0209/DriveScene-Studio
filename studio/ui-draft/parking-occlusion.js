@@ -10,10 +10,10 @@ export function updateParkingOcclusion(world,parking,target,route=[]){
  for(const object of parking.children)if(object.userData.trafficVehicle&&!state.items.some(i=>i.object===object))state.items.push({object,box:new THREE.Box3().setFromObject(object),alpha:1,materials:null});
  const center=world.car.position.clone().add(new THREE.Vector3(0,.8,0)),targets=[center,...[-.8,.8].flatMap(x=>[-1.6,1.6].map(z=>new THREE.Vector3(x,.5,z).applyAxisAngle(new THREE.Vector3(0,1,0),world.car.rotation.y).add(world.car.position))),...route];if(target)targets.push(new THREE.Vector3(target.x,.05,target.z));
  const time=world.draftTime??0,dt=Math.min(.1,Math.max(.016,(time-state.time)/1000));state.time=time;
- for(const item of state.items){const o=item.object;if(!o.visible)continue;
+ for(const item of state.items){const o=item.object;if(!o.visible&&!o.userData.trafficVehicle)continue;
   // Reveal moves each tree vertically; keep its existing box on the live tree.
   if(o.parent===world.vegetation||o.userData.trafficVehicle&&((o.userData.draftTrafficGrowth??1)<1||item.growth!==o.userData.draftTrafficGrowth)){o.updateWorldMatrix(true,true);item.box.setFromObject(o);item.growth=o.userData.draftTrafficGrowth;}
-  const hit=targets.some(p=>{const direction=p.clone().sub(world.camera.position),length=direction.length();const intersection=new THREE.Ray(world.camera.position,direction.normalize()).intersectBox(item.box,new THREE.Vector3());return intersection&&intersection.distanceTo(world.camera.position)<length-.25;});
+  const hit=o.visible&&targets.some(p=>{const direction=p.clone().sub(world.camera.position),length=direction.length();const intersection=new THREE.Ray(world.camera.position,direction.normalize()).intersectBox(item.box,new THREE.Vector3());return intersection&&intersection.distanceTo(world.camera.position)<length-.25;});
   item.hit=hit;item.floor=o.userData.trafficVehicle?.90:.10;item.alpha=THREE.MathUtils.lerp(item.alpha,hit?item.floor:1,1-Math.exp(-dt*5));
   if(!item.materials){
    item.materials=[];
@@ -21,7 +21,7 @@ export function updateParkingOcclusion(world,parking,target,route=[]){
     if(!mesh.isMesh||mesh.userData.trafficShadow||mesh.userData.draftOcclusionDepth)return;
     const patch=original=>{
      const existing=materialRecords.get(original);if(existing){item.materials.push(existing);return original;}
-     const m=original.clone(),uniform={value:1};if(original.isShaderMaterial)m.uniforms={...original.uniforms};
+     const m=original.clone(),uniform={value:1};if(original.parkingReferenceShade)m.parkingReferenceShade=original.parkingReferenceShade;if(original.isShaderMaterial)m.uniforms={...original.uniforms};
      m.onBeforeCompile=(shader,renderer)=>{original.onBeforeCompile.call(m,shader,renderer);shader.uniforms.draftOcclusion=uniform;shader.fragmentShader='uniform float draftOcclusion;\n'+shader.fragmentShader;shader.fragmentShader=shader.fragmentShader.replace(/}\s*$/,'gl_FragColor.a*=draftOcclusion;\n}');};
      m.customProgramCacheKey=()=>original.customProgramCacheKey()+'-occlusion';m.userData.draftOcclusion=true;m.transparent=true;m.depthWrite=false;
      // Blend translucent obstacles over the vehicle colour. Its opaque depth

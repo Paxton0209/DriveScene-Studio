@@ -1,0 +1,85 @@
+{
+  "runtime_version": "interaction-20261027",
+  "runtime_sha256": "31e13516d861641647ea4d08a1fd109979a34ad64a012607ef63074e308ed359",
+  "build": "passed",
+  "tests": {
+    "passed": 284,
+    "failed": 0
+  },
+  "scope": "studio/ui-draft only; shared engine source and approved geometry/normal values unchanged",
+  "changes": [
+    "Pack approved normal data with exact Float32 bit preservation; load encoder only on video choice.",
+    "Preload selected vehicle and traffic in parallel and skip hidden duplicate vehicle picker.",
+    "Yield a paint opportunity before heavy control work and drop superseded same-key intent.",
+    "Prepare and retain live traffic base/fade/depth shaders; preserve Parking shading uniforms through occlusion clones.",
+    "Restore reflection visibility within each recorded pass."
+  ],
+  "controlled_cold_start": {
+    "baseline_ms": 3041.7999999970198,
+    "candidate_ms": 2230.89999999851,
+    "conditions": "Native desktop WebKit, no-store local HTTP, 100ms delay per request and 16KiB per 4ms chunk. Single baseline and candidate observations; not public Internet TTFB or cross-device guarantee."
+  },
+  "runtime_bytes": {
+    "old_raw": 4297199,
+    "new_raw": 2276763,
+    "old_gzip9": 1207436,
+    "new_gzip9": 1072016
+  },
+  "actual_buttons": {
+    "count": 21,
+    "min_paint_opportunity_ms": 2.0999999940395355,
+    "max_paint_opportunity_ms": 14.899999998509884,
+    "long_tasks": [],
+    "errors": [],
+    "export_top": {
+      "before": 702,
+      "after": 702
+    },
+    "limit": "Paint opportunity measures input feedback scheduling, not completed scene transition or GPU frame rate. Individual instrumented draw boundary reached 47ms."
+  },
+  "exports": {
+    "png": {
+      "size": 1511563,
+      "audit": {
+        "format": "png",
+        "width": 1920,
+        "height": 1080,
+        "duration": 0,
+        "frames": 1,
+        "startDistance": 0,
+        "exportEndDistance": 0,
+        "extension": "png",
+        "wasPlaying": false
+      }
+    },
+    "video": {
+      "size": 67708,
+      "audit": {
+        "format": "video",
+        "width": 1920,
+        "height": 1080,
+        "duration": 0.1,
+        "frames": 3,
+        "startDistance": 3.360000000000001,
+        "exportEndDistance": 4.480000000000001,
+        "extension": "mp4",
+        "wasPlaying": true
+      }
+    },
+    "codec": "mp4"
+  },
+  "export_long_tasks": [
+    {
+      "phase": "parking-png-export",
+      "start": 49091.10000000149,
+      "duration": 62
+    }
+  ],
+  "native_visual_checks": [
+    "Indoor light and dark floor, bays, pillars and cars visible",
+    "Parking format menu excludes video",
+    "Six scene endpoints, camera, weather, Traffic, Buildings, Trees, Coast, both theme directions"
+  ],
+  "publication": "pending",
+  "user_acceptance": null
+}

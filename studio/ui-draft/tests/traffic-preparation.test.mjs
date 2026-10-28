@@ -33,6 +33,7 @@ test('Default traffic loading skips body preparation while explicit original byt
  const path=new URL('../../engine/traffic-model.js',import.meta.url);
  const {contents}=await load({path:path.pathname});
  const source=contents
+  .replace("from './asset-request.js'",`from '${new URL('../../engine/asset-request.js',import.meta.url).href}'`)
   .replace("from 'three'",`from '${import.meta.resolve('three')}'`)
   .replace("from 'three/addons/utils/BufferGeometryUtils.js'",`from '${import.meta.resolve('three/addons/utils/BufferGeometryUtils.js')}'`)
   .replace("from '../ui-draft/road-shadow-settings.js'",`from '${new URL('../road-shadow-settings.js',import.meta.url).href}'`)
@@ -44,6 +45,9 @@ test('Default traffic loading skips body preparation while explicit original byt
  const fetchBefore=globalThis.fetch,urls=[];
  globalThis.fetch=async url=>{urls.push(String(url));return new Response(preparedBytes);};
  try{
+  globalThis.__draftTrafficRequest=Promise.resolve(preparedBytes);
+  await module.readyTrafficModel(null,'prefetched');assert.equal(urls.length,0);assert.equal(globalThis.__draftTrafficRequest,undefined);
+  globalThis.__draftTrafficRequest=Promise.reject(Error('early request failed'));
   await module.readyTrafficModel(null,'prepared');
   assert.equal(module.refinements,0,'the normal browser path must not repeat static geometry work');
   assert.equal(urls.length,1);
