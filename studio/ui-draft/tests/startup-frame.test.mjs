@@ -25,7 +25,7 @@ test('Initial layout is synchronous; later resize frames preserve the same recta
     assert.deepEqual(style, first);
     assert.equal(resizes.length, 1);
   }
-  assert.ok(source.indexOf('\nlayoutBoard();') < source.indexOf("frame.src='./engine.html?"));
+  assert.ok(source.indexOf('\nlayoutBoard();') < source.indexOf("frame.srcdoc=engineDocument"));
 });
 test('Startup publication follows traffic, saved finish and immediate final raster sizing', async () => {
   const bridgeSource = await readFile(new URL('../engine-bridge.js', import.meta.url), 'utf8');
@@ -100,4 +100,16 @@ test('Startup waits for the Traffic suspension scope before publishing a running
  const finishing=run(()=>bridge,{traffic:true},()=>({}),()=>{},()=>{});
  await Promise.resolve();assert.equal(complete,false);
  release();await finishing;assert.equal(complete,true);assert.equal(world.suspended,false);
+});
+
+
+test('Embedded startup passes the selected query without borrowing the parent URL and publishes to the inherited origin',async()=>{
+ const html=await readFile(new URL('../engine.html',import.meta.url),'utf8');
+ const bootstrap=html.match(/<head><script>([^<]+)<\/script>/)[1];
+ const scope={};new Function('globalThis','window','location',bootstrap)(scope,{frameElement:{dataset:{search:'?scene=10&mode=dark&model=xc90&paused=1'}}},{search:'?qa=review'});
+ assert.equal(scope.__draftSearch,'?scene=10&mode=dark&model=xc90&paused=1');
+ const bridge=await readFile(new URL('../engine-bridge.js',import.meta.url),'utf8');
+ const body=bridge.match(/function publish\(\)\{([^\n]+)\}/)[1],sent=[];
+ new Function('window','get',body)({parent:{location:{origin:'https://example.test'},postMessage:(...args)=>sent.push(args)}},()=>({ready:true}));
+ assert.deepEqual(sent,[[{type:'ui-draft-status',value:{ready:true}},'https://example.test']]);
 });
