@@ -69,7 +69,7 @@ test('Only explicit Assist intent can request sound; restoration is silent by de
  const draft=await readFile(new URL('../draft.js',import.meta.url),'utf8');
  assert.match(draft,/applyParam\('path',true,true,\{sound:true\}\)/);
  assert.equal((draft.match(/sound:true/g)||[]).length,1);
- assert.match(draft,/ready=true;bridge\(\).param\('traffic',state.traffic\)/);
+ assert.match(draft,/ready=true;await bridge\(\).param\('traffic',state.traffic\)/);
 });
 
 

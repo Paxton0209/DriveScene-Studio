@@ -21,8 +21,8 @@ test('Desktop narrow embedded preview retains all four prepared models on repeat
  assert.equal(cache.stats().estimatedBytes,80*1024*1024);
 });
 
-test('Phone retains the two-model policy and active protection; desktop still respects memory cap',async()=>{
- assert.equal(await capacity(390,640),2);
+test('All viewports retain four startup choices; cache eviction still respects its memory cap',async()=>{
+ assert.equal(await capacity(390,640),4);
  for(const [maxEntries,bytes] of [[2,20*1024*1024],[4,60*1024*1024]]){
   const disposed=[];
   const cache=createVehicleCache({maxEntries,load:async id=>({id}),dispose:root=>disposed.push(root.id),estimate:()=>bytes});

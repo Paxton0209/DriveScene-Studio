@@ -6,6 +6,7 @@ export function installAppearancePreparation(world,prepareRenderer){
  // live animation suspended while independent warm jobs yield to input.
  world.draftPrepareAppearance=async()=>{
   if(preparedAppearances.get(world.root)?.has(appearanceKey()))return;
+  world.draftAppearancePreparations=(world.draftAppearancePreparations||0)+1;
   const initializing=world.initializingScene,suspended=world.suspended;
   world.initializingScene=true;world.suspended=false;
   try{const pending=prepareRenderer(world);world.suspended=true;await pending;world.renderPreparedFrame();}

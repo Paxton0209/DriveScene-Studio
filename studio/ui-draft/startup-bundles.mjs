@@ -19,11 +19,10 @@ export function startupBundlesPlugin(){return {name:'startup-payloads',setup(bui
 // Start requests during parent HTML parsing. The iframe consumes the promises;
 // direct iframe visits retain their normal fetch and transient-failure retry.
 export function startStartupAssets(scope=window){
- const q=new URLSearchParams(scope.location.search),qa=q.has('qa'),suffix=qa?'-qa'+(['','1'].includes(q.get('qa'))?'':'-'+q.get('qa')):'';
- let saved={};try{saved=JSON.parse(scope.localStorage.getItem('drivescene-ui-draft-project-v2'+suffix)||'{}')||{};}catch{}
- const active=['road','elevated','ramp','junction','parking','outdoor'].includes(saved.active)?saved.active:'road',requested=saved.shared?.model??saved.boards?.[active]?.params?.model;
- const model=['model-3','x6','ix','xc90'].includes(requested)?requested:'model-3';
+ // Every fresh Studio visit starts with the first vehicle in the strip.
+ const model='model-3';
  const urls=['../engine/assets/studio-environment.bin.gz?v=1','./traffic-model-y.prepared.json.gz?v=transport121',model==='x6'?'../engine/ego-vehicle-ready.glb.gz?v=17.9':`../engine/vehicle-library/prepared/${model}/model.glb.gz`];
+ scope.document.documentElement.dataset.startup='loading';
  const requests=scope.__draftStartupAssets=new Map();
  for(const path of urls){const url=new URL(path,scope.document.baseURI).href,controller=new AbortController(),timer=scope.setTimeout(()=>controller.abort(),30000);
   const request=scope.fetch(url,{priority:'high',signal:controller.signal}).then(response=>{if(!response.ok)throw Error('Scene asset could not load');return response.arrayBuffer()}).finally(()=>scope.clearTimeout(timer));

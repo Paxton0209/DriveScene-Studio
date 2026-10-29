@@ -2,6 +2,9 @@ function replace(source,from,to){const count=source.split(from).length-1;if(coun
 
 export function refineWorld(source){
  source="import {brakingSpeed,requestedJunctionTiming,junctionLiftStart} from '../ui-draft/junction-playback.js';\n"+source;
+ // Light-mode ground-level Driving roads: reduce material radiance by 10%.
+ // Apply after palette assignment so all palettes and theme restores agree.
+ source=replace(source,'  this.mat.environmentBuilding.color.copy(this.mat.building.color);',"  if(!dark&&['02','09','13'].includes(id))this.mat.road.color.multiplyScalar(.9);\n  this.mat.environmentBuilding.color.copy(this.mat.building.color);");
  // Bound water radiance independently from exposure and reflected sky.
  source=replace(source,"water:['#7695ae','#304146']","water:['#218fc1','#142733']");
  source=replace(source,'shader.uniforms.waterMix=this.waterMix;',"shader.uniforms.waterMix=this.waterMix;shader.uniforms.coastTone=this.draftThemeTone??this.environmentTone;shader.uniforms.coastCloud=this.draftCoastCloud??={value:0};");

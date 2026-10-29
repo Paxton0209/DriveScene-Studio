@@ -22,9 +22,9 @@ async function run(cold){
   await new Promise((resolve,reject)=>{const timer=setInterval(()=>{try{
    if(document.hidden){clearInterval(timer);reject(Error('测试期间页面进入后台，本次结果无效，请保持窗口在前台重测。'));return;}
    const win=frame.contentWindow,doc=win.document,c=win.draftController,engine=doc.getElementById('engine'),preview=engine?.contentDocument?.getElementById('preview');
-   const fail=preview?.dataset.loadError||doc.querySelector('#loading[data-error]')?.textContent;
+   const fail=preview?.dataset.loadError;
    if(fail){clearInterval(timer);reject(Error(fail));return;}
-   if(c?.bridge()?.get({audit:false}).ready&&doc.getElementById('loading')?.hidden&&!doc.getElementById('export')?.disabled&&preview?.getAttribute('aria-busy')==='false'){
+   if(c?.bridge()?.get({audit:false}).ready&&!doc.getElementById('export')?.disabled&&preview?.getAttribute('aria-busy')==='false'){
     clearInterval(timer);result.readyMs=performance.now()-start;
     const resources=[...win.performance.getEntriesByType('resource').map(r=>({url:r.name,start:win.performance.timeOrigin+r.startTime,end:win.performance.timeOrigin+r.responseEnd,bytes:r.transferSize})),...engine.contentWindow.performance.getEntriesByType('resource').map(r=>({url:r.name,start:engine.contentWindow.performance.timeOrigin+r.startTime,end:engine.contentWindow.performance.timeOrigin+r.responseEnd,bytes:r.transferSize}))].filter(r=>/^https?:/.test(r.url));
     result.resources=resources;result.bytes=resources.reduce((sum,r)=>sum+r.bytes,0);result.keyDownloadMs=Math.max(0,...resources.filter(r=>/runtime.bundle|model.glb.gz|ego-vehicle-ready|traffic-model-y.prepared|studio-environment/.test(r.url)).map(r=>r.end-(performance.timeOrigin+start)));

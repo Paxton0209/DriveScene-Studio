@@ -54,7 +54,34 @@ export function patchFeatures(source){
 
 export function patchApp(source){
  // The embedded canvas may be narrow on desktop; capacity follows the host viewport.
- source=replace(source,"maxEntries:matchMedia('(max-width:760px)').matches?2:4","maxEntries:window.parent.matchMedia('(max-width:760px)').matches?2:4");
+ source=replace(source,"maxEntries:matchMedia('(max-width:760px)').matches?2:4","maxEntries:4");
+ source="import {prepareStartupChoices,startupChoices} from '../ui-draft/startup-readiness.js';\n"+source;
+ source=replace(source,"if(query.has('qa')){const records=JSON.parse(preview.dataset.vehiclePerformance", "if(query.has('qa')||query.get('review')==='ui-draft'){const records=JSON.parse(preview.dataset.vehiclePerformance");
+ source=replace(source,' vehicleReady=true;vehicleFullReady=full;',` await prepareAllStartupChoices();
+ vehicleReady=true;vehicleFullReady=full;`);
+ source=replace(source,'function failedVehicle(error){console.error(error);',"function failedVehicle(error){console.error(error);window.parent.postMessage({type:'ui-draft-error',message:error.message},location.origin);");
+ source=replace(source,'async function installVehicle(car,full=false,animate=false,retainPrevious=false){',`async function prepareAllStartupChoices(){
+ const project=window.parent.__draftStartupProject;if(!project)return;
+ const initial=selected,saved=new Map([...preferences].map(([key,value])=>[key,{...value}]));
+ const scenery=world.draftSceneryRandom.state(),traffic=world.draftTrafficRandom.state();
+ const initialFeatures=versionFeatures.get();
+ function select(choice){
+  selected=choice.key;const values=choice.params,preference=preferences.get(selected);
+  Object.assign(preference,{id:values.layout,laneCount:Number(values.lanes),cameraView:values.camera||'low'});
+  for(const name of environmentIds)if(name in values)preference[name]=!!values[name];
+  if(['parking','outdoor'].includes(selected))preference.id=({parking:{default:'10',raised:'16',bev:'14'},outdoor:{default:'17',raised:'18',bev:'19'}}[selected][values.camera]||preference.id);
+  if(selected==='junction'){preference.junctionPosition='approaching';preference.cameraView='low';}
+  world.draftSceneryRandom.reset(choice.seed);world.draftTrafficRandom.reset(choice.seed+1);
+  versionFeatures.set({path:!!values.path,weather:values.weather||'default'},{animate:false,render:false});
+ }
+ await prepareStartupChoices({world,models:vehicleCatalog.map(model=>model.id),cache:vehicleCache,prepareVehicle:prepareChoice,choices:startupChoices(project.boards),select,state,restore(){
+  selected=initial;for(const [key,value]of saved)Object.assign(preferences.get(key),value);
+  world.draftSceneryRandom.restore(scenery);world.draftTrafficRandom.restore(traffic);
+  versionFeatures.set(initialFeatures,{animate:false,render:false});
+ }});
+ idleWarmIndex=idleWarmModels.length;
+}
+async function installVehicle(car,full=false,animate=false,retainPrevious=false){`);
  source=replace(source,"if(key==='model'){document.getElementById('vehicle-option-'+value)?.click();return;}","if(key==='model')return vehicleSelector.choose(value);");
  source=replace(source,'preparationQueue.then(()=>prepareVehicleChoice(world,car))','preparationQueue.then(()=>{world.draftPrepareVehicle?.(car);return prepareVehicleChoice(world,car);})');
  source=replace(source,"delete preview.dataset.loadError;world.setVehicle(car,", "delete preview.dataset.loadError;world.draftPrepareVehicle?.(car);world.setVehicle(car,");
@@ -95,6 +122,7 @@ export function patchApp(source){
  // old scene render followed by one render/two RAFs for every saved parameter.
  source=replace(source,'if(vehicleReady&&!versionFeatures.animating()','if(!world.draftManaged&&vehicleReady&&!versionFeatures.animating()');
  source=replace(source,' warmVehicle,',` warmVehicle,
+ startupAudit(){return {readiness:world.draftStartupReadiness,cache:vehicleCache.stats(),appearancePreparations:world.draftAppearancePreparations||0,vehiclePerformance:JSON.parse(preview.dataset.vehiclePerformance||'[]')};},
  async prepareDraftLayout(value){
   preferences.get(selected).id=value;
   const previousRoot=world.root,initializing=world.initializingScene;world.initializingScene=true;
@@ -341,6 +369,8 @@ export function isolatedRuntimePlugin(){return {name:'isolated-ui-draft',setup(b
  }
  if(name==='traffic-vehicle.js')source=replace(source,'return {group,ready,update,',"return {draftCapture:()=>({last,elapsed,slots:slots.map(slot=>({...slot}))}),draftRestore(snapshot){last=snapshot.last;elapsed=snapshot.elapsed;slots.forEach((slot,index)=>Object.assign(slot,snapshot.slots[index]));},group,ready,update,");
  if(name==='world.js'){
+  // Ten exposed geometry variants must survive the opening preparation.
+  source=replace(source,'if(this.sceneCache.size>8)','if(this.sceneCache.size>12)');
   source=refineWorld(source);
   source=replace(source,'updateTailLight(this.tailReflection,this.car,dark,isParking);','updateTailLight(this.tailReflection,this.car,dark,isParking,this);');
   source="import {retainMorphingScenery} from '../ui-draft/lane-culling.js';\n"+source;
