@@ -37,7 +37,7 @@ export function patchFeatures(source){
  source=replace(source,'u.startS.value=path.startS;','u.junctionStop.value=path.stopS??-1000;u.junctionBrake.value=JUNCTION_IDS.includes(id)?1:0;u.junctionReveal.value=junctionBrakeReveal(world.draftJunctionElapsed||0);u.startS.value=path.startS;');
  source=source.replaceAll("'material-draft'","'ui-draft'");
  source=source.replaceAll('performance.now()','(world.draftTime??performance.now())');
- source=replace(source,'if(patch.path&&!reduced())activationSweep?.start();',"if(patch.path&&animate&&!reduced()&&!JUNCTION_IDS.includes(sceneId()))activationSweep?.start();");
+ source=replace(source,'if(patch.path&&!reduced())activationSweep?.start();',"if(patch.path&&animate&&!reduced())activationSweep?.start();");
  source=replace(source,'u.singleLayer.value=activationSweep?1:0;',"u.singleLayer.value=activationSweep?1:0;if(JUNCTION_IDS.includes(id)){u.singleLayer.value=1;u.sweepProgress.value=closing?pathReveal.closingActivation*1.07-.035:reveal*1.07-.035;u.motionPreset.value=0;u.motionElapsed.value=2000;}");
  source=source.replace('surface=mix(surface,sweepColor,sweepBand);','surface=mix(surface,sweepColor,sweepBand*.8);');
  source=replace(source,'const queueFrame=()=>{','const queueFrame=()=>{if(world.draftManaged)return;');
@@ -262,7 +262,7 @@ export function isolatedRuntimePlugin(){return {name:'isolated-ui-draft',setup(b
  if(name==='lane-geometry-cache.js')source=patchLaneGeometry(source);
  if(name==='prepare-renderer.js')source=patchRendererPreparation(source);
  if(name==='version-features.js')source=patchFeatures(source);
- if(name==='sr-quality.js')source=source.replaceAll("'material-draft'","'ui-draft'").replaceAll('globalThis.location?.search','(globalThis.__draftSearch??globalThis.location?.search)');
+ if(name==='sr-quality.js')source=source.replaceAll("'material-draft'","'ui-draft'");
  if(name==='road-layout-morph.js'){
   // BufferGeometry.copy shares userData with its template. A role marker can
   // therefore survive on a later clone whose vertex attribute was never set.
@@ -511,7 +511,8 @@ export function isolatedRuntimePlugin(){return {name:'isolated-ui-draft',setup(b
   else source=replace(source,'a*.84*visibility','(1.-pow(1.-clamp(a*.84,0.,.999),roadShadowStrength))*visibility');
  }
 
- source=source.replaceAll('location.search','(globalThis.__draftSearch??location.search)').replaceAll('location.origin',"(window.frameElement?window.parent.location.origin:location.origin)").replaceAll('history.replaceState(',"if(location.protocol!=='about:')history.replaceState(");
+ // srcdoc has no query string. All engine modules read the host-provided parameters.
+ source=source.replace(/globalThis\.location\?\.search|(?<![\w.])location\.search/g,'(globalThis.__draftSearch??globalThis.location?.search)').replaceAll('location.origin',"(window.frameElement?window.parent.location.origin:location.origin)").replaceAll('history.replaceState(',"if(location.protocol!=='about:')history.replaceState(");
  source=source.replaceAll('import.meta.url',`new URL('../engine/${name}',import.meta.url).href`);
  return {contents:source,loader:'js',resolveDir:args.path.slice(0,args.path.lastIndexOf('/'))};
  });}}}
