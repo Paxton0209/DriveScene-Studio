@@ -10,7 +10,7 @@ function statusHarness(){
  const assist=source.slice(source.indexOf('let assistRenderKey='),source.indexOf('\nfunction renderVehicles('));
  const transport=source.slice(source.indexOf('let transportRenderKey='),source.indexOf("\nwindow.addEventListener('message'"));
  const controller=new Function('$','syncCameraLock','syncJunctionPathLock',`
- let status={},ready=true,exporting=false,previewBusy=false;const project={active:'outdoor'};
+ let status={},ready=true,exporting=false,previewBusy=false;const project={active:'outdoor'},document={body:{dataset:{ready:'true'}}};
  ${assist}\n${transport}
  return {render(value,force=false){status=value;renderAssist(force);renderTransport()}};
  `)($,()=>cameraSyncs++,()=>{});

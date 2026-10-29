@@ -36,6 +36,18 @@ test('Driving handoff waits for a changed rendered frame, without restarting or 
  const ready=waitForStartupMotion({host,bridge}).then(()=>done=true);
  pending.shift()();await Promise.resolve();assert.equal(done,false);
  distance=.2;pending.shift()();await Promise.resolve();assert.equal(done,false);
- renderedFrames++;pending.shift()();await ready;assert.equal(done,true);
- for(const state of [{scene:'road',playing:false},{scene:'parking',playing:false},{scene:'junction',playing:true}])await waitForStartupMotion({host:{document:{hidden:false}},bridge:{get:()=>state,themeStatus:()=>({renderedFrames:0})}});
+ distance=.3;renderedFrames++;pending.shift()();await Promise.resolve();assert.equal(done,false);
+ pending.shift()();await Promise.resolve();assert.equal(done,false);
+ distance=.4;renderedFrames++;pending.shift()();await ready;assert.equal(done,true);
+ for(const state of [{scene:'road',playing:false},{scene:'parking',playing:false},{scene:'junction',playing:true}])await waitForStartupMotion({host:{document:{hidden:false},requestAnimationFrame:fn=>fn()},bridge:{get:()=>state,themeStatus:()=>({renderedFrames:0})}});
+});
+
+ test('Background preparation cannot complete a visible moving-scene handoff',async()=>{
+ let distance=0,renderedFrames=0,done=false;const pending=[],doc={hidden:true};
+ const bridge={get:()=>({scene:'road',playing:!doc.hidden,requestedPlaying:true,distance}),themeStatus:()=>({renderedFrames})};
+ const {waitForStartupMotion}=await import('../engine-ready.js');
+ const ready=waitForStartupMotion({host:{document:doc,requestAnimationFrame:fn=>pending.push(fn)},bridge}).then(()=>done=true);
+ distance=10;renderedFrames=10;pending.shift()();await Promise.resolve();assert.equal(done,false);
+ doc.hidden=false;pending.shift()();await Promise.resolve();assert.equal(done,false);
+ for(let i=0;i<2;i++){distance++;renderedFrames++;pending.shift()();}await ready;assert.equal(done,true);
 });

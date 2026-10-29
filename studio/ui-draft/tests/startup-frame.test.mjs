@@ -43,12 +43,13 @@ test('Startup publication follows traffic, saved finish and immediate final rast
   const shared = await readFile(new URL('../../engine/app.js', import.meta.url), 'utf8');
   assert.ok(patchApp(shared).includes("preview.setAttribute('aria-busy',String(world.draftInitialFrameReady!==true||world.initializingScene||"));
 });
-test('Parking transport stays hidden before the first engine status arrives', () => {
+test('The transport identifies startup until readiness, then parking keeps its usual hidden transport', () => {
   const block = source.slice(source.indexOf('let transportRenderKey='), source.indexOf("\nwindow.addEventListener('message'"));
-  for (const active of ['parking', 'outdoor']) {
-    const transport = {setAttribute() {}};
-    new Function('$', 'project', `let status={playing:false};const syncJunctionPathLock=()=>{};${block};renderTransport();`)(() => transport, {active});
-    assert.equal(transport.hidden, true);
+  for (const active of ['road', 'parking', 'outdoor']) {
+    const transport = {setAttribute() {}},document={body:{dataset:{}}};
+    const render=new Function('$', 'project','document', `let status={playing:false};const syncJunctionPathLock=()=>{};${block};return renderTransport;`)(() => transport, {active},document);
+    render();assert.equal(transport.hidden,false);assert.equal(transport.disabled,true);assert.equal(transport.textContent,'Loading…');
+    document.body.dataset.ready='true';render();assert.equal(transport.hidden,active!=='road');assert.notEqual(transport.textContent,'Loading…');
   }
 });
 test('Initial label population skips the replacement blur; subsequent changes still animate', () => {

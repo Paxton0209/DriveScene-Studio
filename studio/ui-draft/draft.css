@@ -27,9 +27,9 @@
 /* Disabled vehicle transactions retain their decoded thumbnail brightness. */
 #vehicle-strip button:disabled,#vehicle-strip button:hover{opacity:1}
 #startup-surface{position:absolute;inset:0}
-:root:is([data-startup=loading],[data-startup=controls]) #startup-surface::before,:root[data-startup=warm][data-startup-preview=clear] #startup-surface::before{content:"";position:absolute;inset:0;background:var(--startup-poster) center/100% 100% no-repeat;pointer-events:none;z-index:1}
+:root:is([data-startup=loading],[data-startup=controls]) #startup-surface::before,:root[data-startup=warm] #startup-surface::before{content:"";position:absolute;inset:0;background:var(--startup-poster) center/100% 100% no-repeat;pointer-events:none;z-index:1}
 /* Content swaps inside one surface at 10%, without a zero-opacity entrance. */
-:root:is([data-startup=loading],[data-startup=controls],[data-startup=revealing]) #startup-surface{opacity:.1}
+:root:is([data-startup=loading],[data-startup=controls],[data-startup=warm],[data-startup=warm-revealing],[data-startup=revealing]) #startup-surface{opacity:.1}
 @media(prefers-reduced-motion:no-preference){
  :root:is([data-startup=controls],[data-startup=revealing]) .toolbar>*{animation:startup-control 420ms cubic-bezier(.23,1,.32,1) var(--startup-delay,0ms) backwards}
  :root:is([data-startup=controls],[data-startup=revealing]) [data-startup-control]{animation:startup-left 420ms cubic-bezier(.23,1,.32,1) var(--startup-delay,0ms) backwards,startup-opacity 420ms ease-in-out var(--startup-delay,0ms) backwards}
@@ -46,3 +46,6 @@
  @keyframes startup-selection{from{opacity:0}to{opacity:1}}
  @keyframes startup-label{from{opacity:0}to{opacity:1}}
 }
+
+/* The existing transport slot describes the pending state without a spinner. */
+:root[data-startup] .artboard-label{animation:none}
