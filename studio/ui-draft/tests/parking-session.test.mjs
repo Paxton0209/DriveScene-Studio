@@ -65,12 +65,12 @@ for(const sceneId of ['10','17'])for(const view of ['default','raised','bev'])te
 });
 
 
-for(const scene of ['10','17'])test(`Parking ${scene} default matches Junction camera pose and survives model replacement`,()=>{
+for(const scene of ['10','17'])test(`Parking ${scene} default uses v0.18 parking camera pose and survives model replacement`,()=>{
  const {world,motion,tick}=fixture();world.state.id=scene;motion.sync();motion.previewCamera('default');tick(1,false);
  const camera=motion.get().camera,offset=new THREE.Vector3(...camera.position).sub(new THREE.Vector3(...camera.aim));
- assert.ok(new THREE.Vector3(...camera.position).sub(world.car.position).distanceTo(new THREE.Vector3(0,8.48,23))<1e-6);
- assert.ok(new THREE.Vector3(...camera.aim).sub(world.car.position).distanceTo(new THREE.Vector3(0,-.02,-24))<1e-6);
- assert.ok(Math.abs(Math.atan2(offset.y,Math.hypot(offset.x,offset.z))-Math.atan2(8.5,47))<1e-6);
+ assert.ok(new THREE.Vector3(...camera.position).sub(world.car.position).distanceTo(new THREE.Vector3(0,11,22))<1e-6);
+ assert.ok(new THREE.Vector3(...camera.aim).sub(world.car.position).distanceTo(new THREE.Vector3(0,0,-5))<1e-6);
+ assert.ok(Math.abs(Math.atan2(offset.y,Math.hypot(offset.x,offset.z))-Math.atan2(11,27))<1e-6);
  const before=world.camera.position.clone(),aim=world.cameraAim.clone();
  world.car.add(new THREE.Mesh(new THREE.BoxGeometry(2.1,1.9,5.1)));motion.sync();tick(.3,false);
  assert.ok(world.camera.position.distanceTo(before)<1e-9);assert.ok(world.cameraAim.distanceTo(aim)<1e-9);
@@ -80,4 +80,17 @@ for(const scene of ['10','17'])test(`Parking ${scene} leaves the clipped foregro
  const {world,motion}=fixture();world.state.id=scene;world.root=new THREE.Group();world.parkingBays=[-5.9,5.9].flatMap(x=>[10.8,7.2,3.6,0,-3.6,-7.2,-10.8,-14.4,-18].map(z=>({x,z,width:4.9,depth:2.8})));motion.sync({traffic:true});
  assert.deepEqual(motion.get().occupied,[3,7,11,14,16].map(i=>({x:world.parkingBays[i].x,z:world.parkingBays[i].z})));
  const p=new THREE.Vector3(-5.9,.03,10.8).project(world.camera);assert.equal(motion.pick(p.x,p.y),true,'removed vehicle no longer blocks bay selection');
+});
+
+for(const scene of ['10','17'])test(`Manual parking views hold v0.18 composition after selecting a bay in ${scene}`,()=>{
+ const {world,motion,pick,tick}=fixture();world.state.id=scene;motion.sync();assert.ok(pick(world.parkingBays[1]));tick(1.2);
+ for(const view of ['default','bev','raised','default']){
+  motion.previewCamera(view);tick(.8,false);assert.equal(motion.get().camera.tween,false);
+  const position=world.camera.position.clone(),rotation=world.camera.quaternion.clone(),projection=world.camera.projectionMatrix.clone();
+  tick(1.2,false);
+  assert.ok(world.camera.position.distanceTo(position)<1e-9,`${view} position must not return to the assisted camera`);
+  assert.ok(world.camera.quaternion.angleTo(rotation)<1e-7,`${view} orientation must stay composed`);
+  assert.ok(world.camera.projectionMatrix.elements.every((n,i)=>Math.abs(n-projection.elements[i])<1e-9),`${view} framing must not settle a second time`);
+ }
+ motion.previewCamera('bev');tick(.1,false);motion.finishPreview();const position=world.camera.position.clone();tick(1,false);assert.ok(world.camera.position.distanceTo(position)<1e-9);
 });

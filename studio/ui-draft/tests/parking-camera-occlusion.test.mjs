@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import {createParkingSightTarget} from '../parking-materials.js';
 import {updateParkingOcclusion} from '../parking-occlusion.js';
-import {fitParkingCamera,sampleParkingView,parkingFrame} from '../parking-camera.js';
+import {fitParkingCamera,sampleParkingView,parkingFrame,parkingViewPose,captureParkingView,applyParkingView} from '../parking-camera.js';
 
 test('Returning to a cached scene never applies the occlusion shader twice',()=>{
  const first=new THREE.Group(),second=new THREE.Group();
@@ -55,13 +55,46 @@ test('Parking traffic carries persistent transparency ownership and renders abov
 });
 
 
-for(const fromAngle of [.41,.91,Math.PI/2-.001])for(const toAngle of [.41,.91,Math.PI/2-.001])test(`Manual view orbit is monotone and settles without reversal ${fromAngle}/${toAngle}`,()=>{
- const pose=angle=>({position:new THREE.Vector3(0,Math.sin(angle)*30,Math.cos(angle)*30),aim:new THREE.Vector3(),anchor:.5});
- const from=pose(fromAngle),to=pose(toAngle);let previous=fromAngle;
- for(let ms=0;ms<=1000;ms+=1000/120){const frame=sampleParkingView(from,to,ms),angle=Math.atan2(frame.position.y,frame.position.z);
-  assert.ok((angle-previous)*Math.sign(toAngle-fromAngle)>=-1e-10);assert.ok(Math.abs(frame.position.length()-30)<1e-8);previous=angle;
+// v0.18 golden camera channels: a spherical orbit and a quaternion rotation
+// share the critically damped phase, including the projected vehicle anchor.
+const referenceCamera=new THREE.PerspectiveCamera(40,16/9,.1,1000),referenceCar=new THREE.Group();referenceCar.position.y=.02;
+const manualViews=Object.fromEntries(['default','raised','bev'].map(kind=>[kind,parkingViewPose(referenceCamera,referenceCar,kind)]));
+for(const [fromName,from] of Object.entries(manualViews))for(const [toName,to] of Object.entries(manualViews))test(`v0.18 ${fromName} -> ${toName} synchronizes orbit, rotation and screen composition`,()=>{
+ const pivot=new THREE.Vector3(0,.87,0),a=new THREE.Spherical().setFromVector3(from.position.clone().sub(pivot)),b=new THREE.Spherical().setFromVector3(to.position.clone().sub(pivot));
+ for(const hz of [30,60,120]){
+  let oldPhase=0;
+  for(let ms=0;ms<=1000;ms+=1000/hz){
+   const frame=sampleParkingView(from,to,ms),raw=1-(1+13.8*ms/1000)*Math.exp(-13.8*ms/1000),phase=1-raw<.0008?1:raw;
+   assert.ok(Math.abs(frame.phase-phase)<1e-12);assert.ok(frame.phase>=oldPhase);oldPhase=frame.phase;
+   const spherical=new THREE.Spherical().setFromVector3(frame.position.clone().sub(pivot));
+   assert.ok(Math.abs(spherical.radius-THREE.MathUtils.lerp(a.radius,b.radius,phase))<1e-8);
+   assert.ok(Math.abs(spherical.phi-THREE.MathUtils.lerp(a.phi,b.phi,phase))<1e-8);
+   assert.ok(frame.quaternion.angleTo(from.quaternion.clone().slerp(to.quaternion,phase))<1e-7);
+   applyParkingView(referenceCamera,referenceCar,frame);
+   const p=pivot.clone().project(referenceCamera),anchor=from.screenAnchor.clone().lerp(to.screenAnchor,phase);
+   assert.ok(Math.abs((p.x+1)/2-anchor.x)<1e-10);assert.ok(Math.abs((1-p.y)/2-anchor.y)<1e-10);
+  }
  }
- const final=sampleParkingView(from,to,1000);assert.equal(final.complete,true);assert.ok(final.position.distanceTo(to.position)<1e-8);
+ const final=sampleParkingView(from,to,1200);assert.equal(final.complete,true);assert.ok(final.position.equals(to.position));assert.ok(final.aim.equals(to.aim));assert.deepEqual(sampleParkingView(from,to,2000),final);
+});
+
+test('Interrupting v0.18 scheduling retains the actual position, rotation and screen anchor',()=>{
+ for(const ms of [80,180,400,680]){
+  const current=sampleParkingView(manualViews.default,manualViews.bev,ms);
+  applyParkingView(referenceCamera,referenceCar,current);
+  const captured=captureParkingView(referenceCamera,referenceCar,current.aim),resumed=sampleParkingView(captured,manualViews.raised,0);
+  assert.ok(resumed.position.equals(current.position));assert.ok(resumed.quaternion.angleTo(current.quaternion)<1e-7);
+  applyParkingView(referenceCamera,referenceCar,resumed);const p=new THREE.Vector3(0,.87,0).project(referenceCamera);
+  assert.ok(Math.abs((1-p.y)/2-current.screenAnchor.y)<1e-10);
+ }
+});
+
+test('v0.18 manual arrival completes around 0.7 seconds and never adds a settling leg',()=>{
+ for(const from of Object.values(manualViews))for(const to of Object.values(manualViews)){
+  assert.equal(sampleParkingView(from,to,680).complete,false);assert.equal(sampleParkingView(from,to,700).complete,true);
+  const final=sampleParkingView(from,to,700);assert.deepEqual(sampleParkingView(from,to,1700),final);
+  assert.ok(sampleParkingView(from,to,690).position.distanceTo(final.position)<.04);
+ }
 });
 
 test('Column occlusion retains live theme and brightness uniform ownership',()=>{
