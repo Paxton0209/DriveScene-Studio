@@ -1,12 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {beginStartup,pendingFade,readyFade} from '../startup-motion.js';
-function setup(reduce=false,warm=false){
+function setup(reduce=false,warm=false,started=150){
  const marks=[],motions=[],writes=[],node=()=>({dataset:{},values:{},style:{setProperty(key,value){this.owner.values[key]=value}}});
  const nodes=Array.from({length:27},()=>{const n=node();n.style.owner=n;return n});
  const surface={animate(frames,options){const motion={frames,options,currentTime:0,played:0,paused:0,cancelled:0,effect:{setKeyframes(value){motion.frames=value},updateTiming(value){Object.assign(motion.options,value)}},pause(){motion.paused++},play(){motion.played++},cancel(){motion.cancelled++}};motions.push(motion);return motion}},inspector={inert:false},root={dataset:{startup:warm?'warm':'controls'}};
  const doc={documentElement:root,getElementById:id=>id==='startup-surface'?surface:inspector,querySelectorAll:selector=>selector.startsWith('#scene-nav')?nodes.slice(0,9):nodes.slice(9),defaultView:{matchMedia:()=>({matches:reduce}),__draftStartupSessionKey:'session-test',sessionStorage:{setItem:(key,value)=>writes.push([key,value])}}};
- const lifecycle=beginStartup({doc,clock:{mark:name=>marks.push(name)}});
+ const lifecycle=beginStartup({doc,clock:{now:()=>started,mark:name=>marks.push(name)}});
  return {lifecycle,surface,inspector,root,nodes,marks,motions,writes,motion:motions[0]};
 }
 test('Sidebars and the scene fade start together while readiness is pending',()=>{
@@ -56,5 +56,15 @@ test('Only a successful ready handoff marks the session',()=>{
 });
 
 test('Every normal ready time retains a single constant opacity rate and finishes within two seconds',()=>{
- for(let ready=0;ready<=1700;ready+=25){const tail=readyFade(ready);assert.equal(ready+tail.duration,1800);for(let t=0;t<tail.duration;t+=10)assert.ok(Math.abs(tail.at(t)-(.1+.9*(ready+t)/1800))<1e-12);}
+ for(let ready=0;ready<=1760;ready+=20){const tail=readyFade(ready);assert.equal(ready+tail.duration,1800);for(let t=0;t<tail.duration;t+=10)assert.ok(Math.abs(tail.at(t)-(.1+.9*(ready+t)/1800))<1e-12);}
+});
+
+test('Parser and module startup time count toward the navigation budget without changing speed at readiness',()=>{
+ for(const started of [0,150,400,575,900]){
+  const s=setup(false,false,started),m=s.motion,rate=m.playbackRate;
+  const readyAt=1900,elapsed=(readyAt-started)*rate;
+  m.currentTime=elapsed;s.lifecycle.reveal();
+  assert.equal(m.playbackRate,rate);assert.ok(Math.abs(started+m.options.duration/rate-1950)<1e-7);
+  assert.equal(m.frames[0].opacity,.1);assert.equal(m.frames.at(-1).opacity,1);
+ }
 });

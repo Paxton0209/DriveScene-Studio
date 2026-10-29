@@ -131,3 +131,14 @@ test('Reflection-pass visibility is restored within the pass before the world re
  f.world.renderFrame=function(){const previous=floor.visible;floor.visible=false;this.renderer.render(this.scene,new THREE.PerspectiveCamera());assert.equal(floor.visible,false,'reflection exclusion survives its warm render');floor.visible=previous;this.renderer.render(this.scene,new THREE.PerspectiveCamera());};
  const preparation=prepareRenderer(f.world);assert.equal(floor.visible,true,'environment survives recording');await preparation;assert.equal(floor.visible,true);
 });
+
+
+test('Fullscreen preparation retains its own light-free context instead of borrowing world lights',async()=>{
+ const f=fixture(),post=new THREE.Scene(),mesh=new THREE.Mesh(new THREE.PlaneGeometry(),new THREE.ShaderMaterial());post.add(mesh);
+ f.world.scene.add(new THREE.DirectionalLight());const contexts=[];
+ f.world.renderFrame=function(){this.renderer.renderBufferDirect(new THREE.Camera(),post,mesh.geometry,mesh.material,mesh);};
+ f.world.renderer.compileAsync=context=>{contexts.push(context);return Promise.resolve()};
+ await prepareRenderer(f.world);assert.equal(contexts.length,1);
+ assert.equal(contexts[0].children.filter(object=>object.isLight).length,0);
+ assert.equal(f.world.scene.children.filter(object=>object.isLight).length,1);
+});

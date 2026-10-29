@@ -2,14 +2,15 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {installAppearancePreparation} from '../appearance-preparation.js';
 
-test('Appearance preparation yields without allowing live frames and keys warm programs by scene, car and tone',async()=>{
+test('Appearance preparation yields without allowing live frames and keys warm programs by scene and car while reusing uniform-only theme changes',async()=>{
  const events=[],world={root:{},car:{uuid:'one'},state:{mode:'light'},initializingScene:false,suspended:false,renderPreparedFrame(){events.push('draw')}};
  let release;installAppearancePreparation(world,()=>{assert.equal(world.suspended,false);assert.equal(world.initializingScene,true);events.push('record');return new Promise(resolve=>release=resolve)});
  const run=world.draftPrepareAppearance();assert.equal(world.suspended,true);release();await run;
  assert.deepEqual(events,['record','draw']);assert.equal(world.initializingScene,false);assert.equal(world.suspended,false);
  await world.draftPrepareAppearance();assert.equal(events.length,2);
- for(const change of [()=>world.state.mode='dark',()=>world.car={uuid:'two'},()=>world.root={}]){change();const next=world.draftPrepareAppearance();release();await next;}
- assert.equal(events.length,8);
+ world.state.mode='dark';await world.draftPrepareAppearance();assert.equal(events.length,2);
+ for(const change of [()=>world.car={uuid:'two'},()=>world.root={}]){change();const next=world.draftPrepareAppearance();release();await next;}
+ assert.equal(events.length,6);
 });
 
 test('Failed appearance preparation restores prior suspension and remains retryable',async()=>{

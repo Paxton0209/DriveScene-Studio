@@ -1,11 +1,11 @@
 // Both entrances start together. Normal loading uses one linear opacity
 // timeline; a slow download may extend its last five percent smoothly.
-const HORIZON=60000,STEP=20,RATE=.9/1800,LINEAR_END=1700;
+const HORIZON=60000,STEP=20,RATE=.9/1800,LINEAR_END=1760;
 export function pendingFade(time){
  const t=Math.max(0,time);
  if(t<=LINEAR_END)return {opacity:.1+RATE*t,velocity:RATE,acceleration:0};
- const denominator=1+(t-LINEAR_END)*RATE/.04;
- return {opacity:.99-.04/denominator,velocity:RATE/denominator**2,acceleration:-2*RATE*RATE/.04/denominator**3};
+ const denominator=1+(t-LINEAR_END)*RATE/.01;
+ return {opacity:.99-.01/denominator,velocity:RATE/denominator**2,acceleration:-2*RATE*RATE/.01/denominator**3};
 }
 export function readyFade(time){
  const start=pendingFade(time);
@@ -39,7 +39,12 @@ export function beginStartup({doc=document,clock=performance}={}){
  inspector.inert=true;root.dataset.startup=warm?'warm':'controls';
  if(!warm)clock.mark('draft-startup-controls');
  if(!warm&&!reduce){
+  // Allocate the fade once, against navigation's two-second budget. Its rate
+  // stays fixed after the first frame; readiness never speeds it up.
+  const started=typeof clock.now==='function'?clock.now():0;
+  const duration=Math.max(900,1950-started);
   motion=surface.animate(pendingFrames(HORIZON,HORIZON),{duration:HORIZON,easing:'linear',fill:'both'});
+  motion.playbackRate=1800/duration;
   clock.mark('draft-startup-fade');
  }
  return {

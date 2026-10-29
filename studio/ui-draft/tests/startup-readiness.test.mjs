@@ -34,3 +34,14 @@ test('The UI completion gate waits for every thumbnail decode and for fonts',asy
  const pending=decodeStartupControls(root).then(()=>complete=true);
  await Promise.resolve();assert.equal(complete,false);release();await Promise.resolve();assert.equal(complete,false);fontsRelease();await pending;assert.equal(complete,true);
 });
+
+test('Both theme variants are drawn in every prepared geometry before completion',async()=>{
+ const f=fixture(),draws=[];let mode='light';
+ f.options.state=()=>({mode:'light'});
+ f.options.world.update=state=>{mode=state.mode};
+ f.options.world.renderPreparedFrame=()=>draws.push(mode);
+ await prepareStartupChoices(f.options);
+ assert.equal(draws.filter(mode=>mode==='dark').length,10);
+ assert.equal(draws.filter(mode=>mode==='light').length,15);
+ assert.equal(mode,'light');assert.equal(f.options.world.draftStartupReadiness.ready,true);
+});
