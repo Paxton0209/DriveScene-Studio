@@ -64,7 +64,7 @@ export function installRollingWheels(car){
 
 
 export function createParkingMotion(world){
- const trafficReveal=createTrafficReveal();
+ const trafficReveal=createTrafficReveal(),preparedGroups=new WeakMap();
  const axis=new THREE.Vector3(0,1,0),raised=new THREE.Vector3(0,22,14),bev=new THREE.Vector3(0,32,.015);
  let root,group,target=null,highlight,paths=[],stops=[],cars=[],occupied=[],active=false,elapsed=0,done=false,origin=null,modelReady=false,trafficVisible=false,cameraTween=null,ownedOffset=null,mode='in',exitChoice=0,exited=false,assistOn=false,lastPath='',routeYaw=0,cameraHeading=0,view='default',cameraState=null,cameraGoal=null,lastCameraTime=0,cameraVelocity={position:new THREE.Vector3(),aim:new THREE.Vector3(),anchor:0},replan=null,paused=false,resumeView='raised',badges=[],selectedAt=0;
  const ready=readyTrafficModel(null,'model-y').then(()=>{modelReady=true;if(world.state&&!world.initializingScene)world.renderFrame()}).catch(()=>{});
@@ -134,8 +134,10 @@ export function createParkingMotion(world){
  function ensure(){
   if(!isParking(world.state?.id)){if(group)group.visible=false;return false;}
   if(root===world.root)return true;
-  group?.removeFromParent();group?.traverse(o=>{if(o.userData.draftOwned&&!o.isSprite)o.geometry?.dispose();if(o.material?.map)o.material.map.dispose();if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>m.dispose());});
+  if(group&&root)preparedGroups.set(root,{group,highlight,paths,stops,cars,occupied,badges});group?.removeFromParent();
   view=['14','19'].includes(world.state.id)?'bev':['16','18'].includes(world.state.id)?'raised':'default';root=world.root;group=new THREE.Group();group.name='Parking maneuver';world.scene.add(group);world.draftParkingGroup=group;delete world.car.userData.draftIndoorContact;cars=[];target=null;active=false;elapsed=0;done=false;origin=null;ownedOffset=null;cameraTween=null;mode='in';exited=false;exitChoice=0;lastPath='';cameraState=null;cameraGoal=null;cameraVelocity={position:new THREE.Vector3(),aim:new THREE.Vector3(),anchor:0};replan=null;paused=false;badges=[];selectedAt=0;
+  const cached=preparedGroups.get(root);
+  if(cached){group.removeFromParent();({group,highlight,paths,stops,cars,occupied,badges}=cached);world.scene.add(group);world.draftParkingGroup=group;ownedOffset=view==='bev'?bev.clone():view==='raised'?raised.clone():new THREE.Vector3(0,11,22);cameraState=goalFor(view);cameraGoal=cameraState;lastCameraTime=now();camera();return true;}
   const bays=world.parkingBays||[];occupied=bays.filter((b,i)=>[3,7,11,14,16].includes(i));const b=bays[0];if(!b)return true;
   highlight=own(new THREE.Mesh(new THREE.PlaneGeometry(8,b.depth),new THREE.ShaderMaterial({transparent:true,depthWrite:false,toneMapped:false,polygonOffset:true,polygonOffsetFactor:-4,uniforms:{tone:{value:0},celebrate:{value:0},selected:{value:0}},vertexShader:'varying vec2 v;void main(){v=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:parkingTargetFragment})));
   for(const [i,bay]of bays.entries()){const badge=createParkingSightTarget(i+1);if(badge){badge.userData.bay=bay;badge.position.set(bay.x,.055,bay.z);group.add(badge);badges.push(badge);}}

@@ -12,7 +12,7 @@ test('Prepared draws discard their vehicle capture and restore scene state even 
   const world={root,renderer:{shadowMap:{needsUpdate:false}},preparedRoots:new Set(),preparedMaterials:[{dispose(){disposed.push(true)}}],reflectionSceneRoot:root,carReflectionKey:'recording',renderFrame(){assert.equal(mesh.visible,true);assert.equal(mesh.frustumCulled,false);this.carReflectionKey='prepared-frame';if(fails)throw Error('draw failed');}};
   if(fails)assert.throws(()=>run.call(world),/draw failed/);else run.call(world);
   assert.equal(world.carReflectionKey,null);assert.equal(world.reflectionSceneRoot,null);assert.equal(world.renderer.shadowMap.needsUpdate,true);
-  assert.equal(mesh.visible,false);assert.equal(mesh.frustumCulled,true);assert.equal(world.preparedRoots.has(root),true);assert.deepEqual(disposed,[true]);assert.deepEqual(world.preparedMaterials,[]);
+  assert.equal(mesh.visible,false);assert.equal(mesh.frustumCulled,true);assert.equal(world.preparedRoots.has(root),true);assert.deepEqual(disposed,[]);assert.equal(world.draftPreparedMaterials.get(root).length,1);assert.deepEqual(world.preparedMaterials,[]);
  }
 });
 test('Vehicle prefilter reconstructs current capture before absorption and only absorbs the first blur pass',async()=>{

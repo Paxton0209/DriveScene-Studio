@@ -1,15 +1,21 @@
-// Both entrances start together. Loading extends a moving opacity timeline;
-// readiness preserves its value, velocity and acceleration instead of restarting.
-const HORIZON=60000,STEP=50,TAU=2400;
+// Both entrances start together. Normal loading uses one linear opacity
+// timeline; a slow download may extend its last five percent smoothly.
+const HORIZON=60000,STEP=20,RATE=.9/1800,LINEAR_END=1700;
 export function pendingFade(time){
- const decay=Math.exp(-Math.max(0,time)/TAU);
- return {opacity:.1+.75*(1-decay),velocity:.75/TAU*decay,acceleration:-.75/(TAU*TAU)*decay};
+ const t=Math.max(0,time);
+ if(t<=LINEAR_END)return {opacity:.1+RATE*t,velocity:RATE,acceleration:0};
+ const denominator=1+(t-LINEAR_END)*RATE/.04;
+ return {opacity:.99-.04/denominator,velocity:RATE/denominator**2,acceleration:-2*RATE*RATE/.04/denominator**3};
 }
 export function readyFade(time){
- const start=pendingFade(time),duration=Math.max(2000-time,1400+Math.min(time*.1,1000));
- const b=start.velocity*duration,c=start.acceleration*duration*duration/2,d=1-start.opacity;
- const e=10*d-6*b-3*c,f=-15*d+8*b+3*c,g=6*d-3*b-c;
- return {duration,at(elapsed){const u=Math.max(0,Math.min(1,elapsed/duration));return start.opacity+b*u+c*u*u+e*u**3+f*u**4+g*u**5}};
+ const start=pendingFade(time);
+ // When resources meet the normal budget there is no change of speed, curve,
+ // or animation clock at readiness. The same fade ends at 1.8 seconds.
+ if(time<=LINEAR_END)return {duration:1800-time,at:elapsed=>Math.min(1,start.opacity+RATE*Math.max(0,elapsed))};
+ // A delayed load never restarts the fade or rushes a large remaining range.
+ // A Hermite tail starts at the exact current velocity and only decelerates.
+ const distance=1-start.opacity,duration=Math.min(1000,2*distance/start.velocity),b=start.velocity*duration;
+ return {duration,at(elapsed){const u=Math.max(0,Math.min(1,elapsed/duration));return start.opacity+b*u+(3*distance-2*b)*u*u+(b-2*distance)*u*u*u}};
 }
 function pendingFrames(end,total){
  const frames=[];
@@ -43,7 +49,7 @@ export function beginStartup({doc=document,clock=performance}={}){
    clock.mark('draft-startup-reveal');
    if(warm||reduce){finish();return}
    // Retain the compositor animation and its clock. Rebuild the remaining
-   // curve with a C2 join: no opacity reset, zero-speed hold or velocity jump.
+   // timeline without an opacity reset, zero-speed hold or velocity jump.
    const elapsed=Number(motion.currentTime)||0,tail=readyFade(elapsed),total=elapsed+tail.duration;
    const frames=pendingFrames(elapsed,total);
    for(let i=1;i<=120;i++){const time=tail.duration*i/120;frames.push({opacity:i===120?1:tail.at(time),offset:(elapsed+time)/total})}

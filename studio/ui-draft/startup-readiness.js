@@ -27,9 +27,16 @@ export async function prepareStartupChoices({world,models,cache,prepareVehicle,c
    for(const {car} of cars){
     if(world.car!==car)world.setVehicle(car,{disposePrevious:false,preserveScene:true});
     world.update(state(),{deferRender:true});
-    await world.draftPrepareAppearance();audit.appearances++;
    }
+   await world.draftPrepareAppearances(cars.map(({car})=>car));audit.appearances+=cars.length;
    audit.scenes.push({scene:choice.key,layout:choice.params.layout,lanes:choice.params.lanes});
+  }
+  // Exercise each retained car in the restored scene's real colour pass too.
+  // Proxy compilation alone can miss active-car-only glass/depth variants.
+  restore();await world.prepareInitialScene(state());
+  for(const {car} of cars){
+   if(world.car!==car)world.setVehicle(car,{disposePrevious:false,preserveScene:true});
+   world.update(state(),{deferRender:true});world.renderPreparedFrame();
   }
  }catch(error){audit.error=error.message;throw error;}
  finally{

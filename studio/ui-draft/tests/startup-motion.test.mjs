@@ -28,21 +28,19 @@ test('Ready handoff keeps the same animation, current time and opacity',()=>{
   s.lifecycle.reveal();assert.equal(m.currentTime,elapsed);m.onfinish();assert.equal(m.cancelled,1);
  }
 });
-test('Normal and delayed completion curves preserve value, velocity and acceleration',()=>{
+test('Normal and delayed completion preserve opacity and velocity without a reverse frame',()=>{
  for(let elapsed=0;elapsed<=30000;elapsed+=50){
   const p=pendingFade(elapsed),tail=readyFade(elapsed),h=.01;
   assert.equal(tail.at(0),p.opacity);assert.ok(Math.abs(tail.at(tail.duration)-1)<1e-12);
   const velocity=(tail.at(h)-tail.at(0))/h;
-  const acceleration=(tail.at(2*h)-2*tail.at(h)+tail.at(0))/(h*h);
   assert.ok(Math.abs(velocity-p.velocity)<1e-8);
-  assert.ok(Math.abs(acceleration-p.acceleration)<1e-8);
   let prior=p.opacity;
   for(let i=1;i<=200;i++){const value=tail.at(tail.duration*i/200);assert.ok(value>=prior-1e-12&&value<=1+1e-12);prior=value}
  }
 });
 test('Slow loading advances from the start and extends completion without holding at 10 percent',()=>{
  const s=setup(),m=s.motion;assert.ok(pendingFade(8000).opacity>pendingFade(4000).opacity);
- m.currentTime=8000;s.lifecycle.reveal();assert.ok(m.options.duration>10000);assert.equal(m.paused,0);assert.equal(m.played,0);
+ m.currentTime=8000;s.lifecycle.reveal();assert.ok(m.options.duration>8000);assert.equal(m.paused,0);assert.equal(m.played,0);
 });
 test('Warm entries and reduced motion reveal readiness without replaying a fade',()=>{
  for(const [reduce,warm] of [[true,false],[false,true]]){
@@ -55,4 +53,8 @@ test('Failure clears pending or active animation without marking a pending sessi
 });
 test('Only a successful ready handoff marks the session',()=>{
  const s=setup();assert.deepEqual(s.writes,[]);s.lifecycle.reveal();assert.deepEqual(s.writes,[['session-test','ready']]);
+});
+
+test('Every normal ready time retains a single constant opacity rate and finishes within two seconds',()=>{
+ for(let ready=0;ready<=1700;ready+=25){const tail=readyFade(ready);assert.equal(ready+tail.duration,1800);for(let t=0;t<tail.duration;t+=10)assert.ok(Math.abs(tail.at(t)-(.1+.9*(ready+t)/1800))<1e-12);}
 });

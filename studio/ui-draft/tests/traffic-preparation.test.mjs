@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {gunzipSync} from 'node:zlib';
 import {consolidateTrafficRear,refineTrafficBody,compactTrafficAttributes} from '../traffic-surface.js';
+import {encodeTrafficPayload,decodeTrafficPayload} from '../traffic-payload.js';
 import {isolatedRuntimePlugin} from '../runtime-patches.mjs';
 
 const originalBytes=await readFile(new URL('../../engine/assets/traffic-model-y.json.gz',import.meta.url));
@@ -33,6 +34,7 @@ test('Default traffic loading skips body preparation while explicit original byt
  const path=new URL('../../engine/traffic-model.js',import.meta.url);
  const {contents}=await load({path:path.pathname});
  const source=contents
+  .replace("from '../ui-draft/traffic-payload.js'",`from '${new URL('../traffic-payload.js',import.meta.url).href}'`)
   .replace("from './asset-request.js'",`from '${new URL('../../engine/asset-request.js',import.meta.url).href}'`)
   .replace("from 'three'",`from '${import.meta.resolve('three')}'`)
   .replace("from 'three/addons/utils/BufferGeometryUtils.js'",`from '${import.meta.resolve('three/addons/utils/BufferGeometryUtils.js')}'`)
@@ -45,13 +47,14 @@ test('Default traffic loading skips body preparation while explicit original byt
  const fetchBefore=globalThis.fetch,urls=[];
  globalThis.fetch=async url=>{urls.push(String(url));return new Response(preparedBytes);};
  try{
-  globalThis.__draftTrafficRequest=Promise.resolve(preparedBytes);
+  const binary=await readFile(new URL('../traffic-model-y.prepared.bin.gz',import.meta.url));
+  globalThis.__draftTrafficRequest=Promise.resolve(binary);
   await module.readyTrafficModel(null,'prefetched');assert.equal(urls.length,0);assert.equal(globalThis.__draftTrafficRequest,undefined);
   globalThis.__draftTrafficRequest=Promise.reject(Error('early request failed'));
   await module.readyTrafficModel(null,'prepared');
   assert.equal(module.refinements,0,'the normal browser path must not repeat static geometry work');
   assert.equal(urls.length,1);
-  assert.equal(new URL(urls[0]).pathname,new URL('../traffic-model-y.prepared.json.gz',import.meta.url).pathname);
+  assert.equal(new URL(urls[0]).pathname,new URL('../traffic-model-y.prepared.bin.gz',import.meta.url).pathname);
   await module.readyTrafficModel(originalBytes,'explicit');
   assert.equal(module.refinements,1,'original supplied bytes still use the existing preparation');
   assert.equal(urls.length,1,'supplied bytes do not fetch');
@@ -68,4 +71,14 @@ test('Default traffic loading skips body preparation while explicit original byt
    assert.deepEqual(jsonValues(summarize(a)),jsonValues(summarize(b)));
   }
  }finally{globalThis.fetch=fetchBefore;}
+});
+
+
+test('Binary transport preserves exact GPU bits, all indices and appearance metadata',async()=>{
+ const source=compactTrafficAttributes(refineTrafficBody(consolidateTrafficRear(JSON.parse(gunzipSync(originalBytes))))),packed=gunzipSync(await readFile(new URL('../traffic-model-y.prepared.bin.gz',import.meta.url))),actual=decodeTrafficPayload(Uint8Array.from(packed).buffer);
+ const metadata=data=>({...data,parts:data.parts.map(({attributes,indices,...part})=>({...part,attributes:Object.fromEntries(Object.entries(attributes).map(([name,array])=>[name,array.length])),indices:indices&&Array.from(indices)}))});
+ assert.deepEqual(metadata(actual),metadata(source));
+ source.parts.forEach((part,index)=>{for(const [name,values]of Object.entries(part.attributes))assert.deepEqual(Buffer.from(actual.parts[index].attributes[name].buffer,actual.parts[index].attributes[name].byteOffset,actual.parts[index].attributes[name].byteLength),Buffer.from(new Float32Array(values).buffer));});
+ const edge={parts:[{attributes:{position:[0,-0,1e-45,3.4028234663852886e38]},indices:[0,65536,1000000]}],spec:{length:.12345678901234567}};
+ const decoded=decodeTrafficPayload(encodeTrafficPayload(edge).buffer);assert.deepEqual(Buffer.from(decoded.parts[0].attributes.position.buffer,decoded.parts[0].attributes.position.byteOffset,16),Buffer.from(new Float32Array(edge.parts[0].attributes.position).buffer));assert.deepEqual(Array.from(decoded.parts[0].indices),edge.parts[0].indices);assert.deepEqual(decoded.spec,edge.spec);
 });
