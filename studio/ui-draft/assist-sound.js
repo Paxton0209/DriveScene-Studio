@@ -1,7 +1,7 @@
 let context,loading,voice,revision=0,plays=0,exitPlays=0,failures=0;
 let indicatorPhase=null,indicatorEdges=0,indicatorMuted=false;const indicatorVoices=new Set(),indicatorHistory=[];
 const buffers=new Map();
-const sources={on:new URL('../sound-review/earshot/audio/09-on.wav',import.meta.url),off:new URL('./sounds/09-first-note-off.wav',import.meta.url)};
+const sources={on:new URL('./sounds/09-on.wav',import.meta.url),off:new URL('./sounds/09-first-note-off.wav',import.meta.url)};
 function audioContext(){const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return null;return context??=new Audio({latencyHint:'interactive'})}
 export function pathSoundStatus(){return {ready:buffers.size===2,plays,exitPlays,failures,state:context?.state||'unavailable',durationMs:buffers.has('on')?Math.round(buffers.get('on').duration*1000):null,exitDurationMs:buffers.has('off')?Math.round(buffers.get('off').duration*1000):null,cue:'09',exitCue:'09-first-note-forward',indicatorMuted,indicatorVoices:indicatorVoices.size,indicatorEdges,indicatorHistory:[...indicatorHistory]}}
 export function preparePathSound(){

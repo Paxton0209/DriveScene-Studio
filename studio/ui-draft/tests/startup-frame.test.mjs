@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
+import {layoutStartupPoster} from '../startup-poster.mjs';
 import {patchApp} from '../runtime-patches.mjs';
 const source = await readFile(new URL('../draft.js', import.meta.url), 'utf8');
 
@@ -9,11 +10,11 @@ test('Initial layout is synchronous; later resize frames preserve the same recta
   for (const [viewport, bounds] of [[1280, {width: 792, height: 676}], [800, {width: 744, height: 420}], [390, {width: 390, height: 300}]]) {
     const style = {}, pending = [], resizes = [];
     const nodes = {stage: {getBoundingClientRect: () => bounds}, artboard: {style}};
-    const h = new Function('$', 'innerWidth', 'requestAnimationFrame', 'cancelAnimationFrame', 'bridge', `
+    const h = new Function('layoutStartupPoster', '$', 'innerWidth', 'requestAnimationFrame', 'cancelAnimationFrame', 'bridge', `
       let ready=false,resizeFrame=0,sceneUpdating=false;const moveNav=()=>{};
       ${block}
       return {layoutBoard,sizeBoard,start(){ready=true}};
-    `)(id => nodes[id], viewport, callback => pending.push(callback), () => {}, () => ({resize: width => resizes.push(width)}));
+    `)(() => layoutStartupPoster({getElementById:id=>nodes[id]},viewport), id => nodes[id], viewport, callback => pending.push(callback), () => {}, () => ({resize: width => resizes.push(width)}));
     h.layoutBoard();
     assert.equal(pending.length, 0);
     assert.deepEqual(resizes, []);
@@ -30,12 +31,12 @@ test('Startup publication follows traffic, saved finish and immediate final rast
   const bridgeSource = await readFile(new URL('../engine-bridge.js', import.meta.url), 'utf8');
   const method = bridgeSource.match(/completeStartup\(\)\{([^\n]+)\},/)[1];
   const world = {}, events = [];
-  new Function('world', 'renderOnce', 'document', 'publish', method)(world,
+  new Function('world', 'renderOnce', 'document', 'publish', 'sync', 'schedule', method)(world,
     () => {assert.notEqual(world.draftInitialFrameReady, true);events.push('render')},
     {getElementById: () => ({setAttribute(key, value) {assert.equal(world.draftInitialFrameReady, true);events.push([key, value])}})},
-    () => events.push('publish'));
-  assert.deepEqual(events, ['render', ['aria-busy', 'false'], 'publish']);
-  const startup = source.slice(source.indexOf('clearTimeout(loadingTimer);ready=true;'));
+    () => events.push('publish'), () => events.push('sync'), () => events.push('schedule'));
+  assert.deepEqual(events, ['sync', 'render', ['aria-busy', 'false'], 'schedule', 'publish']);
+  const startup = source.slice(source.indexOf('ready=true;await bridge().param'));
   assert.ok(startup.indexOf("bridge().param('traffic'") < startup.indexOf('syncFinish()'));
   assert.ok(startup.indexOf('syncFinish()') < startup.indexOf('layoutBoard()'));
   assert.ok(startup.indexOf('layoutBoard()') < startup.indexOf('bridge().completeStartup()'));
@@ -75,4 +76,28 @@ test('Initial Traffic preference is applied before construction and late model c
  assert.ok(source.includes('traffic:Number(state.traffic)'));
  const preference=bridgeSource.match(/world.draftTrafficEnabled=([^;]+);/)[1];
  for(const enabled of [false,true])assert.equal(new Function('traffic',`return ${preference}`)({audit:()=>({enabled})}),enabled);
+});
+
+test('Startup synchronizes a suspended Road while preserving Pause and hidden/theme holds',async()=>{
+ const bridge=await readFile(new URL('../engine-bridge.js',import.meta.url),'utf8');
+ const syncBody=bridge.match(/function sync\(\)\{([^\n]+)\}/)[1];
+ const startupBody=bridge.match(/completeStartup\(\)\{([^\n]+)\},/)[1];
+ for(const [playing,hidden,themeHeld,expected] of [[true,false,false,true],[false,false,false,false],[true,true,false,false],[true,false,true,false]]){
+  const world={suspended:true,initializingScene:false},drive={setPlaying(value){this.playing=value}};
+  new Function('world','drive','document','current','publish','renderOnce','schedule',`let playing=${playing},themeHeld=${themeHeld},last=1,accumulator=1;function sync(){${syncBody}};${startupBody}`)(world,drive,{hidden,getElementById:()=>({setAttribute(){}})},()=> 'road',()=>{},()=>{},()=>{});
+  assert.equal(drive.playing,playing&&!themeHeld);assert.equal(world.suspended,hidden||themeHeld);assert.equal(drive.playing&&!world.suspended,expected);
+ }
+ assert.ok(source.includes("get('paused')==='1')query.set('paused','1')"));
+ assert.match(source,/createProject\(saved\);setProjectVehicle\(project,'model-3'\)/);
+});
+
+
+test('Startup waits for the Traffic suspension scope before publishing a running scene',async()=>{
+ const startup=source.slice(source.indexOf('ready=true;await bridge().param'),source.indexOf('status=bridge().get({audit:false});renderVehicles();'));
+ let release;const pending=new Promise(done=>release=done),world={suspended:true};let complete=false;
+ const bridge={async param(){const held=world.suspended;world.suspended=false;await pending;world.suspended=held},indicatorMuted(){},completeStartup(){world.suspended=false;complete=true}};
+ const run=new Function('bridge','state','$','syncFinish','layoutBoard',`return (async()=>{let ready=false,indicatorMuted=false;${startup}})()`);
+ const finishing=run(()=>bridge,{traffic:true},()=>({}),()=>{},()=>{});
+ await Promise.resolve();assert.equal(complete,false);
+ release();await finishing;assert.equal(complete,true);assert.equal(world.suspended,false);
 });

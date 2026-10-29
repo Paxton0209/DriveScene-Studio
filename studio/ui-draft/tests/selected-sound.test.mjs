@@ -8,6 +8,7 @@ test('Selected 09 keeps the exact chosen enable audio and only its forward first
  const source=await readFile(new URL('../../sound-review/earshot/audio/09-on.wav',import.meta.url));
  const exit=await readFile(new URL('../sounds/09-first-note-off.wav',import.meta.url)),audit=JSON.parse(await readFile(new URL('../sounds/selected09.json',import.meta.url)));
  assert.equal(createHash('sha256').update(source).digest('hex'),audit.sourceSha256);
+ assert.deepEqual(await readFile(new URL('../sounds/09-on.wav',import.meta.url)),source);
  const enterWav=wav(source),exitWav=wav(exit);assert.equal(exitWav.rate,48000);assert.equal(exitWav.bits,16);assert.equal(exitWav.channels,1);
  assert.equal(exitWav.samples.length/2/exitWav.rate,.230);
  const unchanged=Math.round(.212*exitWav.rate)*2;
@@ -41,4 +42,19 @@ test('Delayed audio resume cannot replay a cue after a silent restoration cancel
  await sound.preparePathSound();sound.playPathSound();sound.stopPathSound();await new Promise(resolve=>setImmediate(resolve));assert.equal(starts.length,0);
  sound.playPathSound();await new Promise(resolve=>setImmediate(resolve));sound.playPathExitSound();await new Promise(resolve=>setImmediate(resolve));
  assert.deepEqual(starts,[.615,1.23]);assert.equal(sound.pathSoundStatus().plays,1);assert.equal(sound.pathSoundStatus().exitPlays,1);
+});
+
+test('Both runtime cues resolve inside the UI draft in normal and unique cold-start URL namespaces',async()=>{
+ const moduleUrl=new URL('../assist-sound.js',import.meta.url),code=await readFile(moduleUrl,'utf8');
+ const block=code.slice(code.indexOf('const sources='),code.indexOf('function audioContext'));
+ for(const base of ['https://example.test/DriveScene-Studio/studio/ui-draft/runtime.bundle.js','http://127.0.0.1:18055/runs/cold/studio/ui-draft/runtime.bundle.js']){
+  const sources=new Function(block.replaceAll('import.meta.url',JSON.stringify(base))+'return sources')();
+  for(const url of Object.values(sources)){
+   assert.equal(url.origin,new URL(base).origin);
+   assert.ok(url.pathname.startsWith(new URL('./sounds/',base).pathname));
+   assert.doesNotMatch(url.pathname,/sound-review/);
+   const local=new URL('../sounds/'+url.pathname.split('/').at(-1),import.meta.url);
+   assert.ok((await readFile(local)).length>1000);
+  }
+ }
 });
