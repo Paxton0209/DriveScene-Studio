@@ -91,7 +91,9 @@ export function refineActivation(source){
  source=replace(source,'return {min:-5.55,max:5.55};','return {min:-5.235,max:5.235};');
  source=replace(source,'activationCarriageway(world.state,world.layoutVisual?.width)','activationCarriageway(world.state,world.layoutVisual?.width,world.rampDimensions?.width)');
  source=replace(source,"if(state?.id==='03')","if(['10','14','15','16','17','18','19'].includes(state?.id))return {min:-3.3,max:3.3};if(state?.id==='03')");
- source=source.replace("['02','09','03'].includes(world.state?.id)","!!world.state&&!['05','08'].includes(world.state.id)").replace(')*edge*nearFade*fade*mix',')*.8*edge*nearFade*fade*mix');
+ source=source.replace("['02','09','03'].includes(world.state?.id)","!!world.state").replace(')*edge*nearFade*fade*mix',')*.8*edge*nearFade*fade*mix');
+ // Junction carriageways have a fixed width, independent of the last Road layout.
+ source=replace(source,"if(['06','07'].includes(state?.id))","if(['05','08'].includes(state?.id))return {min:.225,max:10.785};if(['06','07'].includes(state?.id))");
  source=replace(source,'new THREE.PlaneGeometry(24,132)','new THREE.PlaneGeometry(24,320)');
  source=replace(source,'world.car.position.z-60','world.car.position.z-145');
  source=replace(source,'float nearFade=smoothstep(-3.,9.,distance);','float nearFade=smoothstep(-3.,9.,distance);float farFade=1.-smoothstep(68.,126.,distance);');
