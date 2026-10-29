@@ -510,6 +510,7 @@ export function isolatedRuntimePlugin(){return {name:'isolated-ui-draft',setup(b
   else source=replace(source,'a*.84*visibility','(1.-pow(1.-clamp(a*.84,0.,.999),roadShadowStrength))*visibility');
  }
 
+ source=source.replaceAll('location.search','(globalThis.__draftSearch??location.search)').replaceAll('location.origin',"(window.frameElement?window.parent.location.origin:location.origin)").replaceAll('history.replaceState(',"if(location.protocol!=='about:')history.replaceState(");
  source=source.replaceAll('import.meta.url',`new URL('../engine/${name}',import.meta.url).href`);
  return {contents:source,loader:'js',resolveDir:args.path.slice(0,args.path.lastIndexOf('/'))};
  });}}}
