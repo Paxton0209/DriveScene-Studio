@@ -29,6 +29,13 @@ export async function prepareStartupChoices({world,models,cache,prepareVehicle,c
     world.update(state(),{deferRender:true});
    }
    await world.draftPrepareAppearances(cars.map(({car})=>car));audit.appearances+=cars.length;
+   // Theme changes mostly update uniforms, but road reflection materials also
+   // select a physical shader variant. Draw both themes before exposing clicks.
+   const initialState=state();
+   if(initialState.mode){
+    world.update({...initialState,mode:initialState.mode==='dark'?'light':'dark'},{deferRender:true});
+    world.renderPreparedFrame();world.update(initialState,{deferRender:true});world.renderPreparedFrame();
+   }
    audit.scenes.push({scene:choice.key,layout:choice.params.layout,lanes:choice.params.lanes});
   }
   // Exercise each retained car in the restored scene's real colour pass too.

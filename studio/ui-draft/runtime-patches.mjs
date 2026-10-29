@@ -202,6 +202,9 @@ export function patchRendererPreparation(source){
 const yieldToBrowser=`);
  source=replace(source,'const proxy=object.clone(false);','const proxy=clonePassObject(object);');
  source=replace(source,'targetScene.clone(false)','clonePassObject(targetScene)');
+ // Fullscreen passes own a light-free scene. Adding the world's lights creates
+ // different programs from the actual pass after a scene/light transition.
+ source=replace(source,'scene.traverseVisible(light=>','(targetScene||scene).traverseVisible(light=>');
 
  source=replace(source,'material.uuid,material.side,material.defines','material.uuid,material.side,material.transparent,material.depthWrite,material.defines');
  // Scene switches suspend visible draws. Recording still needs to traverse the
@@ -250,6 +253,7 @@ const yieldToBrowser=`);
 export function isolatedRuntimePlugin(){return {name:'isolated-ui-draft',setup(build){build.onLoad({filter:/\/engine\/.*\.js$/},async args=>{
  let source=await readFile(args.path,'utf8');const name=args.path.split('/engine/').at(-1);
  if(name==='app.js')source=patchApp(source);
+ if(name==='vehicle.js')source=source.replaceAll('./ego-vehicle-ready.glb.gz?v=17.9','../ui-draft/vehicles/x6/model.glb.gz?v=lossless1');
  // The parent owns the visible vehicle selector; do not build a second hidden picker.
  if(name==='vehicle-selector.js')source="import {createVehicleSelection} from '../ui-draft/vehicle-selection.js';\n"+replace(source," const element=(tag,className,text)=>"," if(new URLSearchParams(location.search).get('review')==='ui-draft')return createVehicleSelection({selected,onChange,ids:vehicleCatalog.map(model=>model.id)});\n const element=(tag,className,text)=>");
  if(name==='vehicle-library/three/vehicle-materials.js')source=patchVehicleMaterials(source);
