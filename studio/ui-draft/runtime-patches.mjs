@@ -164,6 +164,7 @@ export function patchVehicleMaterials(source){
 }
 
 export function patchLoadPrepared(source){
+ source=replace(source,'../prepared/${id}/model.glb.gz','../../../ui-draft/vehicles/${id}/model.glb.gz?v=restore26');
  source="import {takePrefetched} from '../../asset-request.js';\nimport frameHulls from '../../../ui-draft/vehicles/framing-hulls.json';\n"+source;
  source=replace(source,'const response=await fetch(url,{signal});if(!response.ok)throw Error(`Vehicle download failed (${response.status})`);\n let bytes=await response.arrayBuffer();',`const early=globalThis.__draftPreparedVehicle;
  const scope=early?.id===id?{request:early.request}:{};if(early?.id===id)delete globalThis.__draftPreparedVehicle;
@@ -252,8 +253,8 @@ const yieldToBrowser=`);
 
 export function isolatedRuntimePlugin(){return {name:'isolated-ui-draft',setup(build){build.onLoad({filter:/\/engine\/.*\.js$/},async args=>{
  let source=await readFile(args.path,'utf8');const name=args.path.split('/engine/').at(-1);
- if(name==='app.js')source=patchApp(source);
- if(name==='vehicle.js')source=source.replaceAll('./ego-vehicle-ready.glb.gz?v=17.9','../ui-draft/vehicles/x6/model.glb.gz?v=lossless1');
+ if(name==='app.js')source=patchApp(source).replaceAll('./vehicle-library/prepared/${id}/model.glb.gz','../ui-draft/vehicles/${id}/model.glb.gz?v=restore26');
+ if(name==='vehicle.js')source=source.replaceAll('./ego-vehicle-ready.glb.gz?v=17.9','../ui-draft/vehicles/x6/model.glb.gz?v=restore26');
  // The parent owns the visible vehicle selector; do not build a second hidden picker.
  if(name==='vehicle-selector.js')source="import {createVehicleSelection} from '../ui-draft/vehicle-selection.js';\n"+replace(source," const element=(tag,className,text)=>"," if(new URLSearchParams(location.search).get('review')==='ui-draft')return createVehicleSelection({selected,onChange,ids:vehicleCatalog.map(model=>model.id)});\n const element=(tag,className,text)=>");
  if(name==='vehicle-library/three/vehicle-materials.js')source=patchVehicleMaterials(source);
@@ -261,7 +262,7 @@ export function isolatedRuntimePlugin(){return {name:'isolated-ui-draft',setup(b
  if(name==='lane-geometry-cache.js')source=patchLaneGeometry(source);
  if(name==='prepare-renderer.js')source=patchRendererPreparation(source);
  if(name==='version-features.js')source=patchFeatures(source);
- if(name==='sr-quality.js')source=source.replaceAll("'material-draft'","'ui-draft'");
+ if(name==='sr-quality.js')source=source.replaceAll("'material-draft'","'ui-draft'").replaceAll('globalThis.location?.search','(globalThis.__draftSearch??globalThis.location?.search)');
  if(name==='road-layout-morph.js'){
   // BufferGeometry.copy shares userData with its template. A role marker can
   // therefore survive on a later clone whose vertex attribute was never set.
@@ -345,7 +346,7 @@ export function isolatedRuntimePlugin(){return {name:'isolated-ui-draft',setup(b
   source="import {consolidateTrafficRear,refineTrafficBody} from '../ui-draft/traffic-surface.js';\n"+source;
   source="import {takePrefetched} from './asset-request.js';\n"+source;
   source=replace(source,"if(!bytes){const response=await fetch(new URL('../engine/assets/traffic-model-y.json.gz?v=1',import.meta.url));if(!response.ok)throw Error('Traffic model could not load');bytes=await response.arrayBuffer();}","if(!bytes)bytes=await takePrefetched('__draftTrafficRequest',async()=>{const response=await fetch(new URL('../engine/assets/traffic-model-y.json.gz?v=1',import.meta.url));if(!response.ok)throw Error('Traffic model could not load');return response.arrayBuffer();});");
-  source=replace(source,"../engine/assets/traffic-model-y.json.gz?v=1","../ui-draft/traffic-model-y.prepared.bin.gz?v=transport122");
+  source=replace(source,"../engine/assets/traffic-model-y.json.gz?v=1","../ui-draft/traffic-model-y.prepared.bin.gz?v=restore26");
   source="import {decodeTrafficPayload} from '../ui-draft/traffic-payload.js';\n"+source;
   source=replace(source,"const text=header[0]===31&&header[1]===139?await new Response(blob.stream().pipeThrough(new DecompressionStream('gzip'))).text():await blob.text();", "const decoded=header[0]===31&&header[1]===139?await new Response(blob.stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer():await blob.arrayBuffer();");
   source=replace(source,'const data=JSON.parse(text),template=', 'let data=decodeTrafficPayload(decoded);if(!data.draftBodySurface)data=refineTrafficBody(consolidateTrafficRear(data));const template=');

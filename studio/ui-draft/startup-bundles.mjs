@@ -20,7 +20,7 @@ export function startupBundlesPlugin(){return {name:'startup-payloads',setup(bui
 // direct iframe visits retain their normal fetch and transient-failure retry.
 export function startStartupAssets(scope=window){
  // Fetch every switchable model in parallel with the initial renderer.
- const urls=['../engine/assets/studio-environment.bin.gz?v=1','./traffic-model-y.prepared.bin.gz?v=transport122','./vehicles/x6/model.glb.gz?v=lossless1',...['model-3','ix','xc90'].map(model=>`../engine/vehicle-library/prepared/${model}/model.glb.gz`)];
+ const urls=['../engine/assets/studio-environment.bin.gz?v=1','./traffic-model-y.prepared.bin.gz?v=restore26','./vehicles/x6/model.glb.gz?v=restore26',...['model-3','ix','xc90'].map(model=>`./vehicles/${model}/model.glb.gz?v=restore26`)];
  scope.document.documentElement.dataset.startup='loading';
  const requests=scope.__draftStartupAssets=new Map();
  // Executable module preloads take priority over the large assets. An

@@ -11,7 +11,7 @@ import {vehicleFrame} from '../../engine/framing.js';
 const hulls=JSON.parse(await readFile(new URL('../vehicles/framing-hulls.json',import.meta.url),'utf8'));
 
 for(const [id,length] of [['ix',4.95],['xc90',4.95],['model-3',4.72]])test(`${id} prepared hulls preserve full-mesh projection through parking viewpoints and turns`,async()=>{
- const bytes=gunzipSync(await readFile(new URL(`../../engine/vehicle-library/prepared/${id}/model.glb.gz`,import.meta.url)));
+ const bytes=gunzipSync(await readFile(new URL(`../vehicles/${id}/model.glb.gz`,import.meta.url)));
  const loader=new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
  loader.register(parser=>({name:'geometry-test',beforeRoot(){
   const get=parser.getDependency;parser.getDependency=function(type,index){return type==='texture'?Promise.resolve(null):get.call(this,type,index);};

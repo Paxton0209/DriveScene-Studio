@@ -1,1 +1,1 @@
-{"name":"drivescene-ui-draft","private":true,"type":"module","scripts":{"build":"node build.mjs","test":"node --test tests/*.test.mjs"},"dependencies":{"mediabunny":"^1.21.0"}}
+{"name":"drivescene-ui-draft","private":true,"type":"module","scripts":{"build":"node build.mjs","test":"node --test tests/*.test.mjs"},"dependencies":{"mediabunny":"^1.21.0"},"devDependencies":{"@gltf-transform/core":"4.3.0","@gltf-transform/extensions":"4.3.0","@gltf-transform/functions":"4.3.0","meshoptimizer":"0.25.0","sharp":"0.35.5"}}

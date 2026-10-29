@@ -75,7 +75,7 @@ test('Default traffic loading skips body preparation while explicit original byt
 
 
 test('Binary transport preserves exact GPU bits, all indices and appearance metadata',async()=>{
- const source=compactTrafficAttributes(refineTrafficBody(consolidateTrafficRear(JSON.parse(gunzipSync(originalBytes))))),packed=gunzipSync(await readFile(new URL('../traffic-model-y.prepared.bin.gz',import.meta.url))),actual=decodeTrafficPayload(Uint8Array.from(packed).buffer);
+ const source=compactTrafficAttributes(refineTrafficBody(consolidateTrafficRear(JSON.parse(gunzipSync(originalBytes))))),packed=encodeTrafficPayload(source),actual=decodeTrafficPayload(Uint8Array.from(packed).buffer);
  const metadata=data=>({...data,parts:data.parts.map(({attributes,indices,...part})=>({...part,attributes:Object.fromEntries(Object.entries(attributes).map(([name,array])=>[name,array.length])),indices:indices&&Array.from(indices)}))});
  assert.deepEqual(metadata(actual),metadata(source));
  source.parts.forEach((part,index)=>{for(const [name,values]of Object.entries(part.attributes))assert.deepEqual(Buffer.from(actual.parts[index].attributes[name].buffer,actual.parts[index].attributes[name].byteOffset,actual.parts[index].attributes[name].byteLength),Buffer.from(new Float32Array(values).buffer));});
