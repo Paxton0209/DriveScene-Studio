@@ -8,7 +8,7 @@ function fixture(){
  let selected='initial',pins=0;
  const world={car:cars['model-3'],initializingScene:false,suspended:false,continuousDrive:{rebind(){events.push('rebind')}},
   async prepareInitialScene(){events.push('scene:'+selected)},setVehicle(car){this.car=car},update(){},
-  async draftPrepareAppearance(){events.push('appearance:'+selected+':'+this.car.id)},renderPreparedFrame(){events.push('restored-frame')}};
+  async draftPrepareAppearance(){events.push('appearance:'+selected+':'+this.car.id)},async draftPrepareAppearances(cars){for(const car of cars)events.push('appearance:'+selected+':'+car.id)},renderPreparedFrame(){events.push('restored-frame')}};
  const options={world,models,cache:{retain(){pins++;return()=>pins--},get:async id=>cars[id],stats:()=>({models})},prepareVehicle:async car=>events.push('model:'+car.id),choices:startupChoices(createProject().boards),select(choice){selected=choice.key+':'+choice.params.layout+':'+choice.params.lanes},state:()=>({selected}),restore(){selected='initial'}};
  return {options,events,get pins(){return pins}};
 }

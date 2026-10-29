@@ -68,8 +68,8 @@ test('Parent preloads the first vehicle despite saved selection, plus environmen
  const {startStartupAssets}=await import('../startup-bundles.mjs');
  for(const [search,saved,model] of [['?qa=cold',{active:'parking',shared:{model:'ix'}},'model-3'],['',{active:'outdoor',boards:{outdoor:{params:{model:'xc90'}}}},'model-3'],['?qa=1',{shared:{model:'invalid'}},'model-3'],['?qa=cold',{shared:{model:'x6'}},'model-3']]){
   const calls=[],keys=[],scope={location:{search},document:{documentElement:{dataset:{}},baseURI:'https://example.test/DriveScene-Studio/studio/ui-draft/'},localStorage:{getItem(key){keys.push(key);return JSON.stringify(saved)}},setTimeout:()=>1,clearTimeout(){},fetch:async url=>{calls.push(url);return new Response(new Uint8Array([1,2]))}};
-  const requests=startStartupAssets(scope);assert.equal(requests.size,3);await Promise.all(requests.values());
-  assert.equal(new Set(calls).size,3);assert.ok(calls.some(url=>url.includes(model==='x6'?'ego-vehicle-ready.glb.gz':`prepared/${model}/model.glb.gz`)));
+  const requests=startStartupAssets(scope);assert.equal(requests.size,6);await Promise.all(requests.values());
+  assert.equal(new Set(calls).size,6);assert.ok(calls.some(url=>url.includes(model==='x6'?'ego-vehicle-ready.glb.gz':`prepared/${model}/model.glb.gz`)));
   assert.ok(calls.some(url=>url.includes('studio-environment')));assert.ok(calls.some(url=>url.includes('traffic-model-y')));
   assert.deepEqual(keys,[]);assert.equal(scope.document.documentElement.dataset.startup,'loading');
  }
@@ -77,7 +77,7 @@ test('Parent preloads the first vehicle despite saved selection, plus environmen
 
 test('Generated parent UI is bundled and engine consumes parent assets without preloading an unused poster',async()=>{
  const html=await readFile(new URL('../index.html',import.meta.url),'utf8'),engine=await readFile(new URL('../engine.html',import.meta.url),'utf8'),bundle=await readFile(new URL('../draft.bundle.js',import.meta.url),'utf8');
- assert.ok(html.indexOf('id="startup-assets"')<html.indexOf('<title>'));assert.match(html,/src="draft.bundle.js\?v=startup-ready-v21-20261028"/);
+ assert.ok(html.indexOf('id="startup-assets"')<html.indexOf('<title>'));assert.match(html,/<link rel="modulepreload" href="runtime.bundle.js\?v=startup-fast-v22-20261028">/);assert.match(engine,/runtime.bundle.js\?v=startup-fast-v22-20261028/);assert.doesNotMatch(html,/<script src="saved-preview\/frame-profile/);assert.match(html,/src="draft.bundle.js\?v=startup-fast-v22-20261028"/);
  assert.doesNotMatch(bundle,/from\s*["']\.\//);assert.doesNotMatch(bundle,/fetch\(["']\.\/icons.json/);
  assert.doesNotMatch(engine,/link\.as="image"/);assert.match(engine,/requests\.delete\(key\);return await early/);
 });
@@ -90,4 +90,11 @@ test('Inline engine styles retain the source cascade and have no unresolved rela
  let previous=-1;
  for(const url of styles){const css=await readFile(url,'utf8');assert.doesNotMatch(css,/@import|url\(/);const at=result.indexOf(`<style>${css}</style>`,previous+1);assert.ok(at>previous,'Stylesheet order must stay identical: '+url.pathname);previous=at;}
  assert.doesNotMatch(result,/<link[^>]*rel="stylesheet"/);
+});
+
+
+test('Critical HTML contains only the unchanged default preview; other exact JPEGs stay external',async()=>{
+ const html=await readFile(new URL('../index.html',import.meta.url),'utf8'),previews=JSON.parse(await readFile(new URL('../startup-previews.json',import.meta.url),'utf8'));
+ assert.ok(Buffer.byteLength(html)<150000);assert.equal((html.match(/data:image\/jpeg;base64,/g)||[]).length,1);assert.ok(html.includes(previews['road-light']));
+ for(const [name,data]of Object.entries(previews)){const bytes=await readFile(new URL('../startup-previews/'+name+'.jpg',import.meta.url));assert.deepEqual(bytes,Buffer.from(data.split(',')[1],'base64'));if(name!=='road-light')assert.ok(html.includes('./startup-previews/'+name+'.jpg?v='));}
 });

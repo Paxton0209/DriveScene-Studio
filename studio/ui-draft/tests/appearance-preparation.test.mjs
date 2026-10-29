@@ -18,3 +18,15 @@ test('Failed appearance preparation restores prior suspension and remains retrya
  await assert.rejects(world.draftPrepareAppearance(),/warm failure/);assert.equal(world.suspended,true);assert.equal(world.initializingScene,false);assert.equal(n,0);
  fail=false;await world.draftPrepareAppearance();assert.equal(n,1);assert.equal(world.suspended,true);
 });
+
+
+test('A batch warms every model in one pass and restores scene ownership, transforms and visibility',async()=>{
+ const THREE=await import('three'),scene=new THREE.Scene(),parent=new THREE.Group(),active=new THREE.Group(),other=new THREE.Group();
+ scene.add(active);parent.add(other);other.position.set(4,5,6);other.rotation.set(.1,.2,.3);other.visible=false;active.position.set(1,2,3);
+ const before={position:other.position.toArray(),rotation:other.rotation.toArray()},world={scene,root:{},car:active,state:{mode:'light'},initializingScene:false,suspended:true,renderPreparedFrame(){}};
+ let calls=0;installAppearancePreparation(world,async()=>{calls++;assert.equal(other.parent,scene);assert.equal(other.visible,true);assert.deepEqual(other.position.toArray(),active.position.toArray());});
+ await world.draftPrepareAppearances([active,other]);await world.draftPrepareAppearances([active,other]);assert.equal(calls,1);
+ assert.equal(other.parent,parent);assert.equal(other.visible,false);assert.deepEqual(other.position.toArray(),before.position);assert.deepEqual(other.rotation.toArray(),before.rotation);assert.equal(world.suspended,true);
+ world.root={};world.renderPreparedFrame=()=>{throw Error('final draw failed')};await assert.rejects(world.draftPrepareAppearances([active,other]),/final draw failed/);
+ assert.equal(other.parent,parent);world.renderPreparedFrame=()=>{};await world.draftPrepareAppearances([active,other]);assert.equal(calls,3);
+});

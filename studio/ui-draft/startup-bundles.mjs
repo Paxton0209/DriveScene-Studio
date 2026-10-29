@@ -19,9 +19,8 @@ export function startupBundlesPlugin(){return {name:'startup-payloads',setup(bui
 // Start requests during parent HTML parsing. The iframe consumes the promises;
 // direct iframe visits retain their normal fetch and transient-failure retry.
 export function startStartupAssets(scope=window){
- // Every fresh Studio visit starts with the first vehicle in the strip.
- const model='model-3';
- const urls=['../engine/assets/studio-environment.bin.gz?v=1','./traffic-model-y.prepared.json.gz?v=transport121',model==='x6'?'../engine/ego-vehicle-ready.glb.gz?v=17.9':`../engine/vehicle-library/prepared/${model}/model.glb.gz`];
+ // Fetch every switchable model in parallel with the initial renderer.
+ const urls=['../engine/assets/studio-environment.bin.gz?v=1','./traffic-model-y.prepared.bin.gz?v=transport122','../engine/ego-vehicle-ready.glb.gz?v=17.9',...['model-3','ix','xc90'].map(model=>`../engine/vehicle-library/prepared/${model}/model.glb.gz`)];
  scope.document.documentElement.dataset.startup='loading';
  const requests=scope.__draftStartupAssets=new Map();
  for(const path of urls){const url=new URL(path,scope.document.baseURI).href,controller=new AbortController(),timer=scope.setTimeout(()=>controller.abort(),30000);

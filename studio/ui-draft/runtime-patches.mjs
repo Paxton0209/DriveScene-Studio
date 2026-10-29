@@ -167,6 +167,7 @@ export function patchLoadPrepared(source){
  source="import {takePrefetched} from '../../asset-request.js';\nimport frameHulls from '../../../ui-draft/vehicles/framing-hulls.json';\n"+source;
  source=replace(source,'const response=await fetch(url,{signal});if(!response.ok)throw Error(`Vehicle download failed (${response.status})`);\n let bytes=await response.arrayBuffer();',`const early=globalThis.__draftPreparedVehicle;
  const scope=early?.id===id?{request:early.request}:{};if(early?.id===id)delete globalThis.__draftPreparedVehicle;
+ if(!scope.request){try{const requests=window.parent.__draftStartupAssets,key=new URL(url,document.baseURI).href;scope.request=requests?.get(key);requests?.delete(key);}catch{}}
  let bytes=await takePrefetched('request',async()=>{const response=await fetch(url,{signal});if(!response.ok)throw Error(\`Vehicle download failed (\${response.status})\`);return response.arrayBuffer();},scope);`);
  return replace(source,'const surfaces=prepareVehicleMaterials(model,id,spec.length);',`const surfaces=await prepareVehicleMaterials(model,id,spec.length);
  const hulls=frameHulls[id],meshes=[];model.traverse(mesh=>{if(mesh.isMesh)meshes.push(mesh);});
@@ -201,12 +202,14 @@ export function patchRendererPreparation(source){
 const yieldToBrowser=`);
  source=replace(source,'const proxy=object.clone(false);','const proxy=clonePassObject(object);');
  source=replace(source,'targetScene.clone(false)','clonePassObject(targetScene)');
+
+ source=replace(source,'material.uuid,material.side,material.defines','material.uuid,material.side,material.transparent,material.depthWrite,material.defines');
  // Scene switches suspend visible draws. Recording still needs to traverse the
  // incoming scene; restore suspension synchronously before preparation yields.
  source=replace(source,'try{world.renderFrame();}finally{renderer.renderBufferDirect=draw;',
   `const suspended=world.suspended,render=renderer.render;
  renderer.render=function(...args){const passHidden=[],culled=[];scene.traverse(object=>{if(!object.visible){passHidden.push(object);object.visible=true;}if(object.isMesh&&object.frustumCulled){culled.push(object);object.frustumCulled=false;}});try{return render.apply(this,args);}finally{for(const object of passHidden)object.visible=false;for(const object of culled)object.frustumCulled=true;}};
- try{world.suspended=false;world.renderFrame();}finally{world.suspended=suspended;renderer.render=render;renderer.renderBufferDirect=draw;`);
+ try{world.suspended=false;world.renderFrame();world.draftRecordStartupVariants?.(()=>world.renderFrame());}finally{world.suspended=suspended;renderer.render=render;renderer.renderBufferDirect=draw;`);
  // Keep both traffic variants on the live material. Hidden cars do not take
  // ownership of a program during the final frame, so disposing proxy copies
  // would otherwise evict their base program before the first reveal.
@@ -338,12 +341,14 @@ export function isolatedRuntimePlugin(){return {name:'isolated-ui-draft',setup(b
   source="import {consolidateTrafficRear,refineTrafficBody} from '../ui-draft/traffic-surface.js';\n"+source;
   source="import {takePrefetched} from './asset-request.js';\n"+source;
   source=replace(source,"if(!bytes){const response=await fetch(new URL('../engine/assets/traffic-model-y.json.gz?v=1',import.meta.url));if(!response.ok)throw Error('Traffic model could not load');bytes=await response.arrayBuffer();}","if(!bytes)bytes=await takePrefetched('__draftTrafficRequest',async()=>{const response=await fetch(new URL('../engine/assets/traffic-model-y.json.gz?v=1',import.meta.url));if(!response.ok)throw Error('Traffic model could not load');return response.arrayBuffer();});");
-  source=replace(source,"../engine/assets/traffic-model-y.json.gz?v=1","../ui-draft/traffic-model-y.prepared.json.gz?v=transport121");
-  source=replace(source,'const data=JSON.parse(text),template=', 'let data=JSON.parse(text);if(!data.draftBodySurface)data=refineTrafficBody(consolidateTrafficRear(data));const template=');
+  source=replace(source,"../engine/assets/traffic-model-y.json.gz?v=1","../ui-draft/traffic-model-y.prepared.bin.gz?v=transport122");
+  source="import {decodeTrafficPayload} from '../ui-draft/traffic-payload.js';\n"+source;
+  source=replace(source,"const text=header[0]===31&&header[1]===139?await new Response(blob.stream().pipeThrough(new DecompressionStream('gzip'))).text():await blob.text();", "const decoded=header[0]===31&&header[1]===139?await new Response(blob.stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer():await blob.arrayBuffer();");
+  source=replace(source,'const data=JSON.parse(text),template=', 'let data=decodeTrafficPayload(decoded);if(!data.draftBodySurface)data=refineTrafficBody(consolidateTrafficRear(data));const template=');
   source=source.replace('a*.36*visibility','a*.55*visibility');
   source="import {toCreasedNormals} from 'three/addons/utils/BufferGeometryUtils.js';\n"+source;
   source=replace(source,'const geometry=new THREE.BufferGeometry();','let geometry=new THREE.BufferGeometry();');
-  source=replace(source,'if(part.indices)geometry.setIndex(part.indices);',"if(part.indices)geometry.setIndex(part.indices);if(part.role==='paint'&&!data.draftBodySurface){const original=geometry;geometry=toCreasedNormals(original,Math.PI/3);const normals=geometry.attributes.normal;for(let i=0;i<normals.count;i++){const n=new THREE.Vector3().fromBufferAttribute(normals,i);if(!Number.isFinite(n.lengthSq())||n.lengthSq()<1e-8){const index=original.index?.getX(i)??i;if(original.attributes.normal)n.fromBufferAttribute(original.attributes.normal,index);if(!Number.isFinite(n.lengthSq())||n.lengthSq()<1e-8)n.set(0,1,0);n.normalize();normals.setXYZ(i,n.x,n.y,n.z);}}if(geometry!==original)original.dispose();}");
+  source=replace(source,'if(part.indices)geometry.setIndex(part.indices);',"if(part.indices)geometry.setIndex(Array.isArray(part.indices)?part.indices:new THREE.BufferAttribute(part.indices,1));if(part.role==='paint'&&!data.draftBodySurface){const original=geometry;geometry=toCreasedNormals(original,Math.PI/3);const normals=geometry.attributes.normal;for(let i=0;i<normals.count;i++){const n=new THREE.Vector3().fromBufferAttribute(normals,i);if(!Number.isFinite(n.lengthSq())||n.lengthSq()<1e-8){const index=original.index?.getX(i)??i;if(original.attributes.normal)n.fromBufferAttribute(original.attributes.normal,index);if(!Number.isFinite(n.lengthSq())||n.lengthSq()<1e-8)n.set(0,1,0);n.normalize();normals.setXYZ(i,n.x,n.y,n.z);}}if(geometry!==original)original.dispose();}");
  }
  if(name==='traffic-vehicle.js'){
   source="import {junctionTrafficPlan,isJunction,advanceJunctionTraffic} from '../ui-draft/junction-traffic.js';\n"+source;
@@ -371,6 +376,11 @@ export function isolatedRuntimePlugin(){return {name:'isolated-ui-draft',setup(b
  if(name==='world.js'){
   // Ten exposed geometry variants must survive the opening preparation.
   source=replace(source,'if(this.sceneCache.size>8)','if(this.sceneCache.size>12)');
+  // Retain hidden variants with their cached scene. Releasing warm proxies at
+  // the final frame evicts programs unused by that initial frame's layers.
+  source=replace(source,'for(const material of this.preparedMaterials||[])material.dispose();this.preparedMaterials=[];',`if(!this.draftPreparedMaterials)this.draftPreparedMaterials=new WeakMap();const retained=this.draftPreparedMaterials.get(this.root)||[];retained.push(...this.preparedMaterials||[]);this.draftPreparedMaterials.set(this.root,retained);this.preparedMaterials=[];`);
+  source=replace(source,' disposeSceneRoot(root){',' disposeSceneRoot(root){for(const material of this.draftPreparedMaterials?.get(root)||[])material.dispose();this.draftPreparedMaterials?.delete(root);');
+
   source=refineWorld(source);
   source=replace(source,'updateTailLight(this.tailReflection,this.car,dark,isParking);','updateTailLight(this.tailReflection,this.car,dark,isParking,this);');
   source="import {retainMorphingScenery} from '../ui-draft/lane-culling.js';\n"+source;

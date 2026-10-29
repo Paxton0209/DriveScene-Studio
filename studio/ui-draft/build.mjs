@@ -1,8 +1,10 @@
+import {createHash} from 'node:crypto';
+import {encodeTrafficPayload} from './traffic-payload.js';
 import {showStartupPoster,layoutStartupPoster} from './startup-poster.mjs';
 import {startupBundlesPlugin,startupAssetScript} from './startup-bundles.mjs';
 import {clippingPrecompilePlugin} from './clipping-precompile.mjs';
 import {build} from 'esbuild';
-import {access,readFile,writeFile} from 'node:fs/promises';
+import {access,mkdir,readFile,writeFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import {gunzipSync,gzipSync} from 'node:zlib';
 import * as THREE from 'three';
@@ -44,9 +46,11 @@ for(const [id,length] of [['ix',4.95],['xc90',4.95],['model-3',4.72]]){
 await writeFile(new URL('./vehicles/framing-hulls.json',import.meta.url),JSON.stringify(frameHulls));
 // Static geometry preparation belongs to the build, not the first visible frame.
 const traffic=JSON.parse(gunzipSync(await readFile(new URL('../engine/assets/traffic-model-y.json.gz',import.meta.url))));
-await writeFile(new URL('./traffic-model-y.prepared.json.gz',import.meta.url),gzipSync(JSON.stringify(compactTrafficAttributes(refineTrafficBody(consolidateTrafficRear(traffic))))));
+const preparedTraffic=compactTrafficAttributes(refineTrafficBody(consolidateTrafficRear(traffic)));
+await writeFile(new URL('./traffic-model-y.prepared.json.gz',import.meta.url),gzipSync(JSON.stringify(preparedTraffic)));
+await writeFile(new URL('./traffic-model-y.prepared.bin.gz',import.meta.url),gzipSync(encodeTrafficPayload(preparedTraffic),{level:9}));
 const html=await readFile(new URL('../engine/index.html',import.meta.url),'utf8');
-const embedded=html.replace('async function preloadAsset(url){',`async function preloadAsset(url){try{const requests=window.parent.__draftStartupAssets,key=new URL(url,document.baseURI).href,early=requests?.get(key);if(early){requests.delete(key);return await early;}}catch{} `).replace('globalThis.__studioEnvironmentRequest=preloadAsset(',`const selectedModel=q.get('model')||'x6';if(['model-3','ix','xc90'].includes(selectedModel)){globalThis.__draftPreparedVehicle={id:selectedModel,request:preloadAsset('./vehicle-library/prepared/'+selectedModel+'/model.glb.gz')};globalThis.__draftPreparedVehicle.request.catch(()=>{});}globalThis.__draftTrafficRequest=preloadAsset('../ui-draft/traffic-model-y.prepared.json.gz?v=transport121');globalThis.__draftTrafficRequest.catch(()=>{});globalThis.__studioEnvironmentRequest=preloadAsset(`).replace('<head>','<head><base href="../engine/"><link rel="stylesheet" href="../ui-draft/engine.css?v=startup-20261027">').replaceAll('drivescene-preview-v15','drivescene-ui-draft-preview-v1').replaceAll('"sr-theme"','"sr-ui-draft-theme"').replace('<script src="startup.js?v=20261019-finish-110"></script>','<script type="module" src="../ui-draft/runtime.bundle.js?v=startup-motion-20261028"></script>');
+const embedded=html.replace('if(!q.get("model")||q.get("model")==="x6")','if(!globalThis.__fullVehicleRequest&&(!q.get("model")||q.get("model")==="x6"))').replace('async function preloadAsset(url){',`async function preloadAsset(url){try{const requests=window.parent.__draftStartupAssets,key=new URL(url,document.baseURI).href,early=requests?.get(key);if(early){requests.delete(key);return await early;}}catch{} `).replace('globalThis.__studioEnvironmentRequest=preloadAsset(',`const selectedModel=q.get('model')||'x6';if(['model-3','ix','xc90'].includes(selectedModel)){globalThis.__draftPreparedVehicle={id:selectedModel,request:preloadAsset('./vehicle-library/prepared/'+selectedModel+'/model.glb.gz')};globalThis.__draftPreparedVehicle.request.catch(()=>{});}globalThis.__fullVehicleRequest=preloadAsset('./ego-vehicle-ready.glb.gz?v=17.9');globalThis.__fullVehicleRequest.catch(()=>{});globalThis.__draftTrafficRequest=preloadAsset('../ui-draft/traffic-model-y.prepared.bin.gz?v=transport122');globalThis.__draftTrafficRequest.catch(()=>{});globalThis.__studioEnvironmentRequest=preloadAsset(`).replace('<head>','<head><base href="../engine/"><link rel="stylesheet" href="../ui-draft/engine.css?v=startup-20261027">').replaceAll('drivescene-preview-v15','drivescene-ui-draft-preview-v1').replaceAll('"sr-theme"','"sr-ui-draft-theme"').replace('<script src="startup.js?v=20261019-finish-110"></script>','<script type="module" src="../ui-draft/runtime.bundle.js?v=startup-fast-v22-20261028"></script>');
 let engineHtml=embedded.replace(/document\.documentElement\.style\.setProperty\(\"--startup-frame\"[\s\S]*?document\.head\.append\(link\);/,'');
 // Preserve the engine cascade exactly while avoiding a separate network turn
 // for each stylesheet in the first embedded frame. These styles have no URLs.
@@ -57,9 +61,27 @@ for(const [tag] of engineHtml.matchAll(/<link[^>]*rel="stylesheet"[^>]*>/g)){
 }
 await writeFile(new URL('./engine.html',import.meta.url),engineHtml);
 const parentFile=new URL('./index.html',import.meta.url);let parent=await readFile(parentFile,'utf8');
-parent=parent.replace(/<link rel="modulepreload"[^>]+>/g,'').replace(/<link rel="preload" href="icons.json"[^>]+>/g,'').replace(/<script id="startup-assets">[\s\S]*?<\/script>/,'').replace('<title>',`<script id="startup-assets">${startupAssetScript()}</script><title>`).replace(/src="(?:draft|draft.bundle)\.js\?v=[^"]+"/,'src="draft.bundle.js?v=startup-ready-v21-20261028"');
+parent=parent.replace(/<link rel="modulepreload"[^>]+>/g,'').replace(/<link rel="preload" href="icons.json"[^>]+>/g,'').replace(/<script id="startup-assets">[\s\S]*?<\/script>/,'').replace('<title>',`<script id="startup-assets">${startupAssetScript()}</script><title>`).replace(/src="(?:draft|draft.bundle)\.js\?v=[^"]+"/,'src="draft.bundle.js?v=startup-fast-v22-20261028"');
+// Discover and download both executable bundles before the poster/body parse.
+// The embedded document reuses the runtime's module request from this origin.
+parent=parent.replace('<script id="startup-assets">','<link rel="modulepreload" href="draft.bundle.js?v=startup-fast-v22-20261028"><link rel="modulepreload" href="runtime.bundle.js?v=startup-fast-v22-20261028"><script id="startup-assets">');
 parent=parent.replace(/<script id="startup-poster">[\s\S]*?<\/script>/,'').replace(/<script id="startup-layout">[\s\S]*?<\/script>/,'');
-const previews=await readFile(new URL('./startup-previews.json',import.meta.url),'utf8');
+// Keep the default first frame inline. Other scenes/themes do not belong in
+// every visitor's critical HTML; preserve their exact JPEG bytes as assets.
+const previewData=JSON.parse(await readFile(new URL('./startup-previews.json',import.meta.url),'utf8'));
+await mkdir(new URL('./startup-previews/',import.meta.url),{recursive:true});
+const previewDirectory={};
+for(const [key,data] of Object.entries(previewData)){
+ const bytes=Buffer.from(data.split(',')[1],'base64'),hash=createHash('sha256').update(bytes).digest('hex').slice(0,12);
+ await writeFile(new URL('./startup-previews/'+key+'.jpg',import.meta.url),bytes);
+ previewDirectory[key]=key==='road-light'?data:'./startup-previews/'+key+'.jpg?v='+hash;
+}
+const previews=JSON.stringify(previewDirectory);
+// Keep the approved profile's execution order without a parser-blocking fetch.
+parent=parent.replace(/<script(?: id="saved-frame-profile"| src="saved-preview\/frame-profile\.js[^"]*")[^>]*>[\s\S]*?<\/script>/g,'');
+const frameProfile=await readFile(new URL('./saved-preview/frame-profile.js',import.meta.url),'utf8');
+parent=parent.replace('</body>',`<script id="saved-frame-profile">${frameProfile}</script></body>`);
+
 parent=parent.replace('</head>',`<script id="startup-poster">(${showStartupPoster.toString()})(${previews.trim()},window)</script></head>`).replace('<script type="module"',`<script id="startup-layout">(${layoutStartupPoster.toString()})()</script><script type="module"`);
 // First paint must not wait for a separate CSS response. Keep the complete
 // existing cascade inline and regenerate it on every build.
