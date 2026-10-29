@@ -1,3 +1,4 @@
+import {prepareDisplayVehicles} from './prepare-display-assets.mjs';
 import {createHash} from 'node:crypto';
 import {encodeTrafficPayload} from './traffic-payload.js';
 import {showStartupPoster,layoutStartupPoster} from './startup-poster.mjs';
@@ -17,9 +18,10 @@ import {consolidateTrafficRear,refineTrafficBody,compactTrafficAttributes} from 
 const root=fileURLToPath(new URL('.',import.meta.url));
 // Reuse framing.js's existing exact hull-index path. Generate after the same
 // geometry preparation as load-prepared.js; never build hulls on a visible frame.
+await prepareDisplayVehicles();
 const frameHulls={};
 for(const [id,length] of [['ix',4.95],['xc90',4.95],['model-3',4.72]]){
- const bytes=gunzipSync(await readFile(new URL(`../engine/vehicle-library/prepared/${id}/model.glb.gz`,import.meta.url)));
+ const bytes=gunzipSync(await readFile(new URL(`./vehicles/${id}/model.glb.gz`,import.meta.url)));
  const loader=new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
  // Images do not affect geometry or material names used by preparation.
  loader.register(parser=>({name:'offline-framing-geometry',beforeRoot(){
@@ -48,10 +50,12 @@ await writeFile(new URL('./vehicles/framing-hulls.json',import.meta.url),JSON.st
 const traffic=JSON.parse(gunzipSync(await readFile(new URL('../engine/assets/traffic-model-y.json.gz',import.meta.url))));
 const preparedTraffic=compactTrafficAttributes(refineTrafficBody(consolidateTrafficRear(traffic)));
 await writeFile(new URL('./traffic-model-y.prepared.json.gz',import.meta.url),gzipSync(JSON.stringify(preparedTraffic)));
+// Keep the approved Traffic topology and normals exactly. Lossless packing
+// reduces parsing work without collapsing exterior panels.
 await writeFile(new URL('./traffic-model-y.prepared.bin.gz',import.meta.url),gzipSync(encodeTrafficPayload(preparedTraffic),{level:9}));
 const html=await readFile(new URL('../engine/index.html',import.meta.url),'utf8');
-const embedded=html.replace('if(!q.get("model")||q.get("model")==="x6")','if(!globalThis.__fullVehicleRequest&&(!q.get("model")||q.get("model")==="x6"))').replace('async function preloadAsset(url){',`async function preloadAsset(url){try{const requests=window.parent.__draftStartupAssets,key=new URL(url,document.baseURI).href,early=requests?.get(key);if(early){requests.delete(key);return await early;}}catch{} `).replace('globalThis.__studioEnvironmentRequest=preloadAsset(',`const selectedModel=q.get('model')||'x6';if(['model-3','ix','xc90'].includes(selectedModel)){globalThis.__draftPreparedVehicle={id:selectedModel,request:preloadAsset('./vehicle-library/prepared/'+selectedModel+'/model.glb.gz')};globalThis.__draftPreparedVehicle.request.catch(()=>{});}globalThis.__fullVehicleRequest=preloadAsset('./ego-vehicle-ready.glb.gz?v=17.9');globalThis.__fullVehicleRequest.catch(()=>{});globalThis.__draftTrafficRequest=preloadAsset('../ui-draft/traffic-model-y.prepared.bin.gz?v=transport122');globalThis.__draftTrafficRequest.catch(()=>{});globalThis.__studioEnvironmentRequest=preloadAsset(`).replace('<head>','<head><base href="../engine/"><link rel="stylesheet" href="../ui-draft/engine.css?v=startup-20261027">').replaceAll('drivescene-preview-v15','drivescene-ui-draft-preview-v1').replaceAll('"sr-theme"','"sr-ui-draft-theme"').replace('<script src="startup.js?v=20261019-finish-110"></script>','<script type="module" src="../ui-draft/runtime.bundle.js?v=startup-transport-v24-20261028"></script>');
-let engineHtml=embedded.replace(/const c=new AbortController\(\),t=setTimeout\(\(\)=>c.abort\(\),30000\);try\{/,'try{').replace('fetch(url,{priority:"high",signal:c.signal})','fetch(url,{priority:"low"})').replace('finally{clearTimeout(t)}','').replaceAll('./ego-vehicle-ready.glb.gz?v=17.9','../ui-draft/vehicles/x6/model.glb.gz?v=lossless1').replace(/document\.documentElement\.style\.setProperty\(\"--startup-frame\"[\s\S]*?document\.head\.append\(link\);/,'');
+const embedded=html.replace('if(!q.get("model")||q.get("model")==="x6")','if(!globalThis.__fullVehicleRequest&&(!q.get("model")||q.get("model")==="x6"))').replace('async function preloadAsset(url){',`async function preloadAsset(url){try{const requests=window.parent.__draftStartupAssets,key=new URL(url,document.baseURI).href,early=requests?.get(key);if(early){requests.delete(key);return await early;}}catch{} `).replace('globalThis.__studioEnvironmentRequest=preloadAsset(',`const selectedModel=q.get('model')||'x6';if(['model-3','ix','xc90'].includes(selectedModel)){globalThis.__draftPreparedVehicle={id:selectedModel,request:preloadAsset('../ui-draft/vehicles/'+selectedModel+'/model.glb.gz?v=restore26')};globalThis.__draftPreparedVehicle.request.catch(()=>{});}globalThis.__fullVehicleRequest=preloadAsset('./ego-vehicle-ready.glb.gz?v=17.9');globalThis.__fullVehicleRequest.catch(()=>{});globalThis.__draftTrafficRequest=preloadAsset('../ui-draft/traffic-model-y.prepared.bin.gz?v=restore26');globalThis.__draftTrafficRequest.catch(()=>{});globalThis.__studioEnvironmentRequest=preloadAsset(`).replace('<head>','<head><base href="../engine/"><link rel="stylesheet" href="../ui-draft/engine.css?v=startup-20261027">').replaceAll('drivescene-preview-v15','drivescene-ui-draft-preview-v1').replaceAll('"sr-theme"','"sr-ui-draft-theme"').replace('<script src="startup.js?v=20261019-finish-110"></script>','<script type="module" src="../ui-draft/runtime.bundle.js?v=startup-restore-v26-20261029"></script>');
+let engineHtml=embedded.replace(/const c=new AbortController\(\),t=setTimeout\(\(\)=>c.abort\(\),30000\);try\{/,'try{').replace('fetch(url,{priority:"high",signal:c.signal})','fetch(url,{priority:"low"})').replace('finally{clearTimeout(t)}','').replaceAll('./ego-vehicle-ready.glb.gz?v=17.9','../ui-draft/vehicles/x6/model.glb.gz?v=restore26').replace(/document\.documentElement\.style\.setProperty\(\"--startup-frame\"[\s\S]*?document\.head\.append\(link\);/,'');
 // Preserve the engine cascade exactly while avoiding a separate network turn
 // for each stylesheet in the first embedded frame. These styles have no URLs.
 for(const [tag] of engineHtml.matchAll(/<link[^>]*rel="stylesheet"[^>]*>/g)){
@@ -62,10 +66,11 @@ for(const [tag] of engineHtml.matchAll(/<link[^>]*rel="stylesheet"[^>]*>/g)){
 engineHtml=engineHtml.replaceAll('location.search','(globalThis.__draftSearch??location.search)').replace('<head>','<head><script>globalThis.__draftSearch=window.frameElement?.dataset.search||location.search;<\/script>');
 await writeFile(new URL('./engine.html',import.meta.url),engineHtml);
 const parentFile=new URL('./index.html',import.meta.url);let parent=await readFile(parentFile,'utf8');
-parent=parent.replace(/<link rel="modulepreload"[^>]+>/g,'').replace(/<link rel="preload" href="icons.json"[^>]+>/g,'').replace(/<script id="startup-assets">[\s\S]*?<\/script>/,'').replace('<title>',`<script id="startup-assets">${startupAssetScript()}</script><title>`).replace(/src="(?:draft|draft.bundle)\.js\?v=[^"]+"/,'src="draft.bundle.js?v=startup-transport-v24-20261028"');
+parent=parent.replace(/<script id="startup-draft"[^>]*>[\s\S]*?<\/script>/,'<script type="module" src="draft.bundle.js?v=startup-restore-v26-20261029"></script>');
+parent=parent.replace(/<link rel="modulepreload"[^>]+>/g,'').replace(/<link rel="preload" href="icons.json"[^>]+>/g,'').replace(/<script id="startup-assets">[\s\S]*?<\/script>/,'').replace('<title>',`<script id="startup-assets">${startupAssetScript()}</script><title>`).replace(/src="(?:draft|draft.bundle)\.js\?v=[^"]+"/,'src="draft.bundle.js?v=startup-restore-v26-20261029"');
 // Discover and download both executable bundles before the poster/body parse.
 // The embedded document reuses the runtime's module request from this origin.
-parent=parent.replace('<script id="startup-assets">','<link rel="modulepreload" fetchpriority="high" href="draft.bundle.js?v=startup-transport-v24-20261028"><link rel="modulepreload" fetchpriority="high" href="runtime.bundle.js?v=startup-transport-v24-20261028"><script id="startup-assets">');
+parent=parent.replace('<script id="startup-assets">','<link rel="modulepreload" fetchpriority="high" href="runtime.bundle.js?v=startup-restore-v26-20261029"><script id="startup-assets">');
 parent=parent.replace(/<script id="startup-poster">[\s\S]*?<\/script>/,'').replace(/<script id="startup-layout">[\s\S]*?<\/script>/,'');
 // Keep the default first frame inline. Other scenes/themes do not belong in
 // every visitor's critical HTML; preserve their exact JPEG bytes as assets.
@@ -125,4 +130,9 @@ console.log('UI draft runtime built; shared engine files are read-only inputs.')
 // Reproduce the saved preview, including its fixed material and frame profile.
 await build({absWorkingDir:root,entryPoints:['./video.js'],bundle:true,minify:true,format:'esm',outfile:'video.bundle.js',target:['chrome110','safari17']});
 await import('./saved-preview/build.mjs');
+// The complete control tree must start with the first HTML response, without
+// another module round trip. Escape embedded HTML script terminators once.
+const draftBundle=await readFile(new URL('./draft.bundle.js',import.meta.url),'utf8');
+const inlineDraft=draftBundle.replace(/<\/script/gi,'<\\/script');
+await writeFile(parentFile,parent.replace(/<script type="module" src="draft.bundle.js[^"]*"><\/script>/,()=>`<script id="startup-draft" type="module">${inlineDraft}</script>`));
 console.log('Saved 2026-10-27 preview profile applied.');
