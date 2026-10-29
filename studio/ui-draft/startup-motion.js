@@ -1,5 +1,5 @@
-// Both entrances start together. Normal loading uses one linear opacity
-// timeline; a slow download may extend its last five percent smoothly.
+// Only a prepared, running renderer may complete the opening. A previous
+// document cannot grant readiness to this new WebGL context.
 const HORIZON=60000,STEP=20,RATE=.9/1800,LINEAR_END=1760;
 export function pendingFade(time){
  const t=Math.max(0,time);
@@ -29,16 +29,19 @@ export function beginStartup({doc=document,clock=performance}={}){
  const controls=[...doc.querySelectorAll('#inspector-scroll :is(.vehicle-heading, #vehicle-strip, section > h2, .property, .layer-row, #export-preview, #export)')];
  controls.forEach((node,index)=>{node.dataset.startupControl='right';node.style.setProperty('--startup-delay',Math.min(index*27,486)+'ms')});
  const warm=root.dataset.startup==='warm',reduce=doc.defaultView.matchMedia('(prefers-reduced-motion: reduce)').matches;
- let done=false,revealed=false,motion=null;
+ let done=false,revealed=false,motion=null,resolveFinished;
+ const finished=new Promise(resolve=>{resolveFinished=resolve});
  function finish(){
   if(done)return;done=true;
   delete root.dataset.startup;
   if(motion){motion.onfinish=null;motion.cancel()}
-  inspector.inert=false;clock.mark('draft-startup-visible');
+  inspector.inert=false;doc.getElementById('scene-nav').inert=false;
+  if(revealed){try{doc.defaultView.sessionStorage?.setItem(doc.defaultView.__draftStartupSessionKey,'ready')}catch{}}
+  clock.mark('draft-startup-visible');resolveFinished();
  }
- inspector.inert=true;root.dataset.startup=warm?'warm':'controls';
+ inspector.inert=true;doc.getElementById('scene-nav').inert=true;root.dataset.startup=warm?'warm':'controls';
  if(!warm)clock.mark('draft-startup-controls');
- if(!warm&&!reduce){
+ if(!reduce){
   // Allocate the fade once, against navigation's two-second budget. Its rate
   // stays fixed after the first frame; readiness never speeds it up.
   const started=typeof clock.now==='function'?clock.now():0;
@@ -48,18 +51,18 @@ export function beginStartup({doc=document,clock=performance}={}){
   clock.mark('draft-startup-fade');
  }
  return {
+  finished,
   reveal(){
-   if(done||revealed)return;revealed=true;inspector.inert=false;
-   try{doc.defaultView.sessionStorage?.setItem(doc.defaultView.__draftStartupSessionKey,'ready')}catch{}
+   if(done||revealed)return;revealed=true;
    clock.mark('draft-startup-reveal');
-   if(warm||reduce){finish();return}
+   if(reduce){finish();return}
    // Retain the compositor animation and its clock. Rebuild the remaining
    // timeline without an opacity reset, zero-speed hold or velocity jump.
    const elapsed=Number(motion.currentTime)||0,tail=readyFade(elapsed),total=elapsed+tail.duration;
    const frames=pendingFrames(elapsed,total);
    for(let i=1;i<=120;i++){const time=tail.duration*i/120;frames.push({opacity:i===120?1:tail.at(time),offset:(elapsed+time)/total})}
    motion.effect.setKeyframes(frames);motion.effect.updateTiming({duration:total});motion.currentTime=elapsed;
-   root.dataset.startup='revealing';motion.onfinish=finish;
+   root.dataset.startup=warm?'warm-revealing':'revealing';motion.onfinish=finish;
   },
   abort:finish
  };

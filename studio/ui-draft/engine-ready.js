@@ -12,14 +12,21 @@ export function waitForEngine({host,frame,ready,timeout=30000}){
  });
 }
 
-// Uncover the running renderer only after it has drawn a changed driving frame.
-// The first static preparation raster must not become a visible pause.
+// A background document cannot prove that its renderer is moving. Wait for
+// visible presentation and two distinct advancing frames before the handoff.
 export function waitForStartupMotion({host,bridge}){
- const initial=bridge.get({audit:false}),frames=bridge.themeStatus().renderedFrames;
- if(!initial.playing||!['road','elevated','ramp'].includes(initial.scene)||host.document.hidden)return Promise.resolve();
+ let previous=bridge.get({audit:false}),frames=bridge.themeStatus().renderedFrames,advancing=0;
  return new Promise(resolve=>{
-  const check=()=>{const current=bridge.get({audit:false});
-   if(!current.playing||host.document.hidden||bridge.themeStatus().renderedFrames>frames&&current.distance>initial.distance){resolve();return}
+  const check=()=>{
+   const current=bridge.get({audit:false}),rendered=bridge.themeStatus().renderedFrames;
+   if(host.document.hidden){advancing=0;previous=current;frames=rendered;host.requestAnimationFrame(check);return}
+   const moving=['road','elevated','ramp'].includes(current.scene)&&(current.requestedPlaying??current.playing);
+   if(!moving){resolve();return}
+   if(rendered>frames){
+    advancing=current.distance>previous.distance?advancing+1:0;
+    previous=current;frames=rendered;
+   }
+   if(advancing>=2){resolve();return}
    host.requestAnimationFrame(check);
   };
   host.requestAnimationFrame(check);

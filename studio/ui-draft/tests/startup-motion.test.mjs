@@ -19,7 +19,7 @@ test('Sidebars and the scene fade start together while readiness is pending',()=
 test('Ready handoff keeps the same animation, current time and opacity',()=>{
  for(const elapsed of [0,450,1800,3500,8000,29000]){
   const s=setup(),m=s.motion;m.currentTime=elapsed;s.lifecycle.reveal();
-  assert.equal(s.root.dataset.startup,'revealing');assert.equal(s.inspector.inert,false);
+  assert.equal(s.root.dataset.startup,'revealing');assert.equal(s.inspector.inert,true);
   assert.equal(s.motions.length,1);assert.equal(m.currentTime,elapsed);assert.equal(m.cancelled,0);
   const join=m.frames.find(f=>Math.abs(f.offset*m.options.duration-elapsed)<1e-7);
   assert.equal(join.opacity,pendingFade(elapsed).opacity);
@@ -42,17 +42,16 @@ test('Slow loading advances from the start and extends completion without holdin
  const s=setup(),m=s.motion;assert.ok(pendingFade(8000).opacity>pendingFade(4000).opacity);
  m.currentTime=8000;s.lifecycle.reveal();assert.ok(m.options.duration>8000);assert.equal(m.paused,0);assert.equal(m.played,0);
 });
-test('Warm entries and reduced motion reveal readiness without replaying a fade',()=>{
- for(const [reduce,warm] of [[true,false],[false,true]]){
-  const s=setup(reduce,warm);assert.equal(s.motions.length,0);s.lifecycle.reveal();assert.equal(s.root.dataset.startup,undefined);assert.equal(s.motions.length,0);assert.equal(s.inspector.inert,false);
- }
+test('Reduced motion still waits for real readiness; returning documents retain the pending fade',()=>{
+ const reduced=setup(true);assert.equal(reduced.motions.length,0);reduced.lifecycle.reveal();assert.equal(reduced.root.dataset.startup,undefined);
+ const warm=setup(false,true);assert.equal(warm.motions.length,1);assert.equal(warm.motion.frames[0].opacity,.1);warm.lifecycle.reveal();assert.equal(warm.root.dataset.startup,'warm-revealing');assert.equal(warm.inspector.inert,true);warm.motion.onfinish();assert.equal(warm.inspector.inert,false);
 });
 test('Failure clears pending or active animation without marking a pending session ready',()=>{
  const failed=setup();failed.lifecycle.abort();failed.lifecycle.reveal();assert.deepEqual(failed.writes,[]);assert.equal(failed.motions.length,1);assert.equal(failed.motion.cancelled,1);assert.equal(failed.inspector.inert,false);
  const active=setup();active.lifecycle.reveal();active.lifecycle.abort();assert.equal(active.motions[0].cancelled,1);assert.equal(active.root.dataset.startup,undefined);
 });
 test('Only a successful ready handoff marks the session',()=>{
- const s=setup();assert.deepEqual(s.writes,[]);s.lifecycle.reveal();assert.deepEqual(s.writes,[['session-test','ready']]);
+ const s=setup();assert.deepEqual(s.writes,[]);s.lifecycle.reveal();assert.deepEqual(s.writes,[]);s.motion.onfinish();assert.deepEqual(s.writes,[['session-test','ready']]);
 });
 
 test('Every normal ready time retains a single constant opacity rate and finishes within two seconds',()=>{
@@ -67,4 +66,11 @@ test('Parser and module startup time count toward the navigation budget without 
   assert.equal(m.playbackRate,rate);assert.ok(Math.abs(started+m.options.duration/rate-1950)<1e-7);
   assert.equal(m.frames[0].opacity,.1);assert.equal(m.frames.at(-1).opacity,1);
  }
+});
+
+test('An arbitrarily slow load cannot resolve the completion promise or mark the session ready',async()=>{
+ const s=setup();let finished=false;s.lifecycle.finished.then(()=>finished=true);
+ for(const elapsed of [2000,8000,30000,120000]){assert.ok(pendingFade(elapsed).opacity<1);s.motion.currentTime=elapsed;}
+ await Promise.resolve();assert.equal(finished,false);assert.deepEqual(s.writes,[]);assert.equal(s.inspector.inert,true);
+ s.lifecycle.reveal();await Promise.resolve();assert.equal(finished,false);s.motion.onfinish();await s.lifecycle.finished;assert.equal(finished,true);
 });
