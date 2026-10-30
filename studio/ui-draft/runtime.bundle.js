@@ -3910,6 +3910,13 @@ void main(){vec4 color=vec4(0.);float total=0.;
    absorption=exp(-height*rate)*(1.-smoothstep(.65,1.65,height));
   }
   vec4 sampleColor=texture2D(source,uv);
+  // Mirror captures can contain isolated grazing-angle HDR specular fireflies
+  // (over 3000 in a single pixel). Bound only that source radiance before blur
+  // spreads it across the floor; retain hue, coverage and normal reflections.
+  if(absorbSource>.5){
+   float peak=max(sampleColor.r,max(sampleColor.g,sampleColor.b));
+   sampleColor.rgb*=min(1.,4./max(peak,.0001));
+  }
   // Recover lamp radiance in the actual capture before spatial filtering.
   float warm=max(0.,sampleColor.r-max(sampleColor.g,sampleColor.b));
   sampleColor.rgb=mix(sampleColor.rgb,sampleColor.rgb*.12+vec3(warm*12.,warm*.8,warm*.5),absorbSource*reflectionTone);

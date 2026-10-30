@@ -78,7 +78,7 @@ test('Parent preloads the first vehicle despite saved selection, plus environmen
 
 test('Generated parent UI is bundled and engine consumes parent assets without preloading an unused poster',async()=>{
  const html=await readFile(new URL('../index.html',import.meta.url),'utf8'),engine=await readFile(new URL('../engine.html',import.meta.url),'utf8'),bundle=await readFile(new URL('../draft.bundle.js',import.meta.url),'utf8');
- assert.ok(html.indexOf('id="startup-assets"')<html.indexOf('<title>'));assert.match(html,/<link rel="modulepreload" fetchpriority="high" href="runtime.bundle.js\?v=startup-complete-v32-20261029">/);assert.match(engine,/runtime.bundle.js\?v=startup-complete-v32-20261029/);assert.doesNotMatch(html,/<script src="saved-preview\/frame-profile/);assert.match(html,/<script id="startup-draft" type="module">/);assert.doesNotMatch(html,/<script[^>]*src="draft.bundle/);
+ assert.ok(html.indexOf('id="startup-assets"')<html.indexOf('<title>'));assert.match(html,/<link rel="modulepreload" fetchpriority="high" href="runtime.bundle.js\?v=theme-parking-v33-20261029">/);assert.match(engine,/runtime.bundle.js\?v=theme-parking-v33-20261029/);assert.doesNotMatch(html,/<script src="saved-preview\/frame-profile/);assert.match(html,/<script id="startup-draft" type="module">/);assert.doesNotMatch(html,/<script[^>]*src="draft.bundle/);
  assert.doesNotMatch(bundle,/from\s*["']\.\//);assert.doesNotMatch(bundle,/fetch\(["']\.\/icons.json/);
  assert.doesNotMatch(engine,/link\.as="image"/);assert.match(engine,/requests\.delete\(key\);return await early/);
  assert.doesNotMatch(engine,/setTimeout\(\(\)=>c.abort\(\),30000\)/);

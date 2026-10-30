@@ -49,3 +49,9 @@
 
 /* The existing transport slot describes the pending state without a spinner. */
 :root[data-startup] .artboard-label{animation:none}
+
+/* A live incoming canvas avoids freezing driving inside the root snapshot. */
+#engine{view-transition-name:live-scene}
+::view-transition-group(live-scene){animation:none;z-index:3}
+::view-transition-old(live-scene){display:none}
+::view-transition-new(live-scene){animation:none;mix-blend-mode:normal}

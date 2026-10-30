@@ -14,7 +14,7 @@ function harness({playing=true,reduce=false,unavailable=false,failStart=false}={
   transitions.push({...transition,finish:finished.resolve});
   Promise.resolve().then(update).then(ready.resolve,ready.reject);return transition;
  }};
- const bridge=()=>({beginTheme(){held=true;events.push('hold')},async theme(theme){assert.equal(held,!reduce&&!unavailable);events.push(theme)},endTheme(){held=false;events.push('release')}});
+ const bridge=()=>({beginTheme(){held=true;events.push('hold')},async theme(theme,{animate=false}={}){assert.equal(held,false);events.push([theme,animate])},endTheme(){held=false;events.push('release')}});
  const controller=new Function('document','frame','bridge','localStorage','$','syncFinish','renderTheme','reducedMotion','innerWidth','innerHeight',`
  let ready=true,exporting=false,previewBusy=false,sceneUpdating=false,vehicleUpdating=false;const themeKey='test';
  ${block}
@@ -22,27 +22,27 @@ function harness({playing=true,reduce=false,unavailable=false,failStart=false}={
  `)(document,{contentDocument:{documentElement:root}},bridge,{setItem(){}},()=>({getBoundingClientRect:()=>({left:1220,top:8,width:28,height:28})}),()=>{},()=>{},()=>reduce,1266,1000);
  return {controller,document,styles,classes,transitions,events,get held(){return held},get playing(){return playing}};
 }
-test('Theme snapshots hold playback through reveal, preserving playing and paused intent',async()=>{
+test('Theme reveal keeps live scene running while preserving playing and paused intent',async()=>{
  for(const playing of [false,true]){
   const h=harness({playing}),done=h.controller.setTheme('dark');await flush();
-  assert.equal(h.document.documentElement.dataset.theme,'dark');assert.equal(h.held,true);assert.equal(h.playing,playing);assert.equal(h.controller.busy,true);
+  assert.equal(h.document.documentElement.dataset.theme,'dark');assert.equal(h.held,false);assert.equal(h.playing,playing);assert.equal(h.controller.busy,true);
   assert.ok(parseFloat(h.styles['--theme-reveal-radius'])>Math.hypot(1234,978)+179);
   h.transitions[0].finish();await done;assert.equal(h.held,false);assert.equal(h.playing,playing);assert.equal(h.controller.busy,false);assert.equal(h.classes.size,0);
-  assert.deepEqual(h.events,['hold','dark','release']);
+  assert.deepEqual(h.events,[['dark',true]]);
  }
 });
 test('Rapid theme requests serialize complete snapshots and resolve to latest intent',async()=>{
  const h=harness(),done=h.controller.setTheme('dark');await flush();await h.controller.setTheme('light');assert.equal(h.transitions.length,1);
- h.transitions[0].finish();await flush();assert.equal(h.transitions.length,2);assert.equal(h.document.documentElement.dataset.theme,'light');assert.equal(h.held,true);
- h.transitions[1].finish();await done;assert.equal(h.held,false);assert.deepEqual(h.events,['hold','dark','release','hold','light','release']);
+ h.transitions[0].finish();await flush();assert.equal(h.transitions.length,2);assert.equal(h.document.documentElement.dataset.theme,'light');assert.equal(h.held,false);
+ h.transitions[1].finish();await done;assert.equal(h.held,false);assert.deepEqual(h.events,[['dark',true],['light',true]]);
 });
 test('Unavailable snapshots and reduced motion commit without a held animation',async()=>{
  for(const options of [{reduce:true},{unavailable:true}]){
   const h=harness(options);await h.controller.setTheme('dark');assert.equal(h.document.documentElement.dataset.theme,'dark');assert.equal(h.transitions.length,0);assert.equal(h.held,false);assert.equal(h.controller.busy,false);
  }
 });
-test('A failed snapshot commits once and always releases the playback hold',async()=>{
- const h=harness({failStart:true});await h.controller.setTheme('dark');assert.equal(h.document.documentElement.dataset.theme,'dark');assert.deepEqual(h.events,['hold','dark','release']);assert.equal(h.controller.busy,false);
+test('A failed snapshot commits once without pausing playback',async()=>{
+ const h=harness({failStart:true});await h.controller.setTheme('dark');assert.equal(h.document.documentElement.dataset.theme,'dark');assert.deepEqual(h.events,[['dark',false]]);assert.equal(h.controller.busy,false);
  assert.equal(JSON.parse(h.document.body.dataset.themeMotion).error,'Snapshot unavailable');
 });
 test('Transport stays in the root snapshot and soft reveal follows the reference recipe',async()=>{
