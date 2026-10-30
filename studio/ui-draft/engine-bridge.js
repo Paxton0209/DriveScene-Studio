@@ -12,6 +12,8 @@ import {createParkingMotion,installRollingWheels,isParking} from './scene-experi
 import {cameraMetadata,perspectiveSvg,renderDepth} from '../engine/export-scene.js';
 import {canvasPng,depthPng,zipFiles} from '../engine/export-files.js';
 import {previewPixels} from './pixel-resolution.js';
+import {stillPng} from './still-export.js';
+import {exportSize} from './export-size.js';
 import {pathSoundStatus} from '../engine/theme-sound.js';
 import {frameStep} from './frame-clock.js';
 import {appearanceSnapshot,createAppearanceBlend} from './theme-blend.js';
@@ -105,23 +107,24 @@ export function installDraftBridge({world,features,drive,traffic,api,current,upd
  function capture(){const objects=[];world.scene.traverse(object=>objects.push({object,position:object.position.clone(),rotation:object.rotation.clone(),scale:object.scale.clone(),visible:object.visible,growthBaseY:object.userData.growthBaseY,growthHeight:object.userData.growthHeight}));return {objects,parking:parking.capture(),wheelDistance:world.draftWheelDistance,drive:drive.draftCapture(),traffic:traffic?.draftCapture(),time:world.draftTime,loopTime,speed:world.draftSpeed,sceneryRandom:world.draftSceneryRandom.state(),trafficRandom:world.draftTrafficRandom.state(),width:world.width,height:world.height,pose:world.captureCamera()}}
  function restore(saved){for(const item of saved.objects){const {object}=item;object.position.copy(item.position);object.rotation.copy(item.rotation);object.scale.copy(item.scale);object.visible=item.visible;for(const key of ['growthBaseY','growthHeight'])if(item[key]===undefined)delete object.userData[key];else object.userData[key]=item[key]}
   if(saved.parking)parking.restore(saved.parking);world.draftWheelDistance=saved.wheelDistance;drive.draftRestore(saved.drive);if(saved.traffic)traffic.draftRestore(saved.traffic);world.draftTime=saved.time;loopTime=saved.loopTime;world.draftSpeed=saved.speed;world.draftSceneryRandom.restore(saved.sceneryRandom);world.draftTrafficRandom.restore(saved.trafficRandom);world.applyCamera(saved.pose);world.setResolution(saved.width,saved.height);world.renderer.shadowMap.needsUpdate=true;world.shadowKey='';world.groundReflectionKey='';world.carReflectionKey='';}
- async function exportScene({format='png',duration=10,onProgress=()=>{},cameraPose=null}={}){
+ async function exportScene({format='png',width=3840,duration=10,onProgress=()=>{},cameraPose=null}={}){
+  const size=exportSize(format,width);
   if(exporting)throw Error('An export is already running');
   while(features.animating()||world.activationSweep?.active()){if(!playing)break;await new Promise(resolve=>requestAnimationFrame(resolve))}
   settle();exporting=true;cancelled=false;const saved=capture(),wasPlaying=playing;drive.pause();world.suspended=false;cancelAnimationFrame(frame);frame=0;
   let result;
   try{
-   world.setResolution(1920,1080);if(cameraPose)world.applyCamera(cameraPose);world.renderFrame();
-   if(format==='png')result={blob:await canvasPng(world.renderer.domElement),extension:'png'};
+   world.setResolution(size.width,size.height);if(cameraPose)world.applyCamera(cameraPose);world.renderFrame();
+   if(format==='png')result={blob:await stillPng(world,size),extension:'png'};
    else if(format==='camera')result={blob:new Blob([JSON.stringify(cameraMetadata(world,{sceneName:current(),sourceUrl:location.href}),null,2)],{type:'application/json'}),extension:'json'};
-   else if(format==='depth'){const depth=renderDepth(world);result={blob:await depthPng(depth,1920,1080),extension:'png'}}
-   else if(format==='kit'){const metadata=cameraMetadata(world,{sceneName:current(),sourceUrl:location.href}),image=await canvasPng(world.renderer.domElement),depth=renderDepth(world);result={blob:await zipFiles([['scene.png',image],['perspective.svg',perspectiveSvg(world)],['camera.json',JSON.stringify(metadata,null,2)],['depth.png',await depthPng(depth,1920,1080)]]),extension:'zip'}}
+   else if(format==='depth'){const depth=renderDepth(world);result={blob:await depthPng(depth,size.width,size.height),extension:'png'}}
+   else if(format==='kit'){const metadata=cameraMetadata(world,{sceneName:current(),sourceUrl:location.href}),image=await stillPng(world,size),depth=renderDepth(world);result={blob:await zipFiles([['scene.png',image],['perspective.svg',perspectiveSvg(world)],['camera.json',JSON.stringify(metadata,null,2)],['depth.png',await depthPng(depth,size.width,size.height)]]),extension:'zip'}}
    else{
     const {encodeVideo}=await import('./video.js');
     drive.setPlaying(true);if(isParking(world.state?.id)&&features.get().path)parking.start();
     result=await encodeVideo(world.renderer.domElement,{duration,render(index){if(cancelled)throw new DOMException('Export cancelled','AbortError');if(index>0)step(1/30);onProgress(Math.round((index+1)/(duration*30)*100))}});
    }
-   result.audit={format,width:1920,height:1080,duration:format==='video'?duration:0,frames:format==='video'?duration*30:1,startDistance:saved.drive.distance,exportEndDistance:drive.audit().distance,extension:result.extension,wasPlaying};
+   result.audit={format,...size,duration:format==='video'?duration:0,frames:format==='video'?duration*30:1,startDistance:saved.drive.distance,exportEndDistance:drive.audit().distance,extension:result.extension,wasPlaying};
    return result;
   }finally{restore(saved);exporting=false;playing=wasPlaying;lastInput=performance.now();sync();renderOnce();schedule()}
  }

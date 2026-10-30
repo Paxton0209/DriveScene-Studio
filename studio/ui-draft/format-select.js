@@ -1,18 +1,18 @@
-export function mountFormatSelect(select) {
+export function mountFormatSelect(select, name='Export format') {
   const trigger = document.createElement('button');
   trigger.type = 'button';
   trigger.className = 'format-trigger';
   trigger.setAttribute('aria-haspopup', 'listbox');
   trigger.setAttribute('aria-expanded', 'false');
-  trigger.setAttribute('aria-label', 'Export format');
+  trigger.setAttribute('aria-label', name);
   const label = document.createElement('span');
   trigger.append(label);
   trigger.insertAdjacentHTML('beforeend', '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="m3 4.5 3 3 3-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>');
   const menu = document.createElement('div');
-  menu.id = 'format-options';
+  menu.id = select.id+'-options';
   menu.className = 'format-options';
   menu.setAttribute('role', 'listbox');
-  menu.setAttribute('aria-label', 'Export format');
+  menu.setAttribute('aria-label', name);
   menu.hidden = true;
   trigger.setAttribute('aria-controls', menu.id);
   select.hidden = true;

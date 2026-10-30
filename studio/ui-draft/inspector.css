@@ -164,3 +164,7 @@ button{transition:background-color 120ms,color 160ms,opacity 150ms,scale 110ms e
 
 #indicator-mute{position:absolute;z-index:5;right:12px;bottom:12px;width:28px;height:28px;color:var(--muted);background:color-mix(in srgb,var(--panel),transparent 12%);border-radius:6px}
 #indicator-mute:hover{opacity:.7}
+
+/* Size shares the format menu and fills the existing Size row. */
+.export-size{flex:1;min-width:0}
+.export-size>.format-trigger{flex:1;width:100%}
