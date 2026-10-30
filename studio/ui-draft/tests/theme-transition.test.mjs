@@ -11,12 +11,14 @@ test('Theme commits while view transitions have suspended iframe animation callb
  await commit('dark');await commit('light');assert.equal(renders,2);
 });
 
-test('Canvas and controls use one prepared target snapshot during the circular theme reveal',async()=>{
+test('Scene stays live outside the controls snapshot during the circular theme reveal',async()=>{
  const source=await readFile(new URL('../draft.js',import.meta.url),'utf8');
  const theme=source.slice(source.indexOf('async function setTheme('),source.indexOf("$('theme').addEventListener"));
- assert.match(theme,/document.startViewTransition\(\(\)=>commit\(target,false\)\)/);
- const css=await readFile(new URL('../inspector.css',import.meta.url),'utf8');
- assert.doesNotMatch(css,/view-transition-name:live-scene/);
+ assert.match(theme,/document.startViewTransition\(\(\)=>commit\(target,true\)\)/);
+ const css=await readFile(new URL('../draft.css',import.meta.url),'utf8');
+ assert.match(css,/#engine\{view-transition-name:live-scene\}/);
+ assert.match(css,/::view-transition-old\(live-scene\)\{display:none\}/);
+ assert.doesNotMatch(theme,/beginTheme|endTheme/);
 });
 
 test('Theme changes retain the sampled Junction pose before the first visible frame',async()=>{

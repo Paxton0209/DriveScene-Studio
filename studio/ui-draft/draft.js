@@ -153,14 +153,13 @@ async function setTheme(theme){
   const root=document.documentElement;
   root.style.setProperty('--theme-reveal-x',`${x}px`);root.style.setProperty('--theme-reveal-y',`${y}px`);root.style.setProperty('--theme-reveal-radius',`${radius}px`);
   root.classList.add('theme-changing');frame.contentDocument?.documentElement.classList.add('theme-changing');
-  const started=performance.now(),audit={target,started,method:'soft-radial-snapshot',duration:400,feather:160,blur:0};
-  // Hold the sampled pose across both snapshots without changing the Play/Pause state.
-  if(ready)bridge().beginTheme();
+  const started=performance.now(),audit={target,started,method:'soft-radial-live-scene',duration:400,feather:160,blur:0};
+  // Keep the scene live in its own transition layer while the controls reveal.
   try{
-   const transition=document.startViewTransition(()=>commit(target,false));themeTransition=transition;
+   const transition=document.startViewTransition(()=>commit(target,true));themeTransition=transition;
    await transition.ready;audit.animationStarted=performance.now();await transition.finished;
   }catch(error){audit.error=error.message;if(root.dataset.theme!==target)await commit(target,false)}
-  finally{if(themeTransition)await themeTransition.finished.catch(()=>{});root.classList.remove('theme-changing');frame.contentDocument?.documentElement.classList.remove('theme-changing');if(ready)bridge().endTheme();themeTransition=null;audit.finished=performance.now();document.body.dataset.themeMotion=JSON.stringify(audit)}
+  finally{if(themeTransition)await themeTransition.finished.catch(()=>{});root.classList.remove('theme-changing');frame.contentDocument?.documentElement.classList.remove('theme-changing');themeTransition=null;audit.finished=performance.now();document.body.dataset.themeMotion=JSON.stringify(audit)}
  }
 }
 $('theme').addEventListener('click',()=>{void setTheme(requestedTheme==='dark'?'light':'dark').then(refreshExportPreview).catch(error=>feedback(error.message))});
