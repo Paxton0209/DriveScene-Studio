@@ -57,7 +57,7 @@ test('The real export handler normalizes stale Parking video before opening Save
     const nodes = {'export-label': {}, export: {style: {setProperty() {}}}};
     const run = new Function('$', 'bridge', 'syncExportControls', 'chooseExportDestination', 'writeExportFile', 'document', 'window', 'CustomEvent', `
       let exporting=false,ready=true,previewBusy=false,sceneUpdating=false,vehicleUpdating=false,themeTransition=null,videoExtension='mp4',duration=10;
-      const feedback=()=>{},lockControls=()=>{},holdFrame=async()=>{},releaseFrame=async()=>{},board=()=>({type:'${scene}'}),params=()=>({weather:'default'});
+      const selectedExportSize=()=>({width:3840,height:2160}),feedback=()=>{},lockControls=()=>{},holdFrame=async()=>{},releaseFrame=async()=>{},board=()=>({type:'${scene}'}),params=()=>({weather:'default'});
       ${block}
       return exportCurrent;
     `)(id => nodes[id], () => ({async export(options) {calls.push(['render', options.format]);return {blob: 'png', audit: {}}}}),
@@ -73,7 +73,7 @@ test('Video cannot open Save As or render before its lazy codec probe is ready',
   const block=source.slice(source.indexOf('async function exportCurrent('),source.indexOf('\nfunction tooltipHide('));
   const calls=[],nodes={'export-label':{},export:{style:{setProperty(){}}}};
   const run=new Function('$','bridge','chooseExportDestination',`let exporting=false,ready=true,previewBusy=false,sceneUpdating=false,vehicleUpdating=false,themeTransition=null,videoReady=false,videoExtension='mp4',duration=.1;
-    const syncExportControls=()=> 'video',feedback=()=>{},lockControls=()=>{},holdFrame=async()=>{},releaseFrame=async()=>{},probeVideo=async()=>{},board=()=>({type:'road'}),params=()=>({weather:'default'}),writeExportFile=async()=>{};
+    const selectedExportSize=()=>({width:1920,height:1080}),syncExportControls=()=> 'video',feedback=()=>{},lockControls=()=>{},holdFrame=async()=>{},releaseFrame=async()=>{},probeVideo=async()=>{},board=()=>({type:'road'}),params=()=>({weather:'default'}),writeExportFile=async()=>{};
     const document={body:{dataset:{}}},window={dispatchEvent(){}},CustomEvent=function(){};
     ${block}
     return {run:exportCurrent,ready(){videoReady=true}};

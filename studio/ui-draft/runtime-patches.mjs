@@ -253,6 +253,14 @@ const yieldToBrowser=`);
 
 export function isolatedRuntimePlugin(){return {name:'isolated-ui-draft',setup(build){build.onLoad({filter:/\/engine\/.*\.js$/},async args=>{
  let source=await readFile(args.path,'utf8');const name=args.path.split('/engine/').at(-1);
+ if(name==='export-scene.js'){
+  source=replace(source,'const {camera,car}=world;','const exportSize={width:world.width,height:world.height};const {camera,car}=world;');
+  source=replace(source,'function projectedSegment(start,end,camera){','function projectedSegment(start,end,camera,exportSize){');
+  source=replace(source,'const {car,camera}=world,height=surfaceHeight(world),lines=[];','const exportSize={width:world.width,height:world.height};const {car,camera}=world,height=surfaceHeight(world),lines=[];');
+  source=source.replaceAll('projectedSegment(start,end,camera)','projectedSegment(start,end,camera,exportSize)').replace('height+.025,car.position.z-18+end[1]],camera);','height+.025,car.position.z-18+end[1]],camera,exportSize);');
+  source=replace(source,'width="1920" height="1080" viewBox="0 0 1920 1080"','width="${exportSize.width}" height="${exportSize.height}" viewBox="0 0 ${exportSize.width} ${exportSize.height}"');
+  source=replace(source,'{width,height}=exportSize;','{width,height}=world;');
+ }
  if(name==='app.js')source=patchApp(source).replaceAll('./vehicle-library/prepared/${id}/model.glb.gz','../ui-draft/vehicles/${id}/model.glb.gz?v=restore26');
  if(name==='vehicle.js')source=source.replaceAll('./ego-vehicle-ready.glb.gz?v=17.9','../ui-draft/vehicles/x6/model.glb.gz?v=restore26');
  // The parent owns the visible vehicle selector; do not build a second hidden picker.

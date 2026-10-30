@@ -12,11 +12,14 @@ import {createProject,sceneTypes,setProjectWeather,setProjectVehicle} from './ar
 import {revealScene} from './scene-reveal.js?v=interaction-20261027';
 import {mountFormatSelect} from './format-select.js?v=parking-export-20261027';
 import {syncExportFormat} from './export-format.js';
+import {exportSize,sizeLabel} from './export-size.js';
 import {morphSegment,glideIndicator,reducedMotion} from './motion-runtime.js';
 import {chooseExportDestination,writeExportFile} from './export-destination.js';
 
 const $=id=>document.getElementById(id),frame=$('engine'),qa=new URLSearchParams(location.search).has('qa'),qaSuffix=qa?'-qa'+(['','1'].includes(new URLSearchParams(location.search).get('qa'))?'':'-'+new URLSearchParams(location.search).get('qa')):'',storageKey='drivescene-ui-draft-project-v2'+qaSuffix,themeKey='sr-ui-draft-theme'+qaSuffix;
-mountFormatSelect($('format'));
+mountFormatSelect($('format'));mountFormatSelect($('image-size'),'Export size');
+let stillWidth=3840;
+const selectedExportSize=(format=$('format').value)=>exportSize(format,stillWidth);
 if(qa){try{document.documentElement.dataset.theme=localStorage.getItem(themeKey)||'light'}catch{}}
 let saved={};try{saved=JSON.parse(localStorage.getItem(storageKey)||'{}')}catch{}
 const controlPaint=createControlPaint();
@@ -27,7 +30,7 @@ const api=()=>frame.contentWindow.layoutEngine,bridge=()=>api().draft,board=()=>
 const vehicles=[['model-3','Tesla Model 3'],['x6','BMW X6'],['ix','BMW iX'],['xc90','Volvo XC90']],thumb=id=>vehicleThumbnails[id];
 function persist(){try{localStorage.setItem(storageKey,JSON.stringify(project))}catch{feedback('Settings could not be saved')}}
 function feedback(text){$('feedback').textContent=text;$('feedback').hidden=!text}
-function syncExportControls(){const format=syncExportFormat($('format'),$('video-duration'),project.active,{videoAvailable});if(!exporting&&!sceneUpdating)$('export').disabled=!ready||previewBusy||vehicleUpdating||format==='video'&&!videoReady;return format;}
+function syncExportControls(){const format=syncExportFormat($('format'),$('video-duration'),project.active,{videoAvailable});const size=selectedExportSize(format);$('artboard-size').textContent=sizeLabel(size);$('image-size').value=String(size.width);$('image-size').disabled=format==='video';if(!exporting&&!sceneUpdating)$('export').disabled=!ready||previewBusy||vehicleUpdating||format==='video'&&!videoReady;return format;}
 function replaceContent(element,content){if(element.innerHTML===content)return;const populated=!!element.innerHTML;element.getAnimations().forEach(animation=>animation.cancel());element.innerHTML=content;if(populated&&!reducedMotion())element.animate([{opacity:.2,filter:'blur(2px)'},{opacity:1,filter:'blur(0px)'}],{duration:160,easing:'ease-out'})}
 function renderTheme(){const dark=document.documentElement.dataset.theme==='dark';if(!$('theme').firstElementChild)replaceContent($('theme'),'<svg class="theme-icon" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><defs><mask id="draft-moon-cutout"><rect width="24" height="24" fill="white"/><circle class="moon-cutout" cx="25" cy="-2" r="6" fill="black"/></mask></defs><g mask="url(#draft-moon-cutout)"><circle class="sun-disc" cx="12" cy="12" r="4.5" fill="currentColor"/><g class="sun-rays" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></g></g></svg>');$('theme').setAttribute('aria-label',`Switch to ${dark?'light':'dark'} theme`);document.querySelectorAll('#ud-icAsph stop').forEach((stop,index)=>stop.setAttribute('stop-color',dark?['#7d8597','#535a6a'][index]:['#737b8d','#474e5d'][index]))}
 function renderNav(){let group='';$('scene-nav').innerHTML=icons.defs+sceneTypes.map(scene=>{const header=group===scene.group?'':`<div class="nav-title">${scene.group}</div>`;group=scene.group;return header+`<button class="scene-row" data-scene="${scene.id}" data-tip="${scene.label}" aria-label="${scene.label}" ${scene.id===project.active?'aria-current="page"':''}>${icons.nav[scene.icon||scene.id]}<span data-label="${scene.label}">${scene.label}</span></button>`}).join('');renderTheme();requestAnimationFrame(()=>moveNav(true))}
@@ -107,7 +110,7 @@ function lockControls(busy,{cancel=false}={}){
 async function exportCurrent(){
  if(exporting){bridge().cancelExport();$('export-label').textContent='Cancelling…';return;}
  if(!ready||previewBusy||sceneUpdating||vehicleUpdating||themeTransition)return;const format=syncExportControls();if(format==='video'&&!videoReady)return;exporting=true;feedback('');lockControls(true,{cancel:true});$('export-label').textContent='Cancel';
- try{if(format==='video')await probeVideo();const handle=await chooseExportDestination({format,name:`${board().type}-${params().weather}`,videoExtension});await holdFrame();const result=await bridge().export({format,duration,onProgress:percent=>{$('export-label').textContent=`Cancel · ${percent}%`;$('export').style.setProperty('--progress',percent/100)}});await writeExportFile(handle,result.blob);document.body.dataset.lastExport=JSON.stringify({...result.audit,savedAs:handle.name});window.dispatchEvent(new CustomEvent('ui-draft-export',{detail:result}));feedback('')}
+ try{if(format==='video')await probeVideo();const handle=await chooseExportDestination({format,name:`${board().type}-${params().weather}`,videoExtension});await holdFrame();const result=await bridge().export({format,...selectedExportSize(format),duration,onProgress:percent=>{$('export-label').textContent=`Cancel · ${percent}%`;$('export').style.setProperty('--progress',percent/100)}});await writeExportFile(handle,result.blob);document.body.dataset.lastExport=JSON.stringify({...result.audit,savedAs:handle.name});window.dispatchEvent(new CustomEvent('ui-draft-export',{detail:result}));feedback('')}
  catch(error){feedback(error.name==='AbortError'?'Export cancelled':error.message)}
  finally{exporting=false;lockControls(false);$('export-label').textContent='Export';$('export').style.setProperty('--progress',0);await releaseFrame()}
 }
@@ -164,6 +167,7 @@ async function setTheme(theme){
 }
 $('theme').addEventListener('click',()=>{void setTheme(requestedTheme==='dark'?'light':'dark').then(refreshExportPreview).catch(error=>feedback(error.message))});
 $('inspector-scroll').addEventListener('scroll',()=>{clearTimeout(scrollTimer);$('inspector-scroll').classList.add('scrolling');scrollTimer=setTimeout(()=>$('inspector-scroll').classList.remove('scrolling'),1000)},{passive:true});
+$('image-size').addEventListener('change',()=>{stillWidth=Number($('image-size').value);syncExportControls();void refreshExportPreview()});
 $('format').addEventListener('change',()=>{if(syncExportControls()==='video')void probeVideo().catch(error=>feedback(error.message));void refreshExportPreview()});$('video-duration').addEventListener('change',()=>{duration=Number($('video-duration').value);void refreshExportPreview()});$('export').addEventListener('click',()=>void exportCurrent());
 function syncJunctionPathLock(){const path=$('layers').querySelector('[data-layer=path]');if(path)path.disabled=project.active==='junction'&&!!status.junction?.complete;}
 let transportRenderKey=null;
@@ -193,10 +197,10 @@ async function refreshExportPreview(){
  previewBusy=true;lockControls(true);
  const revision=++previewRevision,format=$('format').value;
  $('export-preview-description').textContent='Preparing preview…';
- try{const result=await bridge().export({format:format==='depth'?'depth':format==='camera'?'camera':'png'});if(revision!==previewRevision||!$('export-preview').open)return;
+ try{const result=await bridge().export({format:format==='depth'?'depth':format==='camera'?'camera':'png',...selectedExportSize(format)});if(revision!==previewRevision||!$('export-preview').open)return;
   if(previewURL)URL.revokeObjectURL(previewURL);previewURL=null;const image=$('export-preview-image');image.hidden=format==='camera';
   if(format!=='camera'){previewURL=URL.createObjectURL(result.blob);image.src=previewURL;}
-  const descriptions={png:'PNG · 1920 × 1080',depth:'Depth PNG · 1920 × 1080',kit:'scene.png · perspective.svg · camera.json · depth.png',camera:'Camera JSON · camera position, projection and scene settings',video:`${duration} seconds · 30 fps · preview shows the first frame`};
+  const dimensions=sizeLabel(result.audit);const descriptions={png:`PNG · ${dimensions}`,depth:`Depth PNG · ${dimensions}`,kit:`${dimensions} · scene.png · perspective.svg · camera.json · depth.png`,camera:`Camera JSON · ${dimensions}`,video:`${dimensions} · ${duration} seconds · 30 fps · preview shows the first frame`};
   $('export-preview-description').textContent=descriptions[format];
  }catch(error){if(revision===previewRevision&&$('export-preview').open)$('export-preview-description').textContent=error.message;}finally{previewBusy=false;lockControls(false);if(revision!==previewRevision&&$('export-preview').open)void refreshExportPreview();}
 }

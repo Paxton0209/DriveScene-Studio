@@ -14,7 +14,7 @@ function harness(){
  const create=new Function('$','project','bridge','api','holdFrame','revealScene','document','navigation',`
  const controlPaint=async()=>true;
  let ready=true,pendingScene=null,exporting=false,previewBusy=false,vehicleUpdating=false,sceneUpdating=false,sceneRequest=0,sceneSelection=Promise.resolve(),sceneReveal=null,themeTransition=null,status={},videoAvailable=true,videoReady=false;
- const syncExportFormat=()=> 'png';
+ const syncExportFormat=()=> 'png',selectedExportSize=()=>({width:3840,height:2160}),sizeLabel=()=> '3840 × 2160';
  ${exportSync}
  const params=()=>project.boards[project.active].params,board=()=>project.boards[project.active];
  const persist=()=>{},feedback=()=>{},syncFinish=()=>{},finishTheme=()=> 'light',sizeBoard=()=>{},reducedMotion=()=>false,moveNav=()=>{navigation.push('selected')},renderInspector=()=>syncExportControls(),renderTransport=()=>{},refreshExportPreview=()=>{};

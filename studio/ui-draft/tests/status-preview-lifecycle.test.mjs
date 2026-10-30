@@ -37,6 +37,7 @@ function previewHarness(){
  const sourceBlock=source.slice(source.indexOf('let previewURL='),source.indexOf("\n$('export-preview').addEventListener('toggle'"));
  const controller=new Function('$','bridge','URL','lockControls',`
  let ready=true,exporting=false,previewBusy=false,sceneUpdating=false,vehicleUpdating=false,themeTransition=null,duration=10;
+ const selectedExportSize=()=>({width:3840,height:2160}),sizeLabel=()=> '3840 × 2160';
  ${sourceBlock}
  return {refreshExportPreview,clearExportPreview,get busy(){return previewBusy}};
  `)(id=>nodes[id],()=>({export(options){const task=deferred();exports.push({...task,options});return task.promise}}),{createObjectURL(blob){const url='blob:'+blob;created.push(url);return url},revokeObjectURL(url){revoked.push(url)}},busy=>locks.push(busy));
