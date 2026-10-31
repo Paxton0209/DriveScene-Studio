@@ -5,19 +5,20 @@ window.draftSelectionKeyboard=false;
 document.addEventListener('pointerdown',()=>{window.draftSelectionKeyboard=false;},true);
 document.addEventListener('keydown',()=>{window.draftSelectionKeyboard=true;},true);
 const nav=byId('scene-nav'),strip=byId('vehicle-strip');
+// The navigation already names its contents; keep only the useful group labels.
+nav.setAttribute('aria-label','Scenes');
+nav.removeAttribute('aria-labelledby');
+byId('scenes-heading')?.remove();
+const iconTreatment=new URLSearchParams(location.search).get('icons');
+document.documentElement.dataset.libraryIcons=iconTreatment==='dim'?'dim':'desaturate';
 let pendingVehicleFocus=false;
 strip.addEventListener('keydown',event=>{
  if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'].includes(event.key))pendingVehicleFocus=true;
 },true);
 document.addEventListener('pointerdown',()=>{pendingVehicleFocus=false;},true);
-const tabs=[byId('scenes-tab'),byId('vehicles-tab')];
-const panels=[nav,byId('vehicle-panel')];
 const alignSelection=(immediate=false)=>{
- window.draftSelectionMotion?.(byId('library-tabs'),tabs.find(tab=>tab.getAttribute('aria-selected')==='true'),immediate);
- if(!panels[1].hidden)window.draftSelectionMotion?.(strip,strip.querySelector('[aria-checked=true]'),immediate);
+ window.draftSelectionMotion?.(strip,strip.querySelector('[aria-checked=true]'),immediate);
 };
-const selectTab=index=>{tabs.forEach((tab,i)=>{tab.setAttribute('aria-selected',String(i===index));tab.tabIndex=i===index?0:-1;panels[i].hidden=i!==index;});alignSelection();};
-tabs.forEach((tab,i)=>{tab.addEventListener('click',()=>selectTab(i));tab.addEventListener('keydown',event=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;event.preventDefault();const next=event.key==='Home'?0:event.key==='End'?1:1-i;selectTab(next);tabs[next].focus();});});
 alignSelection(true);
 new ResizeObserver(()=>alignSelection(true)).observe(byId('library'));
 const transport=byId('scene-transport');
@@ -28,9 +29,9 @@ weather.id='shared-weather';
 weather.innerHTML='<span class="shared-label">Weather</span><div class="shared-weather-options" role="radiogroup" aria-label="Weather for all outdoor scenes"></div>';
 const environment=document.createElement('section');
 environment.id='shared-settings';
-environment.innerHTML='<h2>Across scenes</h2>';
+environment.innerHTML='<h2>Environment</h2>';
 environment.append(weather);
-byId('scene-settings').before(environment);
+byId('scene-settings').after(environment);
 const weatherOptions=weather.lastElementChild;
 const weatherIcons=await fetch('./icons.json').then(response=>response.json());
 for(const [value,label] of [['default','Clear'],['rain','Rain'],['snow','Snow']]){
@@ -55,20 +56,27 @@ weatherOptions.addEventListener('keydown',event=>{
 const playback=document.createElement('div');
 playback.id='canvas-playback';
 byId('artboard').append(playback);
-playback.append(transport);
+playback.append(transport,byId('indicator-mute'));
+// Compare existing neutral controls with the approved path-blue proposal.
+if(new URLSearchParams(location.search).get('controls')==='blue')document.documentElement.dataset.controls='blue';
 const sync=()=>{
  for(const heading of nav.querySelectorAll('.nav-title')){
   if(heading.textContent==='Intersection')heading.remove();
  }
  for(const button of strip.querySelectorAll('[data-vehicle]')){
+  const thumbnail=button.querySelector(':scope>img');
+  if(thumbnail){
+   const slot=document.createElement('span');slot.className='vehicle-icon-slot';
+   thumbnail.before(slot);slot.append(thumbnail);
+  }
   if(!button.querySelector('.vehicle-option-name')){
    const label=document.createElement('span');label.className='vehicle-option-name';
    label.textContent=button.getAttribute('aria-label');button.append(label);
   }
  }
- if(!panels[1].hidden)window.draftSelectionMotion?.(strip,strip.querySelector('[aria-checked=true]'));
+ window.draftSelectionMotion?.(strip,strip.querySelector('[aria-checked=true]'));
  const selected=strip.querySelector('[aria-checked=true]');
- if(pendingVehicleFocus&&selected&&!selected.disabled&&!panels[1].hidden){
+ if(pendingVehicleFocus&&selected&&!selected.disabled){
   selected.focus();pendingVehicleFocus=false;
  }
  const disabled=byId('theme').disabled||!selected||selected.disabled;

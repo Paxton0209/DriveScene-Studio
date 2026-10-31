@@ -136,3 +136,26 @@ const draftBundle=await readFile(new URL('./draft.bundle.js',import.meta.url),'u
 const inlineDraft=draftBundle.replace(/<\/script/gi,'<\\/script');
 await writeFile(parentFile,parent.replace(/<script type="module" src="draft.bundle.js[^"]*"><\/script>/,()=>`<script id="startup-draft" type="module">${inlineDraft}</script>`));
 console.log('Saved 2026-10-27 preview profile applied.');
+
+// Keep the independent shell trial reproducible, including its existing
+// two-dimensional selection geometry. Spring timing and frame math are shared.
+await build({absWorkingDir:root,entryPoints:['../ui-motion.js'],bundle:true,minify:true,format:'esm',outfile:'trial-motion-runtime.js',plugins:[{name:'trial-selection-geometry',setup(builder){builder.onLoad({filter:/\/ui-motion\.js$/},async args=>{
+ let contents=draftMotion(await readFile(args.path,'utf8'));
+ const start=contents.indexOf('export function morphSegment('),end=contents.indexOf('export function glideIndicator(',start);
+ contents=contents.slice(0,start)+`export function morphSegment(container,selected,instant=false){
+ instant=instant||window.draftSelectionKeyboard===true;
+ if(!selected||!container.clientWidth||!selected.offsetWidth)return;
+ const axis=container.id==='vehicle-strip'&&getComputedStyle(container).flexDirection==='column'?'y':'x',parent=container.getBoundingClientRect(),child=selected.getBoundingClientRect();
+ const next={x:child.left-parent.left+container.scrollLeft-container.clientLeft,y:child.top-parent.top+container.scrollTop-container.clientTop,width:child.width,height:child.height};
+ let motion=segmentIndicators.get(container);
+ if(!motion||motion.axis!==axis){motion?.indicator.remove();const indicator=document.createElement('span');indicator.className='segment-indicator';indicator.setAttribute('aria-hidden','true');container.prepend(indicator);container.dataset.motionIndicator='true';motion=createSelectionMotion(indicator,next,axis);motion.axis=axis;segmentIndicators.set(container,motion);instant=true;}
+ motion.to(next,instant);
+}
+window.draftSelectionMotion=morphSegment;
+`+contents.slice(end);
+ return {contents,loader:'js',resolveDir:root+'../'};
+ });}}]});
+const trial=await build({absWorkingDir:root,entryPoints:['./draft.js'],loader:{'.html':'text'},bundle:true,minify:true,format:'esm',write:false,target:['chrome110','safari17'],plugins:[{name:'trial-shell',setup(b){b.onLoad({filter:/\/draft\.js$/},async({path})=>({contents:(await readFile(path,'utf8')).replace("'./motion-runtime.js'","'./trial-motion-runtime.js'").replace("await fetch('./icons.json').then(response=>response.json())",await readFile(iconFile,'utf8')),loader:'js',resolveDir:root}));}}]});
+const trialFile=new URL('./skill.html',import.meta.url),trialHtml=await readFile(trialFile,'utf8');
+await writeFile(trialFile,trialHtml.replace(/<script id="startup-draft" type="module">[\s\S]*?<\/script>/,()=>'<script id="startup-draft" type="module">'+trial.outputFiles[0].text.replace(/<\/script/gi,'<\\/script')+'</script>'));
+console.log('Independent shell trial rebuilt with the existing selection motion.');

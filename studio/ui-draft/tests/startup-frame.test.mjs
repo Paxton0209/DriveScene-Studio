@@ -89,7 +89,7 @@ test('Startup synchronizes a suspended Road while preserving Pause and hidden/th
   assert.equal(drive.playing,playing&&!themeHeld);assert.equal(world.suspended,hidden||themeHeld);assert.equal(drive.playing&&!world.suspended,expected);
  }
  assert.ok(source.includes("get('paused')==='1')query.set('paused','1')"));
- assert.match(source,/createProject\(saved\);setProjectVehicle\(project,'model-3'\)/);
+ assert.doesNotMatch(source,/createProject\(saved\);setProjectVehicle\(project,'model-3'\)/);
 });
 
 
@@ -97,7 +97,7 @@ test('Startup waits for the Traffic suspension scope before publishing a running
  const startup=source.slice(source.indexOf('ready=true;await bridge().param'),source.indexOf('status=bridge().get({audit:false});renderVehicles();'));
  let release;const pending=new Promise(done=>release=done),world={suspended:true};let complete=false;
  const bridge={async param(){const held=world.suspended;world.suspended=false;await pending;world.suspended=held},indicatorMuted(){},completeStartup(){world.suspended=false;complete=true}};
- const run=new Function('bridge','state','$','syncFinish','layoutBoard',`return (async()=>{let ready=false,indicatorMuted=false;${startup}})()`);
+ const run=new Function('bridge','state','$','syncFinish','layoutBoard',`return (async()=>{let ready=false,indicatorMuted=false;const project={shared:{},active:'road'};${startup}})()`);
  const finishing=run(()=>bridge,{traffic:true},()=>({}),()=>{},()=>{});
  await Promise.resolve();assert.equal(complete,false);
  release();await finishing;assert.equal(complete,true);assert.equal(world.suspended,false);

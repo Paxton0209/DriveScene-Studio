@@ -1,30 +1,32 @@
 /* Independent editor trial on main 291e469. Shared scene engine remains unchanged.
- * Typography: body 13/20 regular, emphasis 13/20 medium, help 12/16 regular.
+ * Static shell trial: body 13px regular, product 14px medium, groups/help 12px.
+ * Existing motion, layout dimensions and scene rendering are preserved.
  * Spacing: 4, 8, 12, 16, 24. Controls: 32 high, segment radii 8/6 with inset 2.
  */
 @font-face{font-family:Inter;src:url('./guizang-trial/InterVariable.woff2') format('woff2');font-weight:100 900;font-style:normal;font-display:swap}
 :root{
  font-family:Inter,'PingFang SC',sans-serif;font-size:13px;line-height:1.53846154;font-weight:400;letter-spacing:normal;
- --panel:#fafafb;--canvas:#eff0f2;--track:#ededf0;--raised:#fff;
- --text:#292b30;--muted:#71757d;--line:#e3e5e9;--hover:#e9ebef;
- --accent:#002fa7;--accent-soft:#e8edf8;--selected-text:#25272c;
+ --panel:#f8f8f7;--canvas:#efefed;--track:#ebebe9;--raised:#fdfdfc;
+ --text:#30302e;--muted:#696965;--line:#e3e3df;--hover:#e8e8e5;
+ --accent:#002fa7;--accent-soft:#e8edf8;--selected-text:#30302e;
  --e1:none;--frame:none;
  --space-1:4px;--space-2:8px;--space-3:12px;--panel-inset:16px;--section-gap:24px;
  --body-size:13px;--body-leading:1.53846154;--caption-size:12px;--control-height:32px;
- --control-radius:6px;--segment-radius:8px;--control-inner-radius:6px;--control-inset:2px;--row-radius:6px;
+ --control-radius:8px;--segment-radius:8px;--control-inner-radius:6px;--control-inset:2px;--row-radius:8px;
  --selection-ring:inset 0 0 0 1px var(--line);
  --control-shadow:0 0 0 1px #00000005,0 1px 2px #0000000a;
 }
 :root[data-theme=dark]{
- --panel:#202124;--canvas:#17181b;--track:#2b2d31;--raised:#393c42;
- --text:#f0f1f3;--muted:#a3a7ae;--line:#34373d;--hover:#303338;
- --accent:#96b0ff;--accent-soft:#29344f;--selected-text:#f0f1f3;
+ --panel:#232324;--canvas:#19191a;--track:#2e2e30;--raised:#3a3a3d;
+ --text:#ededec;--muted:#a7a7a3;--line:#373739;--hover:#323234;
+ --accent:#96b0ff;--accent-soft:#29344f;--selected-text:#ededec;
  --e1:none;--frame:none;--control-shadow:0 0 0 1px #ffffff06,0 1px 2px #00000030;
 }
 html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 button,select,input{font:inherit;letter-spacing:normal}
 /* These are the only three text roles in the outer editor. */
-.project-name,#library .nav-title,#inspector h2{font-size:var(--body-size);line-height:var(--body-leading);font-weight:500;letter-spacing:normal}
+.project-name{font-size:14px;line-height:1.4;font-weight:500;letter-spacing:normal}
+#library .nav-title,#inspector h2{font-size:var(--caption-size);line-height:var(--body-leading);font-weight:500;letter-spacing:normal}
 .scene-row,.scene-row span,.property-label,.shared-label,.export-size,#vehicle-name,
 .segment button,.format-trigger,.format-options button,#export-preview,
 #layers .layer-row,#vehicle-panel .vehicle-option-name,#parking-flow #parking-hint,
@@ -34,43 +36,41 @@ button,select,input{font:inherit;letter-spacing:normal}
 #tooltip,#feedback,#export-preview-description,#debug-links{font-size:var(--caption-size);line-height:1.33333333;font-weight:400;letter-spacing:normal}
 /* One continuous library boundary, one set of content edges. */
 .toolbar{padding-inline:16px;box-shadow:inset 0 -1px var(--line)}
-#theme{width:28px;height:28px;border-radius:6px}
+#theme{width:28px;height:28px;border-radius:var(--control-radius)}
 #theme>svg{width:18px;height:18px}
 #library{display:flex;flex-direction:column;min-width:0;overflow:hidden;background:var(--panel);border-right:1px solid var(--line);box-shadow:none}
-#library-tabs{position:relative;isolation:isolate;display:grid;grid-template-columns:1fr 1fr;gap:2px;height:32px;flex:none;margin:16px 16px 0;padding:var(--control-inset);background:var(--track);border-radius:var(--segment-radius)}
-#library-tabs button{position:relative;z-index:1;height:28px;min-width:0;padding:0 8px;border-radius:var(--control-inner-radius);background:transparent;color:var(--muted);font:inherit}
-#library-tabs button[aria-selected=true]{background:transparent;color:var(--text);font-weight:500;box-shadow:none}
-#library-tabs>.segment-indicator{position:absolute;z-index:0;left:0;top:0;border-radius:var(--control-inner-radius);background:var(--raised);box-shadow:var(--selection-ring);pointer-events:none}
-#library [role=tabpanel][hidden]{display:none!important}
-#library #scene-nav{flex:1;min-height:0;padding:24px 8px 8px;background:transparent;border:0;box-shadow:none;overflow:auto;overscroll-behavior:contain}
-#library .nav-title{height:20px;margin:0 0 12px;padding-inline:8px;color:var(--muted)}
-#library .nav-title:not(:first-of-type){margin-top:24px}
-#library .scene-row{width:100%;height:36px;min-height:36px;margin:0;padding:0 8px;gap:8px;justify-content:flex-start;border-radius:6px}
-#library .scene-row+.scene-row{margin-top:4px}
-#library .scene-row svg{width:24px;height:24px;flex:none;opacity:1}
+#library{overflow-y:auto;overscroll-behavior:contain;padding-bottom:16px}
+#library .library-heading{height:auto;padding:0;flex:none;margin:20px 16px 12px;font-size:12px;line-height:20px;font-weight:500;color:var(--text)}
+#library #scene-nav{flex:none;min-height:0;padding:0 8px;background:transparent;border:0;box-shadow:none;overflow:visible}
+#library .nav-title{height:16px;margin:0 0 4px;padding-inline:8px;color:var(--muted)}
+#library .nav-title:not(:first-of-type){margin-top:16px}
+#library .scene-row{width:100%;height:36px;min-height:36px;margin:0;padding:0 8px;gap:8px;justify-content:flex-start;border-radius:var(--row-radius)}
+#library .scene-row+.scene-row{margin-top:0}
+#library .scene-row svg{width:32px;height:24px;flex:none;opacity:1}
 #library .scene-row span{display:block}
 .scene-row:not([aria-current=page]){color:var(--muted)}
-.scene-indicator,.scene-indicator.is-moving{border-radius:6px;box-shadow:none}
+.scene-indicator,.scene-indicator.is-moving{border-radius:var(--row-radius);box-shadow:none}
 #ud-icBlue stop:first-child{stop-color:#2995ff}
 #ud-icBlue stop:last-child{stop-color:#007aff}
-#vehicle-panel{padding:16px 8px 8px;overflow:auto;overscroll-behavior:contain}
-#vehicle-panel #vehicle-strip{display:flex;flex-direction:column;align-items:stretch;gap:4px;height:auto;width:100%;padding:0;background:transparent;box-shadow:none}
-#vehicle-panel #vehicle-strip button{display:flex;align-items:center;justify-content:flex-start;gap:12px;width:100%!important;flex:none;height:52px;padding:0 8px;border-radius:6px;text-align:left;color:var(--text);background:transparent}
-#vehicle-panel #vehicle-strip img{width:44px;height:32px;object-fit:contain;opacity:1;flex:none}
+#vehicle-panel{flex:none;padding:0 8px;overflow:visible}
+#vehicle-panel .library-heading{margin:24px 8px 8px}
+#vehicle-panel #vehicle-strip{display:flex;flex-direction:column;align-items:stretch;gap:0;height:auto;width:100%;padding:0;background:transparent;box-shadow:none}
+#vehicle-panel #vehicle-strip button{display:flex;align-items:center;justify-content:flex-start;gap:8px;width:100%!important;flex:none;height:36px;padding:0 8px;border-radius:var(--row-radius);text-align:left;color:var(--text);background:transparent}
+#vehicle-panel #vehicle-strip img{width:32px;height:24px;object-fit:contain;opacity:1;flex:none}
 #vehicle-panel .vehicle-option-name{flex:1;min-width:0;white-space:normal}
 #vehicle-panel #vehicle-strip [aria-checked=true]{background:transparent}
-#vehicle-panel #vehicle-strip .segment-indicator{display:block;position:absolute;left:0;top:0;border-radius:6px;background:var(--track);box-shadow:none;pointer-events:none}
+#vehicle-panel #vehicle-strip .segment-indicator{display:block;position:absolute;left:0;top:0;border-radius:var(--row-radius);background:var(--track);box-shadow:none;pointer-events:none}
 #vehicle-panel #vehicle-strip button{position:relative;z-index:1}
 #vehicle-panel #vehicle-strip[data-motion-indicator] button:disabled{opacity:1}
-/* Inspector groups use inset rules and 20px breathing room on both sides. */
+/* Inspector grouping uses existing spacing; only Export keeps an inset rule. */
 #inspector-scroll{display:flex;flex-direction:column;padding:0;overscroll-behavior:contain}
 #inspector-scroll>section{position:relative;flex:none;padding:20px 16px}
 #inspector-scroll>#shared-settings{padding-top:16px}
 #inspector-scroll>section+section{margin-top:0;border:0;box-shadow:none}
-#inspector-scroll>section+section:not(#shared-settings)::before{content:'';position:absolute;top:0;left:16px;right:16px;height:1px;background:var(--line)}
+#inspector-scroll>#export-section::before{content:'';position:absolute;top:0;left:16px;right:16px;height:1px;background:var(--line)}
 #inspector-scroll>#shared-settings[hidden]+#scene-settings::before{display:none}
 #inspector-scroll>.vehicle-slot{display:none}
-#inspector h2{height:20px;margin:0 0 12px;padding:0;color:var(--text)}
+#inspector h2{height:20px;margin:0 0 12px;padding:0;color:var(--muted)}
 .properties{padding:0;margin:0;gap:12px}
 .property,#shared-settings #shared-weather{display:grid;grid-template-columns:56px minmax(0,1fr);align-items:center;gap:8px;min-height:32px;height:32px;margin:0}
 .property-label{width:56px;color:var(--muted)}
@@ -88,7 +88,7 @@ button,select,input{font:inherit;letter-spacing:normal}
 .shared-weather-options svg{width:18px;height:18px;stroke-width:1.5}
 /* Switches keep one row height and one neutral state treatment. */
 #layers{display:flex;flex-direction:column;gap:8px}
-#layers .layer-row{position:relative;display:flex;align-items:center;justify-content:space-between;width:100%;height:32px;padding:0;background:transparent;border:0;border-radius:6px;box-shadow:none;color:var(--text)}
+#layers .layer-row{position:relative;display:flex;align-items:center;justify-content:space-between;width:100%;height:32px;padding:0;background:transparent;border:0;border-radius:var(--row-radius);box-shadow:none;color:var(--text)}
 #layers .layer-check{display:none}
 #layers .layer-row::after{content:'';width:28px;height:16px;flex:none;box-sizing:border-box;border:0;border-radius:8px;background:var(--line)}
 #layers .layer-row::before{content:'';position:absolute;right:14px;top:50%;width:12px;height:12px;box-sizing:border-box;border:0;margin:0;border-radius:6px;transform:translateY(-50%);background:#fff;z-index:1;transition:transform 140ms ease}
@@ -99,9 +99,9 @@ button,select,input{font:inherit;letter-spacing:normal}
 #layers [data-layer=roadworks]{display:none}
 /* Export uses the same 32px controls as the rest of the inspector. */
 #inspector-scroll>#export-section{margin-top:auto;padding:20px 16px 16px}
-.format-trigger,#format,#image-size,#video-duration{height:32px;min-height:32px;padding-inline:12px;border-radius:6px;font-size:var(--body-size);font-weight:400}
+.format-trigger,#format,#image-size,#video-duration{height:32px;min-height:32px;padding-inline:12px;border-radius:var(--control-radius);font-size:var(--body-size);font-weight:400}
 .format-trigger{gap:8px}
-.format-options{padding:4px;border-radius:10px;box-shadow:0 0 0 1px var(--line),0 6px 16px #00000012}
+.format-options{padding:4px;border-radius:12px;box-shadow:0 0 0 1px var(--line),0 6px 16px #00000012}
 .format-options button{height:32px;border-radius:var(--control-radius)}
 .format-options button[aria-selected=true]{color:var(--text);background:var(--track)}
 .export-size{gap:8px;min-width:0}
@@ -111,14 +111,16 @@ button,select,input{font:inherit;letter-spacing:normal}
 #export-preview summary::-webkit-details-marker{display:none}
 #export-preview summary::before{content:'';width:5px;height:5px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(-45deg);margin:0 3px 0 1px;flex:none}
 #export-preview[open] summary::before{transform:rotate(45deg) translateY(-1px)}
-#export{height:32px;min-height:32px;margin-top:12px;padding:0 12px;justify-content:center;border:1px solid var(--line);border-radius:6px;background:var(--raised);color:var(--text);box-shadow:0 1px 2px #00000004}
-#export>span:last-child,:root[data-theme=dark] #export{color:inherit}
+#export{height:32px;min-height:32px;margin-top:12px;padding:0 12px;justify-content:center;border:1px solid var(--line);border-radius:var(--control-radius);background:var(--raised);color:var(--text);box-shadow:0 1px 2px #00000004}
+#export>span:last-child{color:inherit}
 #feedback{margin-top:8px}
 /* Canvas actions remain attached to the current output. */
-#artboard,.artboard-clip,#engine,#frame-cover{border-radius:6px;box-shadow:none}
+#artboard,.artboard-clip,#engine,#frame-cover{border-radius:8px}
+#artboard{border:0;box-shadow:none}
+:root[data-theme=dark] #artboard{box-shadow:none}
 .artboard-label,.preview-tools,#artboard-size{display:none}
-#canvas-playback{position:absolute;left:0;right:0;top:calc(100% + 12px);display:flex;justify-content:center}
-#canvas-playback #scene-transport{display:flex;align-items:center;justify-content:center;gap:8px;height:32px;min-width:82px;padding:0 12px;background:var(--raised);border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px #00000004}
+#canvas-playback{position:absolute;left:0;right:0;top:calc(100% + 12px);display:flex;justify-content:center;align-items:center;gap:8px}
+#canvas-playback #scene-transport{display:flex;align-items:center;justify-content:center;gap:8px;height:32px;min-width:82px;padding:0 12px;background:var(--raised);border:1px solid var(--line);border-radius:var(--control-radius);box-shadow:0 1px 2px #00000004}
 #scene-transport::before{content:'';width:16px;height:16px;flex:none;background:currentColor;clip-path:polygon(30% 18%,82% 50%,30% 82%)}
 #scene-transport[aria-label^=Pause]::before{clip-path:polygon(28% 22%,40% 22%,40% 78%,28% 78%,28% 22%,60% 22%,72% 22%,72% 78%,60% 78%,60% 22%)}
 #scene-transport[aria-label^=Loading]::before{display:none}
@@ -135,7 +137,6 @@ button:focus-visible,select:focus-visible,a:focus-visible,summary:focus-visible{
  #layers button.layer-row:hover:not(:disabled){color:var(--text);background:transparent}
  .segment button:hover:not(:disabled),.shared-weather-options button:hover:not(:disabled){color:var(--muted)}
  .segment button[aria-checked=true]:hover:not(:disabled),.shared-weather-options button[aria-checked=true]:hover:not(:disabled){color:var(--text)}
- #library-tabs:has(button[aria-selected=true]:hover:not(:disabled))>.segment-indicator,
  .shared-weather-options:has(button[aria-checked=true]:hover:not(:disabled))>.segment-indicator,
  #vehicle-panel #vehicle-strip:has(button[aria-checked=true]:hover:not(:disabled))>.segment-indicator{opacity:.7}
  #vehicle-panel #vehicle-strip button:hover:not(:disabled),#theme:hover:not(:disabled){color:var(--text);background:transparent}
@@ -147,7 +148,6 @@ button:focus-visible,select:focus-visible,a:focus-visible,summary:focus-visible{
 }
 @media(max-width:639px){
  #library{display:block;min-height:112px;border-right:0;border-bottom:1px solid var(--line)}
- #library-tabs{width:184px;margin:8px 16px 0}
  #library #scene-nav{padding:8px;display:flex;overflow-x:auto}
  #library .nav-title{display:none}
  #library .scene-row{width:auto;min-width:max-content;margin:0;gap:8px}
@@ -159,3 +159,40 @@ button:focus-visible,select:focus-visible,a:focus-visible,summary:focus-visible{
  #canvas-playback{top:calc(100% + 12px)}
 }
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important}}
+
+/* Both controls belong to preview time, directly below the canvas. */
+#canvas-playback #indicator-mute{position:static;flex:none;width:32px;height:32px;display:grid;place-items:center;border:1px solid var(--line);background:var(--raised);border-radius:var(--control-radius);color:var(--muted)}
+:root[data-controls=blue]{--control-active:#1683e8;--primary-fill:#0875d8;--primary-text:#fff}
+:root[data-controls=blue][data-theme=dark]{--control-active:#3498f5;--primary-fill:#3498f5;--primary-text:#101c29}
+:root[data-controls=blue] #layers .layer-row[aria-pressed=true]::after{background:var(--control-active)}
+:root[data-controls=blue] #layers .layer-row[aria-pressed=true]::before{background:#fff}
+:root #export{background:var(--primary-fill,var(--text));color:var(--primary-text,var(--panel));border-color:transparent;box-shadow:none}
+/* Preserve the approved icon families; lift only the dark lower edge. */
+:root[data-theme=dark] #ud-icAsph stop:last-child{stop-color:#626c7e}
+#library .scene-row svg [stroke="{{t.bg}}"]{stroke:var(--panel)}
+@media(max-width:639px){#library>.library-heading{margin:12px 16px 0}#vehicle-panel .library-heading{margin:12px 8px 8px}#library #scene-nav{padding:8px;overflow-x:auto}#vehicle-panel #vehicle-strip button{height:44px}}
+
+/* Local hierarchy comparison: retain color families and the existing motion. */
+#library #scene-nav{padding-top:24px}
+#library .nav-title,#vehicle-panel .library-heading{height:16px;font-size:12px;line-height:16px;font-weight:500;color:var(--muted)}
+#library .nav-title{margin-bottom:8px}
+#library .nav-title:not(:first-of-type){margin-top:24px}
+#vehicle-panel .library-heading{margin:24px 8px 8px}
+#vehicle-panel #vehicle-strip button{color:var(--muted)}
+#vehicle-panel #vehicle-strip button[aria-checked=true]{color:var(--text)}
+#vehicle-panel .vehicle-icon-slot{display:grid;place-items:center;flex:none;width:32px;height:24px;border-radius:6px;background:var(--track)}
+#vehicle-panel #vehicle-strip .vehicle-icon-slot img{width:32px;height:24px}
+#library .scene-row svg,#vehicle-panel .vehicle-icon-slot{opacity:.72;filter:saturate(.12)}
+:root[data-library-icons=dim] #library .scene-row:not([aria-current=page]) svg,
+:root[data-library-icons=dim] #vehicle-panel button:not([aria-checked=true]) .vehicle-icon-slot{filter:brightness(.78)}
+#library .scene-row[aria-current=page] svg,
+#vehicle-panel #vehicle-strip button[aria-checked=true] .vehicle-icon-slot{opacity:1;filter:none}
+#inspector-scroll>#scene-settings{padding-top:20px}
+#inspector-scroll>#shared-settings{padding-top:20px}
+@media(hover:hover) and (pointer:fine){
+ #library .scene-row:hover:not(:disabled),#vehicle-panel #vehicle-strip button:hover:not(:disabled){opacity:1;color:var(--muted);background:transparent}
+ #library .scene-row[aria-current=page]:hover:not(:disabled),#vehicle-panel #vehicle-strip button[aria-checked=true]:hover:not(:disabled){color:var(--text)}
+ #library .scene-row:hover:not(:disabled)>span,#vehicle-panel #vehicle-strip button:hover:not(:disabled)>.vehicle-option-name{opacity:.7}
+ #scene-nav:has(.scene-row[aria-current=page]:hover:not(:disabled))>.scene-indicator{opacity:.7}
+}
+@media(max-width:639px){#library #scene-nav{padding-top:8px}#vehicle-panel .library-heading{margin-top:16px}}

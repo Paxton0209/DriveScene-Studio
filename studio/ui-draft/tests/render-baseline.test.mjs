@@ -14,8 +14,8 @@ test('Draft world preserves the approved rendering source without the rejected s
   assert.doesNotMatch(result.contents,/draftAtmosphere|draftFacade|installSceneLook/);
 });
 
-test('Path label is compact and parking actions express the next step',async()=>{
+test('Assist path label describes the displayed guide and parking actions express the next step',async()=>{
   const source=await readFile(new URL('../draft.js',import.meta.url),'utf8');
-  assert.match(source,/\['path','Path'\]/);for(const label of ['Start parking','Resume','Park out','Start exit'])assert.ok(source.includes(label));
+  assert.match(source,/\['path','Assist path'\]/);for(const label of ['Start parking','Resume','Park out','Start exit'])assert.ok(source.includes(label));
   assert.doesNotMatch(source,/Driving assist on/);
 });

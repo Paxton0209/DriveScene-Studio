@@ -9,7 +9,7 @@ async function flush(){for(let i=0;i<12;i++)await Promise.resolve();}
 function harness(){
  const nodes=new Map(),unlocks=[],prepared=[],reveals=[],commits=[],navigation=[];
  const $=id=>{if(!nodes.has(id)){const node={hidden:false,disabled:false,open:false,querySelector(){return null}};Object.defineProperty(node,'inert',{set(value){if(id==='inspector-scroll'&&!value)unlocks.push(id)}});nodes.set(id,node);}return nodes.get(id)};
- const project={active:'road',boards:Object.fromEntries(['road','parking','outdoor','junction'].map(type=>[type,{seed:1,params:{model:'model-3'}}]))};
+ const project={active:'road',shared:{},boards:Object.fromEntries(['road','parking','outdoor','junction'].map(type=>[type,{seed:1,params:{model:'model-3'}}]))};
  const bridge=()=>({suspendIndicator(){},scene(type){const task=deferred();prepared.push({type,...task});return task.promise},get(){return {}},finishScene(){},replay(){}});
  const create=new Function('$','project','bridge','api','holdFrame','revealScene','document','navigation',`
  const controlPaint=async()=>true;

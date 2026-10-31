@@ -46,3 +46,29 @@ test('Temporary Junction lift calibration is removed from restored settings',()=
  const restored=createProject({boards:{junction:{params:{liftDistance:31,layout:'08'}}}});
  assert.equal('liftDistance' in restored.boards.junction.params,false);assert.equal(restored.boards.junction.params.layout,'08');
 });
+
+test('Edited driving camera and layers survive unsupported scenes and reload without touching scene geometry',async()=>{
+ const {setProjectOption}=await import('../artboards.js');
+ const p=createProject({boards:{road:{params:{lanes:2}},ramp:{params:{layout:'07'}}}});
+ setProjectOption(p,'camera','high');setProjectOption(p,'path',true);setProjectOption(p,'traffic',true);setProjectOption(p,'buildings',false);
+ p.active='parking';setProjectOption(p,'camera','bev');
+ assert.equal(p.shared.drivingCamera,'high');assert.equal(p.boards.parking.params.camera,'default');
+ assert.equal(p.boards.parking.params.path,false);assert.equal(p.boards.parking.params.traffic,true);
+ p.active='outdoor';setProjectOption(p,'buildings',true);p.shared.playing=false;
+ const restored=createProject(JSON.parse(JSON.stringify(p)));
+ for(const id of ['road','elevated','ramp'])assert.equal(restored.boards[id].params.camera,'high');
+ for(const id of ['road','elevated','ramp','junction'])assert.equal(restored.boards[id].params.path,true);
+ for(const id of ['road','elevated','junction','outdoor'])assert.equal(restored.boards[id].params.buildings,true);
+ assert.equal(restored.boards.road.params.lanes,2);assert.equal(restored.boards.ramp.params.layout,'07');
+ assert.equal(restored.shared.playing,false);
+});
+
+test('Unedited layer defaults remain local until an explicit supported edit',async()=>{
+ const {setProjectOption}=await import('../artboards.js');
+ const p=createProject({boards:{road:{params:{path:true}},elevated:{params:{path:false}}}});
+ assert.equal(p.boards.road.params.path,true);assert.equal(p.boards.elevated.params.path,false);
+ p.active='parking';setProjectOption(p,'path',true);
+ assert.equal(p.shared.layers,undefined);assert.equal(p.boards.elevated.params.path,false);
+ p.active='road';setProjectOption(p,'path',false);
+ assert.equal(p.shared.layers.path,false);assert.equal(p.boards.elevated.params.path,false);
+});

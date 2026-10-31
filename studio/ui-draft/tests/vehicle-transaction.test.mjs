@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {createProject,setProjectVehicle,setProjectWeather} from '../artboards.js';
+import {createProject,setProjectVehicle,setProjectWeather,setProjectOption} from '../artboards.js';
 const source=await readFile(new URL('../draft.js',import.meta.url),'utf8');
 const apply=source.slice(source.indexOf('async function applyParam('),source.indexOf('\nfunction toggleAssist('));
 const scene=source.slice(source.indexOf('function selectScene('),source.indexOf('\nasync function performScene('));
@@ -11,14 +11,14 @@ function harness(){
  const pending=new Promise((a,b)=>{resolve=a;reject=b;});
  const $=id=>{if(!elements.has(id))elements.set(id,{open:false,textContent:'',disabled:false});return elements.get(id);};
  const bridge=()=>({param:async(key,value)=>{calls.push([key,value]);await pending;}});
- const create=new Function('project','setProjectVehicle','setProjectWeather','$','bridge','lockControls','persist','feedback','renderVehicles',`
+ const create=new Function('project','setProjectVehicle','setProjectWeather','setProjectOption','$','bridge','lockControls','persist','feedback','renderVehicles',`
  const controlPaint=async()=>true,holdFrame=async()=>{$('frame-cover').hidden=false;};
  let ready=true,exporting=false,previewBusy=false,sceneUpdating=false,vehicleUpdating=false,status={},themeTransition=null,requestedTheme='light',sceneRequest=0,sceneSelection=Promise.resolve();
  const params=()=>project.boards[project.active].params,vehicles=[['model-3','Tesla Model 3'],['x6','BMW X6'],['ix','BMW iX'],['xc90','Volvo XC90']];
  const renderLabel=()=>{},refreshExportPreview=()=>{},performScene=()=>{throw Error('Scene must not overlap vehicle replacement');};
  ${apply}\n${scene}\n${theme}
  return {applyParam,selectScene,setTheme,get busy(){return vehicleUpdating},setThemeTransition(value){themeTransition=value;}};`);
- const controller=create(project,setProjectVehicle,setProjectWeather,$,bridge,value=>locks.push(value),()=>saved.push(structuredClone(project)),error=>errors.push(error),()=>{});
+ const controller=create(project,setProjectVehicle,setProjectWeather,setProjectOption,$,bridge,value=>locks.push(value),()=>saved.push(structuredClone(project)),error=>errors.push(error),()=>{});
  return {controller,project,calls,locks,saved,errors,elements,resolve,reject};
 }
 test('A pending model replacement excludes model, weather, scene and theme changes, then unlocks and persists one coherent choice',async()=>{

@@ -8,7 +8,7 @@ import {createControlPaint} from './control-paint.js?v=interaction-20261027';
 import {indoorShadowValues} from './indoor-shadow-settings.js';
 import {vehicleShadowPreset} from './vehicle-shadow-settings.js';
 import {indoorFinishValues} from './indoor-finish-settings.js';
-import {createProject,sceneTypes,setProjectWeather,setProjectVehicle} from './artboards.js?v=traffic33-20261025';
+import {createProject,sceneTypes,setProjectWeather,setProjectVehicle,setProjectOption} from './artboards.js?v=traffic33-20261025';
 import {revealScene} from './scene-reveal.js?v=interaction-20261027';
 import {mountFormatSelect} from './format-select.js?v=parking-export-20261027';
 import {syncExportFormat} from './export-format.js';
@@ -23,7 +23,7 @@ const selectedExportSize=(format=$('format').value)=>exportSize(format,stillWidt
 if(qa){try{document.documentElement.dataset.theme=localStorage.getItem(themeKey)||'light'}catch{}}
 let saved={};try{saved=JSON.parse(localStorage.getItem(storageKey)||'{}')}catch{}
 const controlPaint=createControlPaint();
-const project=createProject(saved);setProjectVehicle(project,'model-3');for(const id of ['parking','outdoor']){project.boards[id].params.path=false;project.boards[id].params.camera='default';}const icons=await fetch('./icons.json').then(response=>response.json());
+const project=createProject(saved);for(const id of ['parking','outdoor']){project.boards[id].params.path=false;project.boards[id].params.camera='default';}const icons=await fetch('./icons.json').then(response=>response.json());
 let ready=false,status={playing:false},duration=10,videoExtension='mp4',videoAvailable=true,videoReady=false,scrollTimer=0,resizeFrame=0,exporting=false,previewBusy=false,sceneUpdating=false,vehicleUpdating=false,tooltipTimer=0,tooltipLast=0,tooltipAnchor=null,sceneRequest=0;
 const indicatorMuteKey='drivescene-indicator-muted';let indicatorMuted=false;try{indicatorMuted=localStorage.getItem(indicatorMuteKey)==='true'}catch{}
 const api=()=>frame.contentWindow.layoutEngine,bridge=()=>api().draft,board=()=>project.boards[project.active],params=()=>board().params;
@@ -52,7 +52,7 @@ function renderInspector(){renderIndicatorMute();syncExportControls();
  if(type==='junction')html+=segment('layout','Type',[['05','Cross'],['08','T']],state.layout);if(type==='ramp')html+=segment('layout','Type',[['06','Exit'],['07','Merge']],state.layout);
  if(type!=='junction')html+=segment('camera','Camera',cameraChoices(),state.camera);if(type!=='parking')html+=segment('weather','Weather',Object.entries(icons.weather).filter(([key])=>key!=='overcast'),state.weather);$('scene-properties').innerHTML=html;
  $('assist').hidden=!['parking','outdoor'].includes(type);$('parking-flow')?.append($('assist'));$('assist').setAttribute('aria-checked',String(state.path));
- const layers=[['path','Path'],['traffic','Traffic'],['buildings','Buildings'],['trees','Trees'],['waterfront','Coast'],['roadworks','Roadworks']].filter(([key])=>type==='ramp'?['path','traffic'].includes(key):type==='parking'?key==='traffic':type==='outdoor'?['traffic','buildings','trees'].includes(key):key==='waterfront'?type==='road':key==='roadworks'?type==='road':true);
+ const layers=[['path','Assist path'],['traffic','Traffic'],['buildings','Buildings'],['trees','Trees'],['waterfront','Coast'],['roadworks','Roadworks']].filter(([key])=>type==='ramp'?['path','traffic'].includes(key):type==='parking'?key==='traffic':type==='outdoor'?['traffic','buildings','trees'].includes(key):key==='waterfront'?type==='road':key==='roadworks'?type==='road':true);
  $('layers').innerHTML=layers.map(([key,label])=>`<button class="layer-row" data-layer="${key}" aria-label="${label}" aria-pressed="${state[key]}" data-tip="${label}" ${key==='roadworks'?'disabled':''}><span>${label}</span><svg class="layer-check" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="m2.5 6 2.2 2.2 4.8-4.8" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`).join('');$('layers').parentElement.hidden=!layers.length;
  renderVehicles();renderAssist(true);sizeSegments();renderLabel();syncJunctionPathLock();
 }
@@ -69,6 +69,7 @@ function selectScene(type){if(!ready){pendingScene=type;acknowledgeScene(type);r
 async function performScene(type,request){
  sceneUpdating=true;bridge().suspendIndicator();$('indicator-mute').hidden=true;$('theme').disabled=true;$('inspector-scroll').inert=true;$('scene-transport').disabled=true;
  await holdFrame(true);await controlPaint('scene');if(request!==sceneRequest)return;
+ if(typeof project.shared.playing!=='boolean')project.shared.playing=bridge().get({audit:false}).requestedPlaying;
  project.active=type;status={playing:false};
  if(['parking','outdoor'].includes(type)){params().path=false;params().camera='default';}
  persist();feedback('');
@@ -77,7 +78,7 @@ async function performScene(type,request){
   if(request!==sceneRequest)return;
   if(params().model!==api().get().vehicle)await bridge().param('model',params().model);
   if(request!==sceneRequest)return;
-  syncFinish(finishTheme(),{render:false});if(type==='junction')bridge().replay();bridge().finishScene();sizeBoard();
+  syncFinish(finishTheme(),{render:false});if(type==='junction')bridge().replay();bridge().finishScene({playing:project.shared.playing});sizeBoard();
  }catch(error){if(request===sceneRequest)feedback(error.message);}
  finally{
   if(request===sceneRequest){
@@ -91,7 +92,7 @@ async function performScene(type,request){
   }
  }
 }
-async function applyParam(key,value,save=true,options={}){if(!ready||exporting||previewBusy||sceneUpdating||vehicleUpdating)return;if(themeTransition)return;if(key==='camera'&&save&&status.parking?.cameraLocked)return;if(key==='lanes')value=Number(value);if(key==='weather')value=setProjectWeather(project,value);const model=key==='model',previousModel=project.shared.model;if(model){vehicleUpdating=true;lockControls(true);value=setProjectVehicle(project,value);}const layout=key==='layout';if(layout){sceneUpdating=true;lockControls(true);await holdFrame();}const intentRequest=sceneRequest;params()[key]=value;const engineValue=key==='camera'&&['parking','outdoor'].includes(project.active)?({parking:{default:'10',raised:'16',bev:'14'},outdoor:{default:'10',raised:'16',bev:'14'}}[project.active][value]||value):value;
+async function applyParam(key,value,save=true,options={}){if(!ready||exporting||previewBusy||sceneUpdating||vehicleUpdating)return;if(themeTransition)return;if(key==='camera'&&save&&status.parking?.cameraLocked)return;if(key==='lanes')value=Number(value);if(key==='weather')value=setProjectWeather(project,value);if(save)setProjectOption(project,key,value);const model=key==='model',previousModel=project.shared.model;if(model){vehicleUpdating=true;lockControls(true);value=setProjectVehicle(project,value);}const layout=key==='layout';if(layout){sceneUpdating=true;lockControls(true);await holdFrame();}const intentRequest=sceneRequest;params()[key]=value;const engineValue=key==='camera'&&['parking','outdoor'].includes(project.active)?({parking:{default:'10',raised:'16',bev:'14'},outdoor:{default:'10',raised:'16',bev:'14'}}[project.active][value]||value):value;
  try{if(model)await holdFrame();if(!await controlPaint(key)||intentRequest!==sceneRequest)return;await bridge().param(key,engineValue,options);if(save)persist();if(layout)await releaseFrame();}catch(error){if(model)setProjectVehicle(project,previousModel);feedback(error.message);}finally{if(model){$('frame-cover').hidden=true;vehicleUpdating=false;lockControls(false);renderVehicles();$('vehicle-name').textContent=vehicles.find(vehicle=>vehicle[0]===params().model)[1];}if(layout){sceneUpdating=false;lockControls(false);$('frame-cover').hidden=true;}}
  renderLabel();if($('export-preview').open)void refreshExportPreview();
 }
@@ -183,14 +184,14 @@ layoutBoard();
 window.__draftStartupProject=structuredClone(project);
 const controlsReady=decodeStartupControls(document);controlsReady.catch(()=>{});
 const state=params(),initialLayout=({parking:{default:'10',raised:'16',bev:'14'},outdoor:{default:'17',raised:'18',bev:'19'}}[project.active]?.[state.camera])||state.layout,query=new URLSearchParams({review:'ui-draft',quality:'sr50',scene:initialLayout,mode:document.documentElement.dataset.theme||'light',lanes:state.lanes,view:state.camera,model:state.model,buildings:Number(state.buildings),trees:Number(state.trees),waterfront:Number(state.waterfront),roadworks:'0',vehicle:'1',weather:state.weather,path:Number(state.path),traffic:Number(state.traffic),seed:board().seed});if(new URLSearchParams(location.search).get('paused')==='1')query.set('paused','1');frame.dataset.search='?'+query;frame.srcdoc=engineDocument;
-try{await waitForEngine({host:window,frame,ready:()=>api()?.get().ready&&api().draft?.get({audit:false}).ready&&api().draft.get({audit:false}).startup?.ready===true,timeout:120000});await controlsReady}catch(error){startup.abort();feedback('Scene could not load. Reload to retry.');const retry=document.createElement('button');retry.textContent='Reload';retry.className='raised';retry.onclick=()=>location.reload();$('feedback').append(retry);throw error;}ready=true;await bridge().param('traffic',state.traffic);syncFinish();bridge().indicatorMuted(indicatorMuted);layoutBoard();bridge().completeStartup();status=bridge().get({audit:false});renderVehicles();renderAssist();renderTransport();
+try{await waitForEngine({host:window,frame,ready:()=>api()?.get().ready&&api().draft?.get({audit:false}).ready&&api().draft.get({audit:false}).startup?.ready===true,timeout:120000});await controlsReady}catch(error){startup.abort();feedback('Scene could not load. Reload to retry.');const retry=document.createElement('button');retry.textContent='Reload';retry.className='raised';retry.onclick=()=>location.reload();$('feedback').append(retry);throw error;}ready=true;await bridge().param('traffic',state.traffic);syncFinish();bridge().indicatorMuted(indicatorMuted);layoutBoard();bridge().completeStartup();if(typeof project.shared.playing==='boolean'&&!['parking','outdoor'].includes(project.active))bridge().setPlaying(project.shared.playing);status=bridge().get({audit:false});renderVehicles();renderAssist();renderTransport();
 window.draftController={project,selectScene,applyParam,bridge,get status(){return status},exportCurrent};
 if(pendingScene!==null){const target=pendingScene;pendingScene=null;await selectScene(target);}performance.mark('draft-resources-ready');await waitForStartupMotion({host:frame.contentWindow,bridge:bridge()});performance.mark('draft-startup-motion-ready');startup.reveal();await startup.finished;document.body.dataset.ready='true';$('artboard').setAttribute('aria-busy','false');$('theme').disabled=false;for(const id of ['assist','export','scene-transport'])$(id).disabled=false;renderTransport();
 addEventListener('pagehide',()=>{if(ready)rememberReloadPoster(bridge().canvas)});
 let videoProbe;
 function probeVideo(){return videoProbe??=bridge().videoFormat().then(format=>{videoReady=true;videoExtension=format;$('format').querySelector('[value=video]').textContent=`Video · ${format==='mp4'?'MP4':'WebM'}`;syncExportControls();return format;}).catch(error=>{videoAvailable=false;syncExportControls();throw error;});}
 
-$('scene-transport').addEventListener('click',()=>{if(!ready||exporting||previewBusy||sceneUpdating||vehicleUpdating||themeTransition)return;$('export-preview').open=false;if(['parking','outdoor'].includes(project.active)&&!params().path){toggleAssist();return;}bridge().toggle()});
+$('scene-transport').addEventListener('click',()=>{if(!ready||exporting||previewBusy||sceneUpdating||vehicleUpdating||themeTransition)return;$('export-preview').open=false;if(['parking','outdoor'].includes(project.active)&&!params().path){toggleAssist();return;}bridge().toggle();project.shared.playing=bridge().get({audit:false}).requestedPlaying;persist()});
 let previewURL=null,previewRevision=0;
 function clearExportPreview(){previewRevision++;if(previewURL)URL.revokeObjectURL(previewURL);previewURL=null;$('export-preview-image').removeAttribute('src');}
 async function refreshExportPreview(){
