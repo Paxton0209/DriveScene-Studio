@@ -10,6 +10,7 @@ test('Initial preview follows the same QA-specific scene/theme storage as the li
 });
 test('Initial and ready artboards retain identical 16:9 pixel-aligned bounds across viewport sizes',()=>{
  for(const [vw,w,h] of [[1400,924,900],[800,744,400],[500,444,300],[500,444,150]]){const style={},doc={getElementById:id=>id==='stage'?{getBoundingClientRect:()=>({width:w,height:h})}:{style}};layoutStartupPoster(doc,vw);const first={...style};layoutStartupPoster(doc,vw);assert.deepEqual(style,first);assert.equal(parseFloat(style.width)/parseFloat(style.height),16/9);assert.ok(parseFloat(style.width)<=w);assert.ok(parseFloat(style.height)<=h);}
+ const desktop={},stage={getBoundingClientRect:()=>({width:836,height:756})};layoutStartupPoster({getElementById:id=>id==='stage'?stage:{style:desktop}},1280);assert.ok(parseFloat(desktop.height)>=450);
 });
 
 test('Legacy blurred caches cannot replace the clear prepared first frame',()=>{

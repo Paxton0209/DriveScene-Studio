@@ -14,19 +14,25 @@ export function waitForEngine({host,frame,ready,timeout=30000}){
 
 // A background document cannot prove that its renderer is moving. Wait for
 // visible presentation and two distinct advancing frames before the handoff.
-export function waitForStartupMotion({host,bridge}){
+export function waitForStartupMotion({host,bridge,signal}){
  let previous=bridge.get({audit:false}),frames=bridge.themeStatus().renderedFrames,advancing=0;
  return new Promise(resolve=>{
+  let settled=false;
+  const finish=ok=>{if(settled)return;settled=true;signal?.removeEventListener('abort',onAbort);resolve(ok);};
+  const onAbort=()=>finish(false);
+  if(signal?.aborted){finish(false);return;}
+  signal?.addEventListener('abort',onAbort,{once:true});
   const check=()=>{
+   if(settled)return;
    const current=bridge.get({audit:false}),rendered=bridge.themeStatus().renderedFrames;
    if(host.document.hidden){advancing=0;previous=current;frames=rendered;host.requestAnimationFrame(check);return}
    const moving=['road','elevated','ramp'].includes(current.scene)&&(current.requestedPlaying??current.playing);
-   if(!moving){resolve();return}
+   if(!moving){finish(true);return}
    if(rendered>frames){
     advancing=current.distance>previous.distance?advancing+1:0;
     previous=current;frames=rendered;
    }
-   if(advancing>=2){resolve();return}
+   if(advancing>=2){finish(true);return}
    host.requestAnimationFrame(check);
   };
   host.requestAnimationFrame(check);
