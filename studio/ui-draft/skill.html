@@ -264,7 +264,7 @@ button{transition:background-color 120ms,color 160ms,opacity 150ms,scale 110ms e
 /* Size shares the format menu and fills the existing Size row. */
 .export-size{flex:1;min-width:0}
 .export-size>.format-trigger{flex:1;width:100%}
-</style><link rel="stylesheet" href="./guizang-trial.css?v=shell-structure-v39">
+</style><link rel="stylesheet" href="./guizang-trial.css?v=shell-structure-v39"><link rel="stylesheet" href="./shell-v5.css?v=shell-v5-20261031a">
 </head><body><div id="app">
 <header class="toolbar"><span class="project-name">DriveScene Studio</span><button id="theme" class="icon-button" aria-label="Switch to dark theme" data-tip="Appearance"></button></header>
 <div class="workspace">
@@ -1388,4 +1388,4 @@ if(cachedPreviewScroll>0)window.scrollTo({top:cachedPreviewScroll,behavior:'inst
   if(auditOutput&&start-lastAudit>1000){lastAudit=start;auditOutput.textContent=JSON.stringify({version:qa.version,scene,...metrics,errors:qa.errors,...(diagnostic?{cadence:Object.fromEntries(Object.entries(cadence.buckets).map(([key,b])=>[key,{interval:summarize(b.intervals),drawMs:summarize(b.drawMs)}])),longTasks:cadence.longTasks,observerErrors:cadence.observerErrors,exportControl:{top:document.getElementById('export-section').getBoundingClientRect().top,buttonTop:document.getElementById('export').getBoundingClientRect().top,opacity:getComputedStyle(document.getElementById('export')).opacity,disabled:document.getElementById('export').disabled,inspectorInert:document.getElementById('inspector-scroll').inert},themeMotion:document.body.dataset.themeMotion,themeHeld:window.draftController?.bridge().themeStatus().held,transport:{label:document.getElementById('scene-transport').textContent,hidden:document.getElementById('scene-transport').hidden},runtime:document.getElementById('engine').contentDocument?.querySelector('script[src*=runtime]')?.src}:{})});}
  };
 })();
-</script><script type="module" src="./guizang-layout.js?v=shell-structure-v39"></script></body></html>
+</script><script type="module" src="./guizang-layout.js?v=shell-structure-v39"></script><script type="module" src="./shell-v5.js?v=shell-v5-20261031a"></script></body></html>

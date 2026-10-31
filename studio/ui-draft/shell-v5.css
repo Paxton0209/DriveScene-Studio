@@ -1,0 +1,130 @@
+/* DriveScene shell v5 · Claude · 2026-10-31
+ * Layer loaded after guizang-trial.css. Owns only the editor shell (toolbar,
+ * library, inspector, canvas frame, playback). Scene rendering is untouched.
+ * Source of truth: Desktop/DriveScene协作规范/design-guideline.md 17.8–17.12.
+ * Grid: 4px. Text roles: 12/500 group · 13/400 label · 13/500 value · 13/600 product.
+ */
+:root{
+ --c-bg:#EDEDEA;--c-panel:#FAFAF9;--c-raised:#FFFFFF;
+ --c-line:rgba(0,0,0,.07);--c-fill:rgba(0,0,0,.045);--c-fill-sel:rgba(0,0,0,.06);
+ --c-t1:#262624;--c-t2:#6E6E6A;--c-t3:#9A9A95;
+ --r-panel:10px;--r-ctl:6px;--r-in:4px;
+ --sh-panel:0 0 0 1px var(--c-line),0 1px 2px rgba(0,0,0,.04);
+ --sh-raised:0 0 0 .5px rgba(0,0,0,.10),0 1px 2px rgba(0,0,0,.06);
+ --sh-canvas:0 0 0 1px var(--c-line),0 1px 2px rgba(0,0,0,.04),0 12px 32px rgba(0,0,0,.06);
+ --sh-menu:0 0 0 .5px rgba(0,0,0,.12),0 8px 24px rgba(0,0,0,.10),0 2px 6px rgba(0,0,0,.05);
+ --shell-library:248px;--shell-inspector:248px;--shell-label:64px;
+ /* Map the existing trial variables onto v5 so untouched rules stay coherent. */
+ --panel:var(--c-panel);--canvas:var(--c-bg);--track:var(--c-fill);--raised:var(--c-raised);
+ --text:var(--c-t1);--muted:var(--c-t2);--line:var(--c-line);
+ --control-radius:var(--r-ctl);--segment-radius:var(--r-ctl);--control-inner-radius:var(--r-in);--row-radius:var(--r-ctl);
+ --control-shadow:var(--sh-raised);--selection-ring:none;
+ --primary-fill:var(--c-t1);--primary-text:var(--c-panel);--control-active:var(--c-t1);
+}
+:root[data-theme=dark]{
+ --c-bg:#161615;--c-panel:#1E1E1D;--c-raised:#2A2A28;
+ --c-line:rgba(255,255,255,.07);--c-fill:rgba(255,255,255,.06);--c-fill-sel:rgba(255,255,255,.08);
+ --c-t1:#EDEDEA;--c-t2:#A3A39E;--c-t3:#76766F;
+ --sh-panel:0 0 0 1px var(--c-line);
+ --sh-raised:0 0 0 .5px rgba(255,255,255,.10),0 1px 2px rgba(0,0,0,.40);
+ --sh-canvas:0 0 0 1px var(--c-line),0 12px 32px rgba(0,0,0,.35);
+ --sh-menu:0 0 0 .5px rgba(255,255,255,.12),0 8px 24px rgba(0,0,0,.45);
+ --primary-fill:var(--c-t1);--primary-text:#161615;--control-active:var(--c-t1);
+}
+:root{font-feature-settings:"cv11","ss01";letter-spacing:-.006em}
+:root button,:root select,:root input,:root summary{letter-spacing:-.006em}
+:root .export-size,:root #image-size,:root .format-trigger{font-variant-numeric:tabular-nums}
+html,body,#app{background:var(--c-bg)}
+
+/* Toolbar */
+:root .toolbar{height:44px;padding-inline:24px;background:transparent;box-shadow:none;border:0}
+:root .project-name{font-size:13px;line-height:16px;font-weight:600;letter-spacing:-.01em;color:var(--c-t1)}
+
+/* Workspace: two docked rounded panels around the stage */
+:root .workspace{grid-template-columns:var(--shell-library) minmax(0,1fr) var(--shell-inspector);gap:8px;padding:0 8px 8px;box-sizing:border-box;min-height:0}
+@media(min-width:960px) and (max-width:1179px){:root{--shell-library:208px}}
+:root #library,:root #inspector{background:var(--c-panel);border:0;border-radius:var(--r-panel);box-shadow:var(--sh-panel);overflow:hidden;display:flex;flex-direction:column;min-height:0}
+:root #stage{background:transparent;border:0}
+:root #artboard{box-shadow:none;border-radius:var(--r-panel)}
+:root #artboard .artboard-clip{border-radius:var(--r-panel);overflow:hidden;box-shadow:var(--sh-canvas)}
+
+/* Shared group title: one height, one gap to its first row */
+:root #library .nav-title,:root #inspector h2{display:block;height:16px;margin:0 0 8px;padding:0;font-size:12px;line-height:16px;font-weight:500;letter-spacing:0;color:var(--c-t3)}
+
+/* Library: top 16 · text column 16 · scene names 28 · row boxes inset 8 */
+:root #library{padding:16px 0 12px}
+:root #library #scene-nav{display:flex;flex-direction:column;gap:4px;padding:0 8px;margin:0;overflow-y:auto;flex:1 1 auto;min-height:0}
+:root #library .nav-title{padding:0 8px;margin-bottom:4px}
+:root #library .nav-title:not(:first-of-type){margin-top:20px}
+:root #library .scene-row{height:32px;min-height:32px;margin:0;padding:0 8px 0 20px;gap:0;border-radius:var(--r-ctl);color:var(--c-t2);font-size:13px;line-height:16px}
+:root #library .scene-row>svg{display:none}
+:root #library .scene-row[aria-current=page]{color:var(--c-t1)}
+:root #library .scene-indicator,:root #library .scene-indicator.is-moving{border-radius:var(--r-ctl);background:var(--c-fill-sel);box-shadow:none}
+
+/* Vehicle: strip kept as the state source; the card is the only visible entry */
+:root #vehicle-panel{flex:none;margin:0;padding:12px 8px 0;position:relative}
+:root #vehicle-panel>:not(.shell-vehicle-card):not(.shell-vehicle-menu),:root #vehicle-panel #vehicle-strip,:root #vehicle-panel .library-heading,:root #vehicle-panel #vehicle-name{display:none}
+.shell-vehicle-card{display:flex;align-items:center;gap:8px;width:100%;height:48px;padding:0 8px;border:0;border-radius:var(--r-ctl);background:var(--c-raised);box-shadow:var(--sh-raised);color:var(--c-t1);font:inherit;text-align:left;cursor:pointer;box-sizing:border-box}
+.shell-vehicle-card .thumb{display:grid;place-items:center;flex:none;width:48px;height:32px;border-radius:var(--r-in);background:var(--c-fill);overflow:hidden}
+.shell-vehicle-card .thumb img{width:44px;height:28px;object-fit:contain}
+.shell-vehicle-card .text{display:flex;flex-direction:column;flex:1;min-width:0}
+.shell-vehicle-card .caption{font-size:12px;line-height:16px;font-weight:500;letter-spacing:0;color:var(--c-t3)}
+.shell-vehicle-card .name{font-size:13px;line-height:16px;font-weight:500;color:var(--c-t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.shell-vehicle-card>svg{flex:none;width:16px;height:16px;color:var(--c-t3)}
+.shell-vehicle-card:disabled{cursor:default;opacity:.5}
+.shell-vehicle-menu{position:fixed;z-index:60;box-sizing:border-box;padding:4px;border-radius:var(--r-panel);background:var(--c-raised);box-shadow:var(--sh-menu);transform-origin:bottom center;animation:shell-menu-in .14s cubic-bezier(.2,0,0,1)}
+.shell-vehicle-menu [role=menuitemradio]{display:flex;align-items:center;gap:8px;width:100%;height:40px;padding:0 4px;border:0;border-radius:var(--r-ctl);background:transparent;color:var(--c-t1);font:inherit;font-size:13px;line-height:16px;text-align:left;cursor:pointer}
+.shell-vehicle-menu [role=menuitemradio]+[role=menuitemradio]{margin-top:4px}
+.shell-vehicle-menu [role=menuitemradio] img{flex:none;width:48px;height:32px;object-fit:contain}
+.shell-vehicle-menu [role=menuitemradio] span{flex:1}
+.shell-vehicle-menu [aria-checked=true] span{font-weight:500}
+.shell-vehicle-menu .check{flex:none;width:16px;height:16px;margin-right:4px}
+@keyframes shell-menu-in{from{opacity:0;transform:scale(.98) translateY(2px)}to{opacity:1;transform:none}}
+@media(hover:hover) and (pointer:fine){
+ .shell-vehicle-card:hover:not(:disabled),.shell-vehicle-menu [role=menuitemradio]:hover{opacity:.7}
+}
+.shell-vehicle-card:focus-visible,.shell-vehicle-menu [role=menuitemradio]:focus-visible{outline:2px solid var(--c-t1);outline-offset:2px}
+
+/* Inspector: top 16 · text column 16 · group gap 24 · rows 32 / gap 4 · label 64 · control fills */
+:root #inspector{padding:16px 0 12px}
+:root #inspector-scroll{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;padding:0 0 16px;overflow-y:auto}
+:root #inspector-scroll>section,:root #inspector-scroll>#scene-settings,:root #inspector-scroll>#shared-settings{padding:0 16px;border:0;box-shadow:none}
+:root #inspector-scroll>section{margin:0}
+:root #inspector-scroll>#shared-settings:not([hidden]),:root #inspector-scroll>#shared-settings~section:not([hidden]){margin-top:24px}
+:root #inspector-scroll>section::before{display:none}
+:root #inspector .properties,:root #layers{display:flex;flex-direction:column;gap:4px;margin:0}
+:root #inspector .property,:root #shared-weather{display:grid;grid-template-columns:var(--shell-label) minmax(0,1fr);align-items:center;height:32px;margin:0;gap:0}
+:root #inspector .property[hidden],:root #inspector [hidden]{display:none}
+:root #scene-properties .property:has([data-param=weather]){display:none}
+:root #inspector .property-label,:root #inspector .shared-label{font-size:13px;line-height:16px;color:var(--c-t2)}
+:root #inspector .segment,:root #inspector .shared-weather-options,:root #inspector .format-trigger,:root #inspector .export-size{width:100%;height:28px;box-sizing:border-box}
+:root #inspector .segment,:root #inspector .shared-weather-options{padding:2px;border-radius:var(--r-ctl);background:var(--c-fill)}
+/* The selection script positions the thumb with translate3d(x, 2px). CSS must not offset it again. */
+:root #inspector .segment-indicator{top:0;left:0;height:24px;border-radius:var(--r-in);background:var(--c-raised);box-shadow:var(--sh-raised)}
+:root #inspector .segment button,:root #inspector .shared-weather-options button{height:24px;font-size:13px;line-height:16px;color:var(--c-t2)}
+:root #inspector .segment button[aria-checked=true],:root #inspector .shared-weather-options button[aria-checked=true]{color:var(--c-t1);font-weight:500}
+:root #inspector .format-trigger{padding:0 8px;border:0;border-radius:var(--r-ctl);background:var(--c-fill);color:var(--c-t1);font-size:13px}
+:root #layers .layer-row{height:32px;margin:0;padding:0;color:var(--c-t2);font-size:13px;line-height:16px}
+:root #layers .layer-row span{color:var(--c-t2)}
+
+/* Export: pinned below the scroll area, divider inset 16, bottom 12 */
+:root #inspector>#export-section{flex:none;position:relative;margin:0;padding:16px 16px 0}
+:root #inspector>#export-section::before{content:'';position:absolute;top:0;left:16px;right:16px;height:1px;background:var(--c-line)}
+:root #export-preview{margin:4px 0 8px}
+:root #export-preview summary{display:flex;align-items:center;gap:4px;height:32px;font-size:13px;line-height:16px;color:var(--c-t2)}
+:root #export{width:100%;height:32px;margin:0;border-radius:var(--r-ctl);font-size:13px;font-weight:500}
+
+/* Menus */
+:root .format-options{padding:4px;border-radius:var(--r-panel);box-shadow:var(--sh-menu);background:var(--c-raised)}
+:root .format-options button{height:32px;border-radius:var(--r-ctl);font-size:13px}
+
+/* Playback: 12 below the canvas, centred on it */
+:root #canvas-playback #scene-transport{height:32px;padding:0 12px;border:0;border-radius:var(--r-ctl);background:var(--c-raised);box-shadow:var(--sh-raised);color:var(--c-t1);font-size:13px;font-weight:500}
+:root #canvas-playback #indicator-mute{height:32px;width:32px;border:0;border-radius:var(--r-ctl);background:var(--c-raised);box-shadow:var(--sh-raised)}
+
+/* Below 960 the existing stacked layout stays; only the surfaces follow v5. */
+@media(max-width:959px){
+ :root .workspace{grid-template-columns:208px minmax(0,1fr)}
+ :root #library .scene-row{padding-left:20px}
+}
+@media(prefers-reduced-motion:reduce){.shell-vehicle-menu{animation:none}}
