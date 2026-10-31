@@ -42,6 +42,12 @@ test('Driving handoff waits for a changed rendered frame, without restarting or 
  for(const state of [{scene:'road',playing:false},{scene:'parking',playing:false},{scene:'junction',playing:true}])await waitForStartupMotion({host:{document:{hidden:false},requestAnimationFrame:fn=>fn()},bridge:{get:()=>state,themeStatus:()=>({renderedFrames:0})}});
 });
 
+test('An aborted motion wait resolves without waiting for another frame',async()=>{
+ const {waitForStartupMotion}=await import('../engine-ready.js');
+ const ok=await waitForStartupMotion({host:{document:{hidden:false},requestAnimationFrame(){throw Error('should not wait')}},bridge:{get:()=>({scene:'road',playing:true,distance:0}),themeStatus:()=>({renderedFrames:0})},signal:AbortSignal.abort()});
+ assert.equal(ok,false);
+});
+
  test('Background preparation cannot complete a visible moving-scene handoff',async()=>{
  let distance=0,renderedFrames=0,done=false;const pending=[],doc={hidden:true};
  const bridge={get:()=>({scene:'road',playing:!doc.hidden,requestedPlaying:true,distance}),themeStatus:()=>({renderedFrames})};

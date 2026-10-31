@@ -25,8 +25,8 @@ export function showStartupPoster(previews,scope=window){
  root.style.setProperty('--startup-poster',`url("${image}")`);
 }
 export function layoutStartupPoster(doc=document,viewportWidth=innerWidth){
- const bounds=doc.getElementById('stage').getBoundingClientRect(),mobile=viewportWidth<640,compact=bounds.height<200,pad=mobile?24:80,availableWidth=Math.max(16,bounds.width-pad),availableHeight=Math.max(9,bounds.height-(compact?48:mobile?104:88)),width=Math.max(16,Math.floor(Math.min(availableWidth,availableHeight*16/9)/16)*16),height=width*9/16;
- Object.assign(doc.getElementById('artboard').style,{width:width+'px',height:height+'px',left:Math.round((bounds.width-width)/2)+'px',top:Math.round((compact?18:mobile?26:40)+(availableHeight-height)/2)+'px'});
+ const bounds=doc.getElementById('stage').getBoundingClientRect(),mobile=viewportWidth<640,compact=bounds.height<200,gutter=compact?8:mobile?12:12,label=compact?22:28,availableWidth=Math.max(16,bounds.width-gutter*2),availableHeight=Math.max(9,bounds.height-label-gutter),width=Math.max(16,Math.floor(Math.min(availableWidth,availableHeight*16/9)/16)*16),height=width*9/16;
+ Object.assign(doc.getElementById('artboard').style,{width:width+'px',height:height+'px',left:Math.round((bounds.width-width)/2)+'px',top:Math.round(label+(availableHeight-height)/2)+'px'});
 }
 
 // One clear, bounded snapshot is captured on navigation, outside the startup

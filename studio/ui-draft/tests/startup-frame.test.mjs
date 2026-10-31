@@ -48,8 +48,10 @@ test('The transport identifies startup until readiness, then parking keeps its u
   for (const active of ['road', 'parking', 'outdoor']) {
     const transport = {setAttribute() {}},document={body:{dataset:{}}};
     const render=new Function('$', 'project','document', `let status={playing:false};const syncJunctionPathLock=()=>{};${block};return renderTransport;`)(() => transport, {active},document);
-    render();assert.equal(transport.hidden,false);assert.equal(transport.disabled,true);assert.equal(transport.textContent,'Loading…');
-    document.body.dataset.ready='true';render();assert.equal(transport.hidden,active!=='road');assert.notEqual(transport.textContent,'Loading…');
+    render();assert.equal(transport.hidden,false);assert.equal(transport.disabled,true);assert.equal(transport.textContent,'Preparing scene');
+    document.body.dataset.startupPhase='motion';render();assert.equal(transport.textContent,'Starting playback');assert.equal(transport.disabled,true);
+    document.body.dataset.startupPhase='stalled';render();assert.equal(transport.textContent,'Reload');assert.equal(transport.disabled,false);
+    delete document.body.dataset.startupPhase;document.body.dataset.ready='true';render();assert.equal(transport.hidden,active!=='road');assert.equal(['Preparing scene','Starting playback','Reload'].includes(transport.textContent),false);
   }
 });
 test('Initial label population skips the replacement blur; subsequent changes still animate', () => {
