@@ -1,7 +1,7 @@
 import {createTrafficReveal,applyTrafficGrowth,trafficEntryOpacity} from './traffic-reveal.js';
 import {parkingTargetFragment,parkingPathFragment,syncIndoorVehicleContacts,updateIndoorContactOpacity,syncParkingCastShadows,createParkingSightTarget} from './parking-materials.js';
 import * as THREE from 'three';
-import {vehicleFrame,framingTargets} from '../engine/framing.js';
+import {vehicleFrame} from '../engine/framing.js';
 import {fitParkingCamera,sampleParkingView,parkingFrame,captureParkingView,parkingViewPose,applyParkingView} from './parking-camera.js';
 import {updateParkingOcclusion} from './parking-occlusion.js';
 import {parkingPose,parkingTiming,parkingPlan,exitPose,localBay,worldPose,reverseReplan} from './parking-motion.js';
@@ -72,7 +72,7 @@ export function createParkingMotion(world){
  const own=mesh=>{mesh.userData.draftOwned=true;group.add(mesh);return mesh;};
  function currentCamera(){return {...captureParkingView(world.camera,world.car,world.cameraAim),anchor:world.framing?.targetCenter??.5};}
  function goalFor(kind){
-  if(!target||cameraState?.reference)return parkingViewPose(world.camera,world.car,kind);
+  if(kind==='default'||!target||cameraState?.reference)return parkingViewPose(world.camera,world.car,kind);
   const car=world.car.position,focus=car.clone().add(new THREE.Vector3(0,.85,0));
   const reverse=mode==='in'&&!done&&target?(replan?clamp(elapsed/replan.duration,0,1):clamp((elapsed-timing().forward-timing().shift)/timing().reverse,0,1)):0;
 
@@ -80,22 +80,13 @@ export function createParkingMotion(world){
   const distance=Math.max(30,Math.min(50,30+extent*.35));
   const top=kind==='bev'?1:kind==='raised'&&!paused?smooth(clamp((reverse-.14)/.72,0,1)):0;
   const elevation=THREE.MathUtils.lerp(.91,Math.PI/2-.001,top);
-  const length=kind==='default'?24.5:distance;
   const offset=new THREE.Vector3(0,Math.sin(elevation),Math.cos(elevation)).applyAxisAngle(axis,cameraHeading);
   const points=[];
-  if(target&&kind!=='default'){
+  if(target){
    for(const x of [-.5,.5])for(const z of [-.5,.5])points.push(new THREE.Vector3(target.x+x*target.width,.05,target.z+z*target.depth));
    if(!done){const end=mode==='out'?7.5:timing().total;for(let t=elapsed;t<=end;t+=(end-elapsed)/12||1){const p=pose(t);points.push(new THREE.Vector3(p.x,.25,p.z));}}
   }
-  // Junction Low looks 24 m ahead from 8.5 m high and 23 m behind.
-  // Its optical pitch is not the observation angle from camera to vehicle.
-  const goal=kind==='default'?{position:car.clone().add(new THREE.Vector3(0,8.48,23).applyAxisAngle(axis,cameraHeading)),aim:car.clone().add(new THREE.Vector3(0,-.02,-24).applyAxisAngle(axis,cameraHeading)),anchor:.5}:fitParkingCamera(world.camera,car,world.car.rotation.y,focus,offset,length,points,.5,true);
-  // The same physical envelope fixes the ground/camera across model switches.
-  if(kind==='default'){
-   const probe=world.camera.clone();probe.clearViewOffset();probe.position.copy(goal.position);probe.lookAt(goal.aim);probe.updateMatrixWorld(true);
-   const frame=parkingFrame(world.car,probe);if(Number.isFinite(frame.height))goal.anchor=framingTargets.low-frame.height/2;
-  }
-  return goal;
+  return fitParkingCamera(world.camera,car,world.car.rotation.y,focus,offset,distance,points,.5,true);
  }
  function moveCamera(offset,duration=650,manual=false){
   view=offset.y>30?'bev':offset.y>15?'raised':'default';

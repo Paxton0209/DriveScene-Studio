@@ -43,14 +43,16 @@ export function captureParkingView(camera,car,aim){
 
 export function parkingViewPose(camera,car,kind){
  const probe=camera.clone(),yaw=car.rotation.y,axis=new THREE.Vector3(0,1,0);
- const position=kind==='bev'?[0,34,.1]:kind==='raised'?[0,26,22]:[0,11,22];
- const aim=kind==='bev'?[0,0,0]:[0,0,-5];
+ // Default shares Driving Low's camera-to-car offset and forward aim. Keep
+ // this endpoint shared by initial configuration, scene return and view picks.
+ const position=kind==='bev'?[0,34,.1]:kind==='raised'?[0,26,22]:[0,8.48,23];
+ const aim=kind==='bev'?[0,0,0]:kind==='raised'?[0,0,-5]:[0,-.02,-24];
  probe.clearViewOffset();probe.up.set(0,1,0);
  probe.position.fromArray(position).applyAxisAngle(axis,yaw).add(car.position);
  const target=new THREE.Vector3(...aim).applyAxisAngle(axis,yaw).add(car.position);
  probe.lookAt(target);probe.updateMatrixWorld(true);
  // Retain the stable current vehicle envelope across model switches. Endpoint
- // composition uses v0.18's low/high bottom anchors, without changing meshes.
+ // composition keeps the low/high bottom anchors, without changing meshes.
  const frame=parkingFrame(car,probe),bottom=kind==='default'?.785:.69;
  probe.setViewOffset(1920,1080,0,(frame.bottom-bottom)*1080,1920,1080);probe.updateMatrixWorld(true);
  return {...captureParkingView(probe,car,target),anchor:bottom-frame.height/2};

@@ -65,12 +65,12 @@ for(const sceneId of ['10','17'])for(const view of ['default','raised','bev'])te
 });
 
 
-for(const scene of ['10','17'])test(`Parking ${scene} default uses v0.18 parking camera pose and survives model replacement`,()=>{
+for(const scene of ['10','17'])test(`Parking ${scene} default uses Driving Low's relative pose and survives model replacement`,()=>{
  const {world,motion,tick}=fixture();world.state.id=scene;motion.sync();motion.previewCamera('default');tick(1,false);
  const camera=motion.get().camera,offset=new THREE.Vector3(...camera.position).sub(new THREE.Vector3(...camera.aim));
- assert.ok(new THREE.Vector3(...camera.position).sub(world.car.position).distanceTo(new THREE.Vector3(0,11,22))<1e-6);
- assert.ok(new THREE.Vector3(...camera.aim).sub(world.car.position).distanceTo(new THREE.Vector3(0,0,-5))<1e-6);
- assert.ok(Math.abs(Math.atan2(offset.y,Math.hypot(offset.x,offset.z))-Math.atan2(11,27))<1e-6);
+ assert.ok(new THREE.Vector3(...camera.position).sub(world.car.position).distanceTo(new THREE.Vector3(0,8.48,23))<1e-6);
+ assert.ok(new THREE.Vector3(...camera.aim).sub(world.car.position).distanceTo(new THREE.Vector3(0,-.02,-24))<1e-6);
+ assert.ok(Math.abs(Math.atan2(offset.y,Math.hypot(offset.x,offset.z))-Math.atan2(8.5,47))<1e-6);
  const before=world.camera.position.clone(),aim=world.cameraAim.clone();
  world.car.add(new THREE.Mesh(new THREE.BoxGeometry(2.1,1.9,5.1)));motion.sync();tick(.3,false);
  assert.ok(world.camera.position.distanceTo(before)<1e-9);assert.ok(world.cameraAim.distanceTo(aim)<1e-9);

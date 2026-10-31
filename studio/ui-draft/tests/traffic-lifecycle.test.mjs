@@ -27,13 +27,52 @@ const source=contents
  }
  const readyTrafficModel=()=>Promise.resolve();`);
 const runtime=await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
-function fixture(id='02',weights={}){
+function fixture(id='02',weights={},random=()=>.5,laneCount=6){
  let time=1000;
  const car=new THREE.Group();car.position.set(1.85,.02,14);
- const world={scene:new THREE.Scene(),root:new THREE.Group(),car,renderer:{shadowMap:{needsUpdate:false}},state:{id,laneCount:6,mode:'light'},draftWeather:{weights},renderFrame(){}};
- const traffic=runtime.createTrafficSystem(world,{now:()=>time,random:()=>.5});
+ const world={scene:new THREE.Scene(),root:new THREE.Group(),car,renderer:{shadowMap:{needsUpdate:false}},state:{id,laneCount,mode:'light'},draftWeather:{weights},renderFrame(){}};
+ const traffic=runtime.createTrafficSystem(world,{now:()=>time,random});
  return {world,traffic,tick(){time+=100;traffic.update(true,16.8)}};
 }
+
+function seeded(seed){return ()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/4294967296)}
+function poses(traffic){return traffic.draftCapture().slots.filter(s=>s.route&&s.target).map(s=>({x:s.car.position.x,z:s.car.position.z,direction:s.route.direction,egoLane:s.route.egoLane,axis:s.route.axis}));}
+
+test('Road entries vary on enable and scene return, retain lanes and 32m safety gaps, and remain stable while paused',async()=>{
+ for(const id of ['02','03','06','07'])for(const lanes of [2,4,6]){
+  const {world,traffic}=fixture(id,{},seeded(110),lanes);await traffic.ready;traffic.update(false);
+  let previous=poses(traffic);
+  for(let i=0;i<30;i++){
+   if(i%2){world.state.id=id==='02'?'06':'02';world.root=new THREE.Group();traffic.update(false);world.state.id=id;world.root=new THREE.Group();traffic.update(false)}
+   else{traffic.setEnabled(false);traffic.setEnabled(true);traffic.update(false)}
+   const current=poses(traffic);assert.notDeepEqual(current,previous,'entry advances the random stream');
+   for(const slot of current){
+    assert.equal(slot.x,previous[current.indexOf(slot)].x,'random placement never crosses a lane');
+    if(slot.egoLane)assert.ok(world.car.position.z-slot.z>=32);
+    for(const other of current)if(other!==slot&&other.x===slot.x&&other.direction===slot.direction)assert.ok(Math.abs(other.z-slot.z)>=32-1e-9);
+   }
+   world.state.mode=i%2?'dark':'light';world.state.cameraView=i%2?'high':'low';traffic.update(false);
+   assert.deepEqual(poses(traffic),current,'theme/camera/paused frames do not reroll traffic');previous=current;
+  }
+ }
+});
+
+test('Junction entries vary upstream of the same stop lines and cross-street lanes',async()=>{
+ for(const id of ['05','08']){
+  const {traffic}=fixture(id,{},seeded(37));await traffic.ready;traffic.update(false);let previous=poses(traffic);
+  const routes=traffic.draftCapture().slots.filter(s=>s.route).map(s=>s.route);
+  for(let i=0;i<15;i++){
+   traffic.setEnabled(false);traffic.setEnabled(true);traffic.update(false);const current=poses(traffic);
+   assert.notDeepEqual(current,previous);
+   current.forEach((p,n)=>{const route=routes[n],axis=route.axis==='x'?'x':'z',offset=(route[axis]-p[axis])*route.direction;assert.ok(offset>=0&&offset<=24);assert.equal(p[axis==='x'?'z':'x'],route[axis==='x'?'z':'x']);});previous=current;
+  }
+ }
+});
+
+test('An explicit random seed reproduces the same entry sequence',async()=>{
+ const a=fixture('02',{},seeded(29)),b=fixture('02',{},seeded(29));await Promise.all([a.traffic.ready,b.traffic.ready]);
+ for(let i=0;i<10;i++){for(const {traffic}of [a,b]){traffic.update(false);traffic.setEnabled(false);traffic.setEnabled(true);traffic.update(false)}assert.deepEqual(poses(a.traffic),poses(b.traffic));}
+});
 
 test('First model load releases each owned placeholder material once and retains shared geometry',async()=>{
  const start=runtime.records.length,{traffic}=fixture();

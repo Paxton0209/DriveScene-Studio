@@ -372,7 +372,7 @@ export function isolatedRuntimePlugin(){return {name:'isolated-ui-draft',setup(b
   source=replace(source,"const id=state.id;if(!", "const id=state.id;const junction=junctionTrafficPlan(id);if(junction)return junction;if(!");
   // Keep desiredSpeed as the clear-weather baseline. A newly entered car must
   // already match the current weather, including after it recycles offscreen.
-  source=replace(source,'slot.desiredSpeed=slot.speed;','slot.desiredSpeed=slot.speed;const weather=world.draftWeather?.weights;if(weather)slot.speed*=1-.12*(weather.overcast||0)-.22*(weather.rain||0)-.38*(weather.snow||0);if(isJunction(world.state?.id)){slot.cooldown=0;slot.car.position.set(route.x,.02,route.z);return;}');
+  source=replace(source,'slot.desiredSpeed=slot.speed;','slot.desiredSpeed=slot.speed;const weather=world.draftWeather?.weights;if(weather)slot.speed*=1-.12*(weather.overcast||0)-.22*(weather.rain||0)-.38*(weather.snow||0);if(isJunction(world.state?.id)){slot.cooldown=0;slot.car.position.set(route.x,.02,route.z);const offset=random()*24;if(route.axis===\'x\')slot.car.position.x-=route.direction*offset;else slot.car.position.z-=route.direction*offset;return;}');
   source=replace(source,"if(route.axis==='x'){car.position.x+=slot.speed", "if(isJunction(state.id)){advanceJunctionTraffic(slot,dt,world);continue;}if(route.axis==='x'){car.position.x+=slot.speed");
   source=replace(source,'const egoLane=active.filter','const egoLane=(isJunction(state.id)?[]:active).filter');
   source=replace(source,"setTrafficAppearance(car,state.mode==='dark',slot.alpha)","setTrafficAppearance(car,state.mode==='dark',slot.alpha,world.draftThemeTone?.value??(state.mode==='dark'?1:0))");
@@ -387,6 +387,12 @@ export function isolatedRuntimePlugin(){return {name:'isolated-ui-draft',setup(b
  }
  if(name==='traffic-vehicle.js')source=replace(source,'return {group,ready,update,',"return {draftCapture:()=>({last,elapsed,slots:slots.map(slot=>({...slot}))}),draftRestore(snapshot){last=snapshot.last;elapsed=snapshot.elapsed;slots.forEach((slot,index)=>Object.assign(slot,snapshot.slots[index]));},group,ready,update,");
  if(name==='world.js'){
+  source="import {parkingViewPose,applyParkingView} from '../ui-draft/parking-camera.js';\n"+source;
+  source=replace(source,' configureCamera(id,options){',` configureCamera(id,options){
+  if(['10','17'].includes(id)){
+   const pose=parkingViewPose(this.camera,this.car,'default');applyParkingView(this.camera,this.car,pose);this.cameraAim=pose.aim.clone();
+   const frame=vehicleFrame(this.car,this.camera);this.framing={group:'low',targetCenter:pose.anchor,targetBottom:frame.bottom,vehicleFrame:frame};return;
+  }`);
   // Ten exposed geometry variants must survive the opening preparation.
   source=replace(source,'if(this.sceneCache.size>8)','if(this.sceneCache.size>12)');
   // Retain hidden variants with their cached scene. Releasing warm proxies at

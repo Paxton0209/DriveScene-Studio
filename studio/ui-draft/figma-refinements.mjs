@@ -102,7 +102,9 @@ export function refineFigma(name,source){
 
  }
  if(name==='traffic-vehicle.js'){
-  source=change(source,'if(recycled&&modelsReady){',`if(!recycled){slot.cooldown=0;slot.car.position.x=route.x||0;slot.car.position.z=route.z;}
+  // Sample the longitudinal pose on entry, keeping the route's lane and heading.
+  // The traffic update resolves same-lane spacing before rendering this pose.
+  source=change(source,'if(recycled&&modelsReady){',`if(!recycled){slot.cooldown=0;slot.car.position.x=route.x||0;slot.car.position.z=route.z+(random()-.5)*80;if(route.egoLane)slot.car.position.z=Math.min(slot.car.position.z,world.car.position.z-32);}
   if(recycled&&modelsReady){`);
  }
  if(name==='ground-reflection.js'){
