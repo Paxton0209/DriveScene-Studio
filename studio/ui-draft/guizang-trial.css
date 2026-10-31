@@ -68,6 +68,7 @@ button,select,input{font:inherit;letter-spacing:normal}
 #inspector-scroll>#shared-settings{padding-top:16px}
 #inspector-scroll>section+section{margin-top:0;border:0;box-shadow:none}
 #inspector-scroll>section+section:not(#shared-settings)::before{content:'';position:absolute;top:0;left:16px;right:16px;height:1px;background:var(--line)}
+#inspector-scroll>#shared-settings[hidden]+#scene-settings::before{display:none}
 #inspector-scroll>.vehicle-slot{display:none}
 #inspector h2{height:20px;margin:0 0 12px;padding:0;color:var(--text)}
 .properties{padding:0;margin:0;gap:12px}

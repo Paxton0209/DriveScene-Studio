@@ -73,6 +73,8 @@ const sync=()=>{
  }
  const disabled=byId('theme').disabled||!selected||selected.disabled;
  const source=byId('scene-properties').querySelector('[data-param=weather]');
+ // Indoors has no weather controls. Keep the shared outdoor choice intact.
+ environment.hidden=!source;
  const current=source?.querySelector('[aria-checked=true]')?.dataset.value||window.draftController?.project.shared.weather||'default';
  for(const option of weatherOptions.querySelectorAll('button')){
   const checked=option.dataset.weather===current,blocked=disabled||!source;
