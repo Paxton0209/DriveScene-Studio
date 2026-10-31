@@ -156,10 +156,11 @@ async function setTheme(theme){
   const root=document.documentElement;
   root.style.setProperty('--theme-reveal-x',`${x}px`);root.style.setProperty('--theme-reveal-y',`${y}px`);root.style.setProperty('--theme-reveal-radius',`${radius}px`);
   root.classList.add('theme-changing');frame.contentDocument?.documentElement.classList.add('theme-changing');
-  const started=performance.now(),audit={target,started,method:'soft-radial-live-scene',duration:400,feather:160,blur:0};
-  // Keep the scene live in its own transition layer while the controls reveal.
+  const started=performance.now(),audit={target,started,method:'soft-radial-unified',duration:400,feather:160,blur:0};
+  // Commit both endpoints behind one mask; a second scene fade loses the
+  // reveal's spatial timing as it crosses the canvas.
   try{
-   const transition=document.startViewTransition(()=>commit(target,true));themeTransition=transition;
+   const transition=document.startViewTransition(()=>commit(target));themeTransition=transition;
    await transition.ready;audit.animationStarted=performance.now();await transition.finished;
   }catch(error){audit.error=error.message;if(root.dataset.theme!==target)await commit(target,false)}
   finally{if(themeTransition)await themeTransition.finished.catch(()=>{});root.classList.remove('theme-changing');frame.contentDocument?.documentElement.classList.remove('theme-changing');themeTransition=null;audit.finished=performance.now();document.body.dataset.themeMotion=JSON.stringify(audit)}

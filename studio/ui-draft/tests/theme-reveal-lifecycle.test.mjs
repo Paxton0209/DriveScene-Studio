@@ -28,13 +28,13 @@ test('Theme reveal keeps live scene running while preserving playing and paused 
   assert.equal(h.document.documentElement.dataset.theme,'dark');assert.equal(h.held,false);assert.equal(h.playing,playing);assert.equal(h.controller.busy,true);
   assert.ok(parseFloat(h.styles['--theme-reveal-radius'])>Math.hypot(1234,978)+179);
   h.transitions[0].finish();await done;assert.equal(h.held,false);assert.equal(h.playing,playing);assert.equal(h.controller.busy,false);assert.equal(h.classes.size,0);
-  assert.deepEqual(h.events,[['dark',true]]);
+  assert.deepEqual(h.events,[['dark',false]]);
  }
 });
 test('Rapid theme requests serialize complete snapshots and resolve to latest intent',async()=>{
  const h=harness(),done=h.controller.setTheme('dark');await flush();await h.controller.setTheme('light');assert.equal(h.transitions.length,1);
  h.transitions[0].finish();await flush();assert.equal(h.transitions.length,2);assert.equal(h.document.documentElement.dataset.theme,'light');assert.equal(h.held,false);
- h.transitions[1].finish();await done;assert.equal(h.held,false);assert.deepEqual(h.events,[['dark',true],['light',true]]);
+ h.transitions[1].finish();await done;assert.equal(h.held,false);assert.deepEqual(h.events,[['dark',false],['light',false]]);
 });
 test('Unavailable snapshots and reduced motion commit without a held animation',async()=>{
  for(const options of [{reduce:true},{unavailable:true}]){

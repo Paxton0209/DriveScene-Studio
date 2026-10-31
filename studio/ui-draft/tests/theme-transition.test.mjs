@@ -11,14 +11,25 @@ test('Theme commits while view transitions have suspended iframe animation callb
  await commit('dark');await commit('light');assert.equal(renders,2);
 });
 
-test('Scene stays live outside the controls snapshot during the circular theme reveal',async()=>{
+test('Canvas and controls share one circular theme reveal with no second scene fade',async()=>{
  const source=await readFile(new URL('../draft.js',import.meta.url),'utf8');
  const theme=source.slice(source.indexOf('async function setTheme('),source.indexOf("$('theme').addEventListener"));
- assert.match(theme,/document.startViewTransition\(\(\)=>commit\(target,true\)\)/);
+ assert.match(theme,/document.startViewTransition\(\(\)=>commit\(target\)\)/);
  const css=await readFile(new URL('../draft.css',import.meta.url),'utf8');
- assert.match(css,/#engine\{view-transition-name:live-scene\}/);
- assert.match(css,/::view-transition-old\(live-scene\)\{display:none\}/);
+ assert.doesNotMatch(css,/view-transition-(?:name:live-scene|old\(live-scene\)|new\(live-scene\)|group\(live-scene\))/);
+ assert.doesNotMatch(theme,/commit\(target,true\)/);
  assert.doesNotMatch(theme,/beginTheme|endTheme/);
+});
+
+test('Both shipped pages keep the canvas in the root mask and commit its endpoint once',async()=>{
+ for(const page of ['index.html','skill.html']){
+  const html=await readFile(new URL('../'+page,import.meta.url),'utf8');
+  assert.doesNotMatch(html,/#engine\{view-transition-name:live-scene\}/,page);
+  const callback=html.match(/document\.startViewTransition\(\(\)=>(\w+)\((\w+)([^)]*)\)\)/);
+  assert.ok(callback,page+' includes the actual theme transition callback');
+  assert.equal(callback[3],'',page+' has no independent animated scene commit');
+  assert.match(html,/soft-radial-unified/,page);
+ }
 });
 
 test('Theme changes retain the sampled Junction pose before the first visible frame',async()=>{
