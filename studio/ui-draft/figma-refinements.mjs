@@ -55,10 +55,16 @@ export function refineFigma(name,source){
     // axle centres and tyre geometry, avoiding a second noisy wheel surface.
     geometry.dispose();for(const side of [-1,1])for(const z of [-1.498,1.405]){const disc=new THREE.Mesh(new THREE.CylinderGeometry(.285,.285,.025,48),material);disc.rotation.z=Math.PI/2;disc.position.set(side*.947,.365,z);disc.name='Flat wheel disc';template.add(disc);}
    }else{const mesh=new THREE.Mesh(geometry,material);mesh.name=part.name;template.add(mesh);}`);
-  source=change(source,'a*.55*visibility','a*.84*visibility');
-  source=change(source,'exp(-dot(p*vec2(1.5,1.05),p*vec2(1.5,1.05))*2.8)*(1.-smoothstep(.65,1.,length(p)))','(1.-smoothstep(.25,1.,pow(pow(abs(p.x),4.)+pow(abs(p.y),4.),.25)))*(.50+.50*exp(-dot(p,p)*2.8))');
+  // The broad chassis falloff and compact tyre contacts have different shapes.
+  // Reuse one wheel material across its four patches, keeping all five meshes.
+  source=change(source,'new THREE.PlaneGeometry(3.05,5.8)','new THREE.PlaneGeometry(2.7,5.25)');
+  source=change(source,'uniforms:{visibility:','uniforms:{body:{value:1},visibility:');
+  source=change(source,'uniform float visibility;','uniform float body;uniform float visibility;');
+  source=change(source,'a*.55*visibility','a*mix(.88,.55,body)*visibility');
+  source=change(source,'exp(-dot(p*vec2(1.5,1.05),p*vec2(1.5,1.05))*2.8)*(1.-smoothstep(.65,1.,length(p)))','mix(exp(-dot(p,p)*3.8)*(1.-smoothstep(.65,1.,length(p))),(1.-smoothstep(.28,1.,pow(pow(abs(p.x),4.)+pow(abs(p.y),4.),.25)))*(.70+.30*exp(-dot(p,p)*2.)),body)');
   source=change(source,'car.add(shadow);setTrafficAppearance(car);return car;',`car.add(shadow);
-  for(const x of [-.88,.88])for(const z of [-1.498,1.405]){const contact=shadow.clone();contact.material=shadow.material;contact.scale.set(.18,.105,1);contact.position.set(x,.014,z);contact.userData.trafficShadow=true;car.add(contact);}
+  const wheelShadow=shadow.material.clone();wheelShadow.uniforms.body.value=0;wheelShadow.uniforms.roadShadowStrength=shadow.material.uniforms.roadShadowStrength;wheelShadow.uniforms.roadShadowSpread=shadow.material.uniforms.roadShadowSpread;
+  for(const x of [-.7916,.7916])for(const z of [-1.498,1.405]){const contact=shadow.clone();contact.material=wheelShadow;contact.scale.set(.44/2.7,.60/5.25,1);contact.position.set(x,.014,z);contact.userData.trafficShadow=true;car.add(contact);}
   setTrafficAppearance(car);return car;`);
   // Traffic shares the outdoor atmosphere instead of turning white at 55-210m.
   source=change(source,"const mesh=new THREE.Mesh(geometry,material);mesh.name=part.name;template.add(mesh);",`const finishCompile=material.onBeforeCompile;
@@ -104,7 +110,7 @@ export function refineFigma(name,source){
  if(name==='traffic-vehicle.js'){
   // Sample the longitudinal pose on entry, keeping the route's lane and heading.
   // The traffic update resolves same-lane spacing before rendering this pose.
-  source=change(source,'if(recycled&&modelsReady){',`if(!recycled){slot.cooldown=0;slot.car.position.x=route.x||0;slot.car.position.z=route.z+(random()-.5)*80;if(route.egoLane)slot.car.position.z=Math.min(slot.car.position.z,world.car.position.z-32);}
+  source=change(source,'if(recycled&&modelsReady){',`if(!recycled){slot.cooldown=0;slot.car.position.x=route.x||0;const near=world.car.position.z-(route.egoLane?32:28),far=Math.min(route.z-40,near-40),end=Math.min(route.z+40,near);slot.car.position.z=far+random()*(end-far);}
   if(recycled&&modelsReady){`);
  }
  if(name==='ground-reflection.js'){

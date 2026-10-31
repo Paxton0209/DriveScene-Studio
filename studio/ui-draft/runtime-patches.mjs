@@ -364,15 +364,15 @@ export function isolatedRuntimePlugin(){return {name:'isolated-ui-draft',setup(b
   source=replace(source,'if(part.indices)geometry.setIndex(part.indices);',"if(part.indices)geometry.setIndex(Array.isArray(part.indices)?part.indices:new THREE.BufferAttribute(part.indices,1));if(part.role==='paint'&&!data.draftBodySurface){const original=geometry;geometry=toCreasedNormals(original,Math.PI/3);const normals=geometry.attributes.normal;for(let i=0;i<normals.count;i++){const n=new THREE.Vector3().fromBufferAttribute(normals,i);if(!Number.isFinite(n.lengthSq())||n.lengthSq()<1e-8){const index=original.index?.getX(i)??i;if(original.attributes.normal)n.fromBufferAttribute(original.attributes.normal,index);if(!Number.isFinite(n.lengthSq())||n.lengthSq()<1e-8)n.set(0,1,0);n.normalize();normals.setXYZ(i,n.x,n.y,n.z);}}if(geometry!==original)original.dispose();}");
  }
  if(name==='traffic-vehicle.js'){
-  source="import {junctionTrafficPlan,isJunction,advanceJunctionTraffic} from '../ui-draft/junction-traffic.js';\n"+source;
+  source="import {junctionTrafficPlan,isJunction,advanceJunctionTraffic,stoppedApproachZ} from '../ui-draft/junction-traffic.js';\n"+source;
   // Initial pending cars own their shadow materials, but share geometry.
-  source=replace(source,'while(slot.car.children.length)slot.car.remove(slot.car.children[0]);','for(const child of [...slot.car.children]){slot.car.remove(child);child.material?.dispose();}');
+  source=replace(source,'while(slot.car.children.length)slot.car.remove(slot.car.children[0]);','for(const material of new Set(slot.car.children.map(child=>child.material)))material?.dispose();for(const child of [...slot.car.children])slot.car.remove(child);');
   source=replace(source,'slot.speed=route.speed+(random()-.5)*2.2;',`const reference=['06','07'].includes(world.state?.id)?13.9:16.8;slot.speed=isJunction(world.state?.id)?route.speed:reference*(route.direction>0?1.02:route.egoLane?.99:Math.abs(route.x)>7?1.025:1.055);slot.speed+=(random()-.5)*.5;`);
   source=replace(source,'let target=slot.desiredSpeed;',`const weights=world.draftWeather?.weights,factor=weights?1-.12*(weights.overcast||0)-.22*(weights.rain||0)-.38*(weights.snow||0):1;let target=slot.desiredSpeed*factor;`);
   source=replace(source,"const id=state.id;if(!", "const id=state.id;const junction=junctionTrafficPlan(id);if(junction)return junction;if(!");
   // Keep desiredSpeed as the clear-weather baseline. A newly entered car must
   // already match the current weather, including after it recycles offscreen.
-  source=replace(source,'slot.desiredSpeed=slot.speed;','slot.desiredSpeed=slot.speed;const weather=world.draftWeather?.weights;if(weather)slot.speed*=1-.12*(weather.overcast||0)-.22*(weather.rain||0)-.38*(weather.snow||0);if(isJunction(world.state?.id)){slot.cooldown=0;slot.car.position.set(route.x,.02,route.z);const offset=random()*24;if(route.axis===\'x\')slot.car.position.x-=route.direction*offset;else slot.car.position.z-=route.direction*offset;return;}');
+  source=replace(source,'slot.desiredSpeed=slot.speed;','slot.desiredSpeed=slot.speed;const weather=world.draftWeather?.weights;if(weather)slot.speed*=1-.12*(weather.overcast||0)-.22*(weather.rain||0)-.38*(weather.snow||0);if(isJunction(world.state?.id)){slot.cooldown=0;slot.car.position.set(route.x,.02,route.z);const offset=random()*24;if(route.axis===\'x\')slot.car.position.x-=route.direction*offset;else if(!recycled&&route.direction<0){const stop=stoppedApproachZ(route.direction,slot.car.userData.physicalLength,world.junctionDimensions?.markingEnd),end=Math.min(route.z+24,world.car.position.z-28);if(end>=stop){const start=Math.min(end,Math.max(stop,route.z-24));slot.car.position.z=start+offset/24*(end-start);}else slot.car.position.z=world.car.position.z+48+offset;}else slot.car.position.z-=route.direction*offset;return;}');
   source=replace(source,"if(route.axis==='x'){car.position.x+=slot.speed", "if(isJunction(state.id)){advanceJunctionTraffic(slot,dt,world);continue;}if(route.axis==='x'){car.position.x+=slot.speed");
   source=replace(source,'const egoLane=active.filter','const egoLane=(isJunction(state.id)?[]:active).filter');
   source=replace(source,"setTrafficAppearance(car,state.mode==='dark',slot.alpha)","setTrafficAppearance(car,state.mode==='dark',slot.alpha,world.draftThemeTone?.value??(state.mode==='dark'?1:0))");
@@ -516,13 +516,13 @@ export function isolatedRuntimePlugin(){return {name:'isolated-ui-draft',setup(b
  }
  if(['contact-shadows.js','traffic-model.js'].includes(name)){
   source=(name==='contact-shadows.js'?"import {roadShadowStrength,roadShadowSpread} from '../ui-draft/road-shadow-settings.js';\n":"import {roadTrafficShadowStrength as roadShadowStrength,roadShadowSpread} from '../ui-draft/road-shadow-settings.js';\n")+source;
-  const uniformAnchor=name==='contact-shadows.js'?'uniforms:{opacity:':'uniforms:{visibility:';
+  const uniformAnchor=name==='contact-shadows.js'?'uniforms:{opacity:':'uniforms:{body:';
   source=replace(source,uniformAnchor,uniformAnchor.replace('uniforms:{','uniforms:{roadShadowStrength,roadShadowSpread,'));
-  const spread=name==='contact-shadows.js'?'mix(vec2(1.),roadShadowSpread,body)':'roadShadowSpread';
-  source=replace(source,"vertexShader:'varying vec2 v;void main(){v=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}'","vertexShader:'uniform vec2 roadShadowSpread;"+(name==='contact-shadows.js'?'uniform float body;':'')+"varying vec2 v;void main(){v=uv;vec3 local=position;local.xy*="+spread+";gl_Position=projectionMatrix*modelViewMatrix*vec4(local,1.);}'");
+  const spread='mix(vec2(1.),roadShadowSpread,body)';
+  source=replace(source,"vertexShader:'varying vec2 v;void main(){v=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}'","vertexShader:'uniform vec2 roadShadowSpread;"+'uniform float body;'+"varying vec2 v;void main(){v=uv;vec3 local=position;local.xy*="+spread+";gl_Position=projectionMatrix*modelViewMatrix*vec4(local,1.);}'");
   source=replace(source,"fragmentShader:'varying vec2 v;","fragmentShader:'uniform float roadShadowStrength;varying vec2 v;");
   if(name==='contact-shadows.js')source=replace(source,'gl_FragColor=vec4(.008,.010,.014,a);','gl_FragColor=vec4(.008,.010,.014,1.-pow(1.-clamp(a,0.,.999),roadShadowStrength));');
-  else source=replace(source,'a*.84*visibility','(1.-pow(1.-clamp(a*.84,0.,.999),roadShadowStrength))*visibility');
+  else source=replace(source,'a*mix(.88,.55,body)*visibility','(1.-pow(1.-clamp(a*mix(.88,.55,body),0.,.999),roadShadowStrength))*visibility');
  }
 
  // srcdoc has no query string. All engine modules read the host-provided parameters.

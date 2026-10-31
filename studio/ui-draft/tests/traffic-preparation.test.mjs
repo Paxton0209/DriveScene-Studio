@@ -65,6 +65,13 @@ test('Default traffic loading skips body preparation while explicit original byt
     attributes:Object.fromEntries(Object.entries(mesh.geometry.attributes).map(([name,a])=>[name,{itemSize:a.itemSize,normalized:a.normalized,array:Array.from(a.array)}])),
     material,shader:String(mesh.material.onBeforeCompile),programKey:mesh.material.customProgramCacheKey()};
   });
+  const contactCar=module.createTrafficVehicle('prepared'),contacts=contactCar.children.filter(mesh=>mesh.userData.trafficShadow),body=contacts.find(mesh=>mesh.material.uniforms.body.value===1),wheels=contacts.filter(mesh=>mesh!==body);
+  assert.equal(contacts.length,5,'retain the existing five contact meshes');
+  assert.equal(new Set(wheels.map(mesh=>mesh.material)).size,1,'four tyres share one material');
+  assert.notEqual(body.material,wheels[0].material,'wheel and body falloffs remain independent');
+  assert.equal(body.material.uniforms.roadShadowStrength,wheels[0].material.uniforms.roadShadowStrength,'theme strength remains shared');
+  for(const wheel of wheels){assert.ok(Math.abs(Math.abs(wheel.position.x)-.7916)<1e-8);assert.ok(Math.abs(wheel.geometry.parameters.width*wheel.scale.x-.44)<1e-8);assert.ok(Math.abs(wheel.geometry.parameters.height*wheel.scale.y-.60)<1e-8);}
+  module.setTrafficAppearance(contactCar,false,.4);assert.ok(contacts.every(mesh=>mesh.material.uniforms.visibility.value===.4),'entry and lane fade reach both profiles');
   for(const dark of [false,true])for(const opacity of [1,.9]){
    const a=module.createTrafficVehicle('prepared'),b=module.createTrafficVehicle('explicit');
    module.setTrafficAppearance(a,dark,opacity);module.setTrafficAppearance(b,dark,opacity);

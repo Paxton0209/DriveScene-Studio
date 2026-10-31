@@ -48,7 +48,7 @@ test('Road entries vary on enable and scene return, retain lanes and 32m safety 
    const current=poses(traffic);assert.notDeepEqual(current,previous,'entry advances the random stream');
    for(const slot of current){
     assert.equal(slot.x,previous[current.indexOf(slot)].x,'random placement never crosses a lane');
-    if(slot.egoLane)assert.ok(world.car.position.z-slot.z>=32);
+    assert.ok(world.car.position.z-slot.z>=(slot.egoLane?32:28),'every initial lane keeps its longitudinal clearance from ego');
     for(const other of current)if(other!==slot&&other.x===slot.x&&other.direction===slot.direction)assert.ok(Math.abs(other.z-slot.z)>=32-1e-9);
    }
    world.state.mode=i%2?'dark':'light';world.state.cameraView=i%2?'high':'low';traffic.update(false);
@@ -57,15 +57,26 @@ test('Road entries vary on enable and scene return, retain lanes and 32m safety 
  }
 });
 
-test('Junction entries vary upstream of the same stop lines and cross-street lanes',async()=>{
+test('Junction entries vary inside legal approach corridors with ego clearance and unchanged cross-street lanes',async()=>{
  for(const id of ['05','08']){
-  const {traffic}=fixture(id,{},seeded(37));await traffic.ready;traffic.update(false);let previous=poses(traffic);
+  const {world,traffic}=fixture(id,{},seeded(37));await traffic.ready;traffic.update(false);let previous=poses(traffic);
   const routes=traffic.draftCapture().slots.filter(s=>s.route).map(s=>s.route);
   for(let i=0;i<15;i++){
    traffic.setEnabled(false);traffic.setEnabled(true);traffic.update(false);const current=poses(traffic);
    assert.notDeepEqual(current,previous);
-   current.forEach((p,n)=>{const route=routes[n],axis=route.axis==='x'?'x':'z',offset=(route[axis]-p[axis])*route.direction;assert.ok(offset>=0&&offset<=24);assert.equal(p[axis==='x'?'z':'x'],route[axis==='x'?'z':'x']);});previous=current;
+   current.forEach((p,n)=>{const route=routes[n],axis=route.axis==='x'?'x':'z',offset=(route[axis]-p[axis])*route.direction;if(axis==='x'||route.direction>0)assert.ok(offset>=0&&offset<=24);else{assert.ok(p.z>=-19.36-1e-9,'approach stays behind the stop line');assert.ok(world.car.position.z-p.z>=28,'approach never initially appears beside ego');}assert.equal(p[axis==='x'?'z':'x'],route[axis==='x'?'z':'x']);});previous=current;
   }
+ }
+});
+
+test('Extreme entry samples keep every driving lane away from ego and preserve approach stop lines',async()=>{
+ for(const id of ['02','03','06','07'])for(const sample of [0,.01,.25,.5,.75,.99,1]){
+  const {world,traffic}=fixture(id,{},()=>sample);await traffic.ready;traffic.update(false);
+  for(const p of poses(traffic))assert.ok(world.car.position.z-p.z>=(p.egoLane?32:28)-1e-9,`${id} sample ${sample}: ${p.z}`);
+ }
+ for(const id of ['05','08']){
+  const {world,traffic}=fixture(id,{},seeded(1));world.car.position.z=-19;await traffic.ready;traffic.update(false);
+  for(const p of poses(traffic))if(p.axis!=='x'&&p.direction<0)assert.ok(p.z>world.car.position.z+40,'late approach entry waits beyond the rear camera instead of appearing alongside ego');
  }
 });
 
