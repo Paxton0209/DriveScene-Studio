@@ -18,17 +18,17 @@ test('Indoor contact includes ambient, chassis and four wheel patches above the 
  assert.equal(new Set(wheels.map(w=>`${w.position.x}/${w.position.z}`)).size,4);
 });
 
-test('Perspective columns restore their height and mirror, with a closed local footprint overhead',()=>{
+test('Columns retain one matte local contact through perspective and overhead views',()=>{
  const root=new THREE.Group(),column=new THREE.Mesh(new THREE.BoxGeometry(.68,3.2,.68)),camera=new THREE.PerspectiveCamera();column.position.set(7.45,1.6,-1.8);column.castShadow=true;
  const world={root,camera,parkingColumns:[column],parkingBays:[{x:-5.9,z:0}]};camera.position.set(0,7,12);camera.lookAt(0,0,0);createIndoorDetails(world);
- const geometry=column.geometry,material=column.material,mirror=root.children[0],contact=root.children[1];
- assert.equal(column.castShadow,false);assert.equal(root.children.length,4);assert.equal(column.position.y,1.6);assert.equal(column.scale.y,1);
- assert.match(mirror.material.fragmentShader,/reflectionInverse/);assert.doesNotMatch(contact.material.fragmentShader,/reflectionInverse/);
+ const geometry=column.geometry,material=column.material,contact=root.children[0];
+ assert.equal(column.castShadow,false);assert.equal(root.children.length,3);assert.equal(column.position.y,1.6);assert.equal(column.scale.y,1);
+ assert.doesNotMatch(contact.material.fragmentShader,/reflection|sampler2D/);assert.equal(contact.material.uniforms.coverage.value,1);assert.equal(contact.geometry.parameters.width,1.2);assert.equal(contact.geometry.parameters.height,1.2);
  camera.position.set(0,20,.001);camera.lookAt(0,0,0);syncIndoorColumns(world);
  assert.equal(world.draftColumnOverhead.value,1);assert.equal(column.position.y,.525);assert.equal(column.scale.y,1.05/3.2);
- assert.equal(contact.material.uniforms.coverage.value,1);assert.equal(mirror.material.uniforms.overhead.value,1);
+ assert.equal(contact.material.uniforms.coverage.value,1);
  camera.position.set(0,7,12);camera.lookAt(0,0,0);syncIndoorColumns(world);
- assert.equal(column.position.y,1.6);assert.equal(column.scale.y,1);assert.equal(contact.material.uniforms.coverage.value,0);assert.equal(mirror.material.uniforms.overhead.value,0);
+ assert.equal(column.position.y,1.6);assert.equal(column.scale.y,1);assert.equal(contact.material.uniforms.coverage.value,1);
  assert.equal(column.geometry,geometry);assert.equal(column.material,material);assert.equal(contact.position.x,7.45);assert.equal(contact.position.z,-1.8);
 });
 
@@ -73,7 +73,7 @@ test('Indoor column clones keep the live theme uniform through both transition d
 });
 
 
-test('Indoor shadow strength shares a live axis across vehicle contacts without tinting column mirrors',()=>{
+test('Indoor shadow strength shares a live axis across vehicle contacts without changing column contacts',()=>{
  const strength={value:1},root=new THREE.Group(),column=new THREE.Mesh(new THREE.BoxGeometry()),world={root,parkingColumns:[column],parkingBays:[],draftParkingFinish:{shadow:strength}};
  createIndoorDetails(world);const ego=new THREE.Group(),traffic=new THREE.Group(),group=new THREE.Group();
  const cars=syncIndoorVehicleContacts(group,ego,[traffic],true);updateIndoorContactOpacity(cars,strength);

@@ -68,14 +68,14 @@ export function syncIndoorVehicleContacts(group,ego,cars,indoor,finish={},tone=1
 export function updateIndoorContactOpacity(vehicles,strength={value:1},egoStrength=strength,ego=vehicles[0]){
  for(const car of vehicles)car.userData.draftIndoorContact?.traverse(o=>{if(o.material?.uniforms.opacity){o.material.uniforms.opacity.value=THREE.MathUtils.lerp(o.userData.daylightOpacity??o.userData.baseOpacity,o.userData.baseOpacity,o.userData.contactTone??1)*(car.userData.draftOcclusionAlpha??1)*trafficContactGrowth(car.userData.draftTrafficGrowth??1);o.material.uniforms.shadowStrength=car===ego?egoStrength:strength;}});
 }
-// Preserve the tall fading supports in perspective; shorten and close them only overhead.
+// Matte concrete keeps only a small diffuse contact at each support. A planar
+// column mirror reads as an extra translucent structure during camera moves.
 export function createColumnGroundResponse(world,column){
- const material=new THREE.ShaderMaterial({transparent:true,depthWrite:false,toneMapped:false,uniforms:{reflectionMatrix:world.reflectionMatrix,reflectionInverse:world.reflectionInverse,reflectionDepth:world.reflectionDepth,reflectionTexture:world.reflectionTexture,tone:world.parkingTone,overhead:world.draftColumnOverhead},vertexShader:`uniform mat4 reflectionMatrix;varying vec4 reflected;varying vec3 ground;
- void main(){vec4 p=modelMatrix*vec4(position,1.);ground=p.xyz;reflected=reflectionMatrix*p;gl_Position=projectionMatrix*viewMatrix*p;}`,fragmentShader:`uniform sampler2D reflectionDepth;uniform sampler2D reflectionTexture;uniform mat4 reflectionInverse;uniform float tone;uniform float overhead;varying vec4 reflected;varying vec3 ground;
- void main(){vec2 uv=reflected.xy/reflected.w;float depth=texture2D(reflectionDepth,uv).x;vec4 source=reflectionInverse*vec4(uv*2.-1.,depth*2.-1.,1.);source/=source.w;float height=max(0.,source.y-ground.y);vec4 color=texture2D(reflectionTexture,uv);float fade=exp(-height/ .78);float valid=step(0.,uv.x)*step(uv.x,1.)*step(0.,uv.y)*step(uv.y,1.);gl_FragColor=vec4(color.rgb/max(color.a,.001),color.a*fade*mix(.32,.22,tone)*valid*(1.-overhead));
- #include <colorspace_fragment>
- }`});
- const mesh=new THREE.Mesh(new THREE.PlaneGeometry(3.6,5.2),material);mesh.rotation.x=-Math.PI/2;mesh.position.set(column.position.x,.030,column.position.z);mesh.renderOrder=3;mesh.name='Column soft mirrored footing';mesh.userData.draftOwned=true;return mesh;
+ const contact=createGroundAO(1.2,1.2,.18);
+ contact.position.set(column.position.x,.031,column.position.z);contact.renderOrder=3;
+ delete contact.material.uniforms.shadowStrength;
+ contact.material.fragmentShader=contact.material.fragmentShader.replace('uniform float shadowStrength;','const float shadowStrength=1.;');
+ contact.name='Column local contact';return contact;
 }
 export function syncIndoorColumns(world){
  if(!world.parkingColumns?.length)return;
@@ -105,7 +105,6 @@ export function createIndoorDetails(world){
  #include <colorspace_fragment>
  }`});
  world.root.add(createColumnGroundResponse(world,column));
- const contact=createGroundAO(1.2,1.2,.18);contact.position.set(column.position.x,.031,column.position.z);contact.renderOrder=3;contact.material.uniforms.coverage=overhead;delete contact.material.uniforms.shadowStrength;contact.material.fragmentShader=contact.material.fragmentShader.replace('uniform float shadowStrength;','const float shadowStrength=1.;');contact.name='Column local contact';world.root.add(contact);
  }
  for(const side of [-1,1])for(const z of world.parkingBays.filter(b=>b.x<0).map(b=>b.z)){const ao=createGroundAO(.44,1.95,.23,false,finish.shadow);ao.position.set(side*8.02,.031,z);world.root.add(ao);}
  syncIndoorColumns(world);
