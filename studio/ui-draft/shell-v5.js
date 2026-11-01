@@ -12,7 +12,6 @@ if(panel&&strip){
  const selected=()=>options().find(b=>b.getAttribute('aria-checked')==='true')||options()[0];
  const thumb=button=>button?.querySelector('img')?.getAttribute('src')||'';
  const chevron='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 6.5 3-3 3 3M5 9.5l3 3 3-3"/></svg>';
- const check='<svg class="check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3.5 8.5 3 3 6-7"/></svg>';
  const card=document.createElement('button');
  card.type='button';card.className='shell-vehicle-card';
  card.setAttribute('aria-haspopup','menu');card.setAttribute('aria-expanded','false');
@@ -41,7 +40,7 @@ if(panel&&strip){
    const item=document.createElement('button');item.type='button';item.setAttribute('role','menuitemradio');
    const on=source.getAttribute('aria-checked')==='true';item.setAttribute('aria-checked',String(on));item.tabIndex=-1;
    item.disabled=source.disabled;
-   item.innerHTML=`<img src="${thumb(source)}" alt=""><span>${source.getAttribute('aria-label')||''}</span>${on?check:'<span class="check"></span>'}`;
+   item.innerHTML=`<img src="${thumb(source)}" alt=""><span>${source.getAttribute('aria-label')||''}</span>`;
    item.addEventListener('click',event=>{event.stopPropagation();if(!on)source.click();close(true);});
    menu.append(item);return item;
   });

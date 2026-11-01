@@ -42,9 +42,9 @@ test('Slow loading advances from the start and extends completion without holdin
  const s=setup(),m=s.motion;assert.ok(pendingFade(8000).opacity>pendingFade(4000).opacity);
  m.currentTime=8000;s.lifecycle.reveal();assert.ok(m.options.duration>8000);assert.equal(m.paused,0);assert.equal(m.played,0);
 });
-test('Reduced motion still waits for real readiness; returning documents retain the pending fade',()=>{
+test('Reduced motion and returning documents wait for readiness without a repeated fade',()=>{
  const reduced=setup(true);assert.equal(reduced.motions.length,0);reduced.lifecycle.reveal();assert.equal(reduced.root.dataset.startup,undefined);
- const warm=setup(false,true);assert.equal(warm.motions.length,1);assert.equal(warm.motion.frames[0].opacity,.1);warm.lifecycle.reveal();assert.equal(warm.root.dataset.startup,'warm-revealing');assert.equal(warm.inspector.inert,true);warm.motion.onfinish();assert.equal(warm.inspector.inert,false);
+ const warm=setup(false,true);assert.equal(warm.motions.length,0);assert.equal(warm.root.dataset.startup,'warm');assert.equal(warm.inspector.inert,true);assert.deepEqual(warm.writes,[]);warm.lifecycle.reveal();assert.equal(warm.root.dataset.startup,undefined);assert.equal(warm.inspector.inert,false);assert.deepEqual(warm.writes,[['session-test','ready']]);
 });
 test('Failure clears pending or active animation without marking a pending session ready',()=>{
  const failed=setup();failed.lifecycle.abort();failed.lifecycle.reveal();assert.deepEqual(failed.writes,[]);assert.equal(failed.motions.length,1);assert.equal(failed.motion.cancelled,1);assert.equal(failed.inspector.inert,false);

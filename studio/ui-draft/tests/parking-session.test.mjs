@@ -94,3 +94,13 @@ for(const scene of ['10','17'])test(`Manual parking views hold v0.18 composition
  }
  motion.previewCamera('bev');tick(.1,false);motion.finishPreview();const position=world.camera.position.clone();tick(1,false);assert.ok(world.camera.position.distanceTo(position)<1e-9);
 });
+
+for(const scene of ['10','17'])for(const mode of ['light','dark'])test(`Parking ${scene}/${mode} distinguishes occupied bays and updates availability with Traffic`,()=>{
+ const {world,motion}=fixture();world.state.id=scene;world.state.mode=mode;world.root=new THREE.Group();
+ world.parkingBays=[-5.9,5.9].flatMap(x=>[10.8,7.2,3.6,0,-3.6,-7.2,-10.8,-14.4,-18].map(z=>({x,z,width:4.9,depth:2.8,tile:{material:{uniforms:{available:{value:-1}}}}})));
+ motion.sync({traffic:true});
+ const values=()=>world.parkingBays.map(b=>b.tile.material.uniforms.available.value);
+ assert.deepEqual(values(),world.parkingBays.map((_,i)=>[3,7,11,14,16].includes(i)?0:1));
+ motion.sync({traffic:false});assert.ok(values().every(v=>v===1),'all bays become available when other cars are hidden');
+ motion.sync({traffic:true});assert.equal(values().filter(v=>v===0).length,5,'restoring Traffic restores the five occupied bays');
+});

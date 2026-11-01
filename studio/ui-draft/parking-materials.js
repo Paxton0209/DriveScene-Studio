@@ -7,7 +7,7 @@ export const bayShape=`vec2 t=(v-.5)*vec2(4.9,2.8);vec2 q=abs(t)-(vec2(2.45,1.4)
 export const bayGlyph=`float line=min(segment(t,vec2(-.16,-.28),vec2(-.16,.28)),min(segment(t,vec2(-.16,.28),vec2(.13,.28)),min(segment(t,vec2(.13,.28),vec2(.19,.20)),min(segment(t,vec2(.19,.20),vec2(.19,.07)),min(segment(t,vec2(.19,.07),vec2(.12,0.)),segment(t,vec2(.12,0.),vec2(-.16,0.)))))));float glyph=1.-smoothstep(.033,.033+max(fwidth(line),.001),line);`;
 const segment='float segment(vec2 p,vec2 a,vec2 b){vec2 pa=p-a,ba=b-a;return length(pa-ba*clamp(dot(pa,ba)/dot(ba,ba),0.,1.));}';
 export const parkingBayFragment=`uniform float tone;uniform float study;uniform float indoor;uniform float brightness;uniform float available;uniform float hover;varying vec3 p;varying vec2 v;
-void main(){${bayShape}float fillAlpha=mix(mix(.16,.055,tone),mix(.38,.48,v.y),hover)*fill;vec3 ink=mix(mix(vec3(.06,.08,.11),vec3(.63,.68,.74),tone),vec3(.021,.242,.82),hover);float indoorFinish=tone*indoor*(1.-hover);fillAlpha=mix(fillAlpha,.07*fill,indoorFinish);fillAlpha*=1.+.40*available*(1.-tone)*(1.-hover);ink=mix(ink,vec3(.11,.115,.125),indoorFinish);ink*=mix(1.,brightness,indoor*(1.-hover));gl_FragColor=vec4(ink,fillAlpha);
+void main(){${bayShape}float fillAlpha=mix(mix(.16,.055,tone),mix(.38,.48,v.y),hover)*fill;vec3 ink=mix(mix(vec3(.06,.08,.11),vec3(.63,.68,.74),tone),vec3(.021,.242,.82),hover);float indoorFinish=tone*indoor*(1.-hover);fillAlpha=mix(fillAlpha,.07*fill,indoorFinish);fillAlpha*=mix(mix(.45,mix(1.4,1.1,tone),available),1.,hover);ink=mix(ink,vec3(.11,.115,.125),indoorFinish);ink*=mix(1.,brightness,indoor*(1.-hover));gl_FragColor=vec4(ink,fillAlpha);
 #include <colorspace_fragment>
 }`;
 // The bay receiver owns only its fill. Direction cues are sampled on the

@@ -59,7 +59,6 @@ const replacements=[
  ["function start(){ensure();","function start(){return false;ensure();"],
  ["function step(dt){if(!active||!target||!assistOn)","function step(dt){return false;if(!active||!target||!assistOn)"],
  ["group.visible=true;trafficVisible=traffic;assistOn=assist;","if(!ensure())return;assist=false;active=false;target=null;group.visible=true;trafficVisible=traffic;assistOn=false;"],
- ["bay!==target&&(!traffic||!occupied.includes(bay))?1:0","0"],
  ["b.userData.parkingSightTarget=!active&&!done&&mode==='in'&&(!traffic||!occupied.includes(b.userData.bay))","b.userData.parkingSightTarget=false"],
  ["prepareExit(){if(!done)","prepareExit(){return false;if(!done)"],
  ["chooseExit(direction){if(mode","chooseExit(direction){return false;if(mode"],

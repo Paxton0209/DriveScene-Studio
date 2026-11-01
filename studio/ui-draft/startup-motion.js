@@ -41,7 +41,7 @@ export function beginStartup({doc=document,clock=performance}={}){
  }
  inspector.inert=true;doc.getElementById('scene-nav').inert=true;root.dataset.startup=warm?'warm':'controls';
  if(!warm)clock.mark('draft-startup-controls');
- if(!reduce){
+ if(!reduce&&!warm){
   // Allocate the fade once, against navigation's two-second budget. Its rate
   // stays fixed after the first frame; readiness never speeds it up.
   const started=typeof clock.now==='function'?clock.now():0;
@@ -55,7 +55,7 @@ export function beginStartup({doc=document,clock=performance}={}){
   reveal(){
    if(done||revealed)return;revealed=true;
    clock.mark('draft-startup-reveal');
-   if(reduce){finish();return}
+   if(reduce||warm){finish();return}
    // Retain the compositor animation and its clock. Rebuild the remaining
    // timeline without an opacity reset, zero-speed hold or velocity jump.
    const elapsed=Number(motion.currentTime)||0,tail=readyFade(elapsed),total=elapsed+tail.duration;
