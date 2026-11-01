@@ -19,7 +19,7 @@ test('Both Ramp variants advance and freeze when suspended without another anima
   for(const key of ['shadowKey','groundReflectionKey','carReflectionKey'])assert.equal(world[key],'steady');
   drive.setPlaying(true);
   for(let frame=0;frame<30;frame++)assert.equal(drive.advance(1/30),true);
-  assert.ok(Math.abs(drive.audit().distance-13.9)<.00001);
+  assert.ok(Math.abs(drive.audit().distance-80/3.6)<.00001);
   world.suspended=true;
   const paused=drive.audit().distance;
   assert.equal(drive.advance(1/30),false);
@@ -44,7 +44,7 @@ test('Ego follows a stopped leader without restarting its cruise speed at zero',
  const world={draftManaged:true,state:{id:'02',laneCount:4},root:{uuid:'following',children:[]},car:{position:{x:1.85,z:14}},trafficSystem:{audit:()=>({visible:true,positions:[[1.85,0,10]],lanes:[{direction:-1,speed:0}]})}};
  const drive=createContinuousDriving(world,{hidden:()=>false});
  drive.setPlaying(true);
- let prior=16.8;
+ let prior=80/3.6;
  for(let i=0;i<1800;i++){
   drive.advance(1/60);
   assert.ok(world.draftCruiseSpeed<=prior+1e-9);
@@ -67,8 +67,11 @@ test('Only explicit Assist intent can request sound; restoration is silent by de
  assert.match(source,/versionFeatures.set\(\{\[key\]:value\},\{animate\}\)/);
  assert.match(source,/function rememberPreview\(immediate=false\)\{if\(query.get\('review'\)==='ui-draft'\)return/);
  const draft=await readFile(new URL('../draft.js',import.meta.url),'utf8');
- assert.match(draft,/applyParam\('path',true,true,\{sound:true\}\)/);
- assert.equal((draft.match(/sound:true/g)||[]).length,1);
+ const bridge=await readFile(new URL('../engine-bridge.js',import.meta.url),'utf8');
+ assert.match(draft,/bridge\(\)\.parkingPlay\(\)/);
+  assert.match(bridge,/await bridge\.param\('path',true,\{sound:true\}\)/);
+ assert.equal((draft.match(/sound:true/g)||[]).length,0);
+ assert.equal((bridge.match(/sound:true/g)||[]).length,1);
  assert.match(draft,/ready=true;await bridge\(\).param\('traffic',state.traffic\)/);
 });
 
@@ -87,4 +90,21 @@ test('Draft junction traffic follows playback without a camera motion owner',asy
  assert.equal(moving(world,{audit:()=>({playing:true})}),true,'Continuous driving is unchanged');
  world.draftManaged=false;world.cameraMotion={};assert.equal(moving(world,drive),true);
  world.cameraMotion=null;assert.equal(moving(world,drive),false);
+});
+
+
+test('Every continuous driving scene cruises at 80/60/60 km/h and weather transitions stay smooth',async()=>{
+ let load;isolatedRuntimePlugin().setup({onLoad(_options,handler){load=handler}});
+ const {contents}=await load({path:new URL('../../engine/continuous-driving.js',import.meta.url).pathname});
+ const {createContinuousDriving}=await import(`data:text/javascript;base64,${Buffer.from(contents).toString('base64')}`);
+ for(const id of ['02','09','03','06','07'])for(const [weather,kph] of [['clear',80],['rain',60],['snow',60]]){
+  const world={draftManaged:true,state:{id,laneCount:4},root:{uuid:id,children:[]},draftWeather:{weights:{[weather]:1}}};
+  const drive=createContinuousDriving(world,{hidden:()=>false});drive.setPlaying(true);
+  for(let i=0;i<60;i++)drive.advance(1/60);
+  assert.ok(Math.abs(world.draftCruiseSpeed*3.6-kph)<1e-9,`${id}/${weather}`);
+  assert.ok(Math.abs(drive.audit().distance-kph/3.6)<1e-9);
+  world.draftWeather.weights={snow:1};let prior=world.draftCruiseSpeed;
+  for(let i=0;i<240;i++){drive.advance(1/60);assert.ok(prior-world.draftCruiseSpeed<=2.2/60+1e-9);prior=world.draftCruiseSpeed;}
+  assert.ok(Math.abs(world.draftCruiseSpeed*3.6-60)<1e-9);
+ }
 });

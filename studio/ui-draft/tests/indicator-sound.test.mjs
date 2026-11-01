@@ -11,7 +11,7 @@ async function fixture(){
   createGain(){const gain={gain:{value:0},connect(){},disconnect(){}};gains.push(gain);return gain}
  }
  const url=new URL('../assist-sound.js',import.meta.url),source=(await readFile(url,'utf8')).replaceAll('export ','').replaceAll('import.meta.url',JSON.stringify(url.href));
- const api=new Function('window',source+';return {updateIndicatorSound,stopIndicatorSound,setIndicatorMuted,pathSoundStatus};')({AudioContext});
+ const api=new Function('window',source+';return {updateIndicatorSound,stopIndicatorSound,resetIndicatorSound,pathSoundStatus};')({AudioContext});
  return {api,starts,stops,gains};
 }
 test('Indicator follows lamp edges exactly once, ignores initial off and suppresses export frames',async()=>{
@@ -33,10 +33,22 @@ test('Both relay impulses are finite, brief, distinct and quiet with no repeatin
  const source=await readFile(new URL('../assist-sound.js',import.meta.url),'utf8');assert.doesNotMatch(source,/setInterval|setTimeout/);
 });
 
-test('Mute cancels active indicator voices, blocks later edges and allows explicit unmute',async()=>{
- const {api,starts,stops}=await fixture();api.updateIndicatorSound(true,true);assert.equal(starts.length,1);
- api.setIndicatorMuted(true);assert.equal(stops.length,1);assert.equal(api.pathSoundStatus().indicatorMuted,true);assert.equal(api.pathSoundStatus().indicatorVoices,0);
- api.updateIndicatorSound(true,false);api.updateIndicatorSound(true,true);assert.equal(starts.length,1);
- api.setIndicatorMuted(false);api.updateIndicatorSound(true,false);assert.equal(starts.length,1);api.updateIndicatorSound(true,true);assert.equal(starts.length,2);
- api.updateIndicatorSound(false,false,{silent:true});assert.equal(api.pathSoundStatus().indicatorVoices,0);
+test('An activation sounds four individual ticks then remains silent through pause and focus loss',async()=>{
+ const {api,starts}=await fixture();
+ for(let i=0;i<20;i++)api.updateIndicatorSound(true,i%2===0);
+ assert.equal(starts.length,4);assert.equal(api.pathSoundStatus().indicatorBurstEdges,4);
+ api.stopIndicatorSound();
+ for(let i=0;i<20;i++)api.updateIndicatorSound(true,i%2===0,{silent:i<4});
+ assert.equal(starts.length,4,'focus and pause cannot replenish the burst');
+ api.updateIndicatorSound(false,false);api.updateIndicatorSound(true,true);
+ assert.equal(starts.length,5,'a new activation can sound again');
+ api.resetIndicatorSound();api.updateIndicatorSound(true,true);
+ assert.equal(starts.length,6,'explicit replay can start a new activation');
+});
+
+test('Interrupting a partial burst preserves its remaining quota',async()=>{
+ const {api,starts}=await fixture();api.updateIndicatorSound(true,true);api.updateIndicatorSound(true,false);
+ api.stopIndicatorSound();
+ for(let i=0;i<20;i++)api.updateIndicatorSound(true,i%2===0);
+ assert.equal(starts.length,4);
 });

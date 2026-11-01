@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import {createIndoorVehicleContact,createIndoorDetails,syncIndoorVehicleContacts,updateIndoorContactOpacity,syncParkingCastShadows} from '../parking-materials.js';
+import {softenIndoorTraffic,createIndoorVehicleContact,createIndoorDetails,syncIndoorColumns,syncIndoorVehicleContacts,updateIndoorContactOpacity,syncParkingCastShadows} from '../parking-materials.js';
 
 test('Indoor contact includes ambient, chassis and four wheel patches above the ground reflection',()=>{
  const car=new THREE.Group();car.userData.vehicleSpec={length:4.85,width:1.9};
@@ -18,12 +18,18 @@ test('Indoor contact includes ambient, chassis and four wheel patches above the 
  assert.equal(new Set(wheels.map(w=>`${w.position.x}/${w.position.z}`)).size,4);
 });
 
-test('Columns use aligned mirrored footing while wheel-stop AO stays local',()=>{
- const root=new THREE.Group(),column=new THREE.Mesh(new THREE.BoxGeometry(.68,3.2,.68));column.position.set(7.45,1.6,-1.8);column.castShadow=true;
- createIndoorDetails({root,parkingColumns:[column],parkingBays:[{x:-5.9,z:0}]});
- assert.equal(column.castShadow,false);assert.equal(root.children.length,3);
- assert.equal(root.children[0].name,'Column soft mirrored footing');assert.match(root.children[0].material.fragmentShader,/reflectionInverse/);assert.equal(root.children[0].material.uniforms.opacity,undefined);
- assert.equal(root.children[0].position.x,7.45);assert.equal(root.children[0].position.z,-1.8);
+test('Perspective columns restore their height and mirror, with a closed local footprint overhead',()=>{
+ const root=new THREE.Group(),column=new THREE.Mesh(new THREE.BoxGeometry(.68,3.2,.68)),camera=new THREE.PerspectiveCamera();column.position.set(7.45,1.6,-1.8);column.castShadow=true;
+ const world={root,camera,parkingColumns:[column],parkingBays:[{x:-5.9,z:0}]};camera.position.set(0,7,12);camera.lookAt(0,0,0);createIndoorDetails(world);
+ const geometry=column.geometry,material=column.material,mirror=root.children[0],contact=root.children[1];
+ assert.equal(column.castShadow,false);assert.equal(root.children.length,4);assert.equal(column.position.y,1.6);assert.equal(column.scale.y,1);
+ assert.match(mirror.material.fragmentShader,/reflectionInverse/);assert.doesNotMatch(contact.material.fragmentShader,/reflectionInverse/);
+ camera.position.set(0,20,.001);camera.lookAt(0,0,0);syncIndoorColumns(world);
+ assert.equal(world.draftColumnOverhead.value,1);assert.equal(column.position.y,.525);assert.equal(column.scale.y,1.05/3.2);
+ assert.equal(contact.material.uniforms.coverage.value,1);assert.equal(mirror.material.uniforms.overhead.value,1);
+ camera.position.set(0,7,12);camera.lookAt(0,0,0);syncIndoorColumns(world);
+ assert.equal(column.position.y,1.6);assert.equal(column.scale.y,1);assert.equal(contact.material.uniforms.coverage.value,0);assert.equal(mirror.material.uniforms.overhead.value,0);
+ assert.equal(column.geometry,geometry);assert.equal(column.material,material);assert.equal(contact.position.x,7.45);assert.equal(contact.position.z,-1.8);
 });
 
 test('Contact lifecycle reuses live patches and releases replaced vehicle resources only once',()=>{
@@ -114,30 +120,62 @@ test('Indoor ambient expands for both vehicles and resets outdoors without chang
 });
 
 
-test('Light Indoor restores a real shadow receiver while keeping columns and contacts independent',()=>{
+test('Light Indoor gives traffic directional shadows using the same receiver as ego',()=>{
  const ego=new THREE.Group(),traffic=new THREE.Group(),body=new THREE.Mesh(new THREE.BoxGeometry()),column=new THREE.Mesh(new THREE.BoxGeometry());traffic.add(body);
- const world={parkingShadow:new THREE.Mesh(new THREE.PlaneGeometry(),new THREE.ShadowMaterial()),renderer:{shadowMap:{needsUpdate:false}},draftThemeTone:{value:0},state:{mode:'light'}};
+ const world={car:ego,parkingShadow:new THREE.Mesh(new THREE.PlaneGeometry(),new THREE.ShadowMaterial()),renderer:{shadowMap:{needsUpdate:false}},draftThemeTone:{value:0},state:{mode:'light'}};
  syncParkingCastShadows(world,[ego,traffic],true);
  assert.equal(world.parkingShadow.material.opacity,.58);assert.equal(body.castShadow,true);assert.equal(column.castShadow,false);
  assert.equal(world.parkingShadow.material.depthWrite,false);assert.ok(world.parkingShadow.renderOrder<createIndoorVehicleContact(ego).children[0].renderOrder);
  assert.equal(world.renderer.shadowMap.needsUpdate,true);world.renderer.shadowMap.needsUpdate=false;
  syncParkingCastShadows(world,[ego,traffic],true);assert.equal(world.renderer.shadowMap.needsUpdate,false);
  traffic.visible=false;syncParkingCastShadows(world,[ego,traffic],true);assert.equal(world.renderer.shadowMap.needsUpdate,true);
- world.draftThemeTone.value=1;syncParkingCastShadows(world,[ego,traffic],true);assert.equal(world.parkingShadow.material.opacity,.28);
+ world.draftThemeTone.value=1;syncParkingCastShadows(world,[ego,traffic],true);assert.equal(world.parkingShadow.material.opacity,.28);assert.equal(body.castShadow,true,'night preserves existing directional shadow');
  world.draftParkingFinish={castOpacity:{value:.84}};syncParkingCastShadows(world,[ego,traffic],true);assert.equal(world.parkingShadow.material.opacity,.84);
 });
 
+test('Traffic depth shells never become duplicate shadow casters during parking visibility changes',()=>{
+ const ego=new THREE.Group(),traffic=new THREE.Group(),body=new THREE.Mesh(new THREE.BoxGeometry()),shell=new THREE.Mesh(new THREE.BoxGeometry());
+ shell.userData.draftOcclusionDepth=true;traffic.add(body,shell);
+ const world={car:ego,parkingShadow:new THREE.Mesh(new THREE.PlaneGeometry(),new THREE.ShadowMaterial()),renderer:{shadowMap:{needsUpdate:false}},state:{mode:'light'}};
+ for(const visible of [true,false,true]){traffic.visible=visible;syncParkingCastShadows(world,[ego,traffic],false);assert.equal(body.castShadow,true);assert.equal(shell.castShadow,false);}
+});
 
-test('Light parking traffic shares calibrated contact coverage while outdoor ego and dark remain fixed',()=>{
+
+test('Light parking calibrates both vehicles in either scene while Outdoor dark remains fixed',()=>{
  const group=new THREE.Group(),ego=new THREE.Group(),traffic=new THREE.Group(),finish=Object.fromEntries(Object.entries({trafficWidth:1,trafficLength:1.23,trafficOpacity:.71,egoWidth:.99,egoLength:1.39,egoOpacity:.86}).map(([key,value])=>[key,{value}]));
  syncIndoorVehicleContacts(group,ego,[traffic],true,finish,0);
  const indoorScale=traffic.userData.draftIndoorContact.children[0].scale.toArray();
  syncIndoorVehicleContacts(group,ego,[traffic],false,finish,0);
  assert.deepEqual(traffic.userData.draftIndoorContact.children[0].scale.toArray(),indoorScale);
  for(const patch of traffic.userData.draftIndoorContact.children)assert.equal(patch.material.uniforms.coverage.value,.71);
- assert.deepEqual(ego.userData.draftIndoorContact.children[0].scale.toArray(),[1.1,1.075,1]);
- for(const patch of ego.userData.draftIndoorContact.children)assert.equal(patch.material.uniforms.coverage.value,1);
+ assert.deepEqual(ego.userData.draftIndoorContact.children[0].scale.toArray(),[1.1*.99,1.075*1.39,1]);
+ for(const patch of ego.userData.draftIndoorContact.children)assert.equal(patch.material.uniforms.coverage.value,.86);
  syncIndoorVehicleContacts(group,ego,[traffic],false,finish,1);
  assert.deepEqual(traffic.userData.draftIndoorContact.children[0].scale.toArray(),[1.1,1.075,1]);
  for(const patch of traffic.userData.draftIndoorContact.children)assert.equal(patch.material.uniforms.coverage.value,1);
+});
+
+test('Daylight neutral traffic blends from the current finish without replacing night or outdoor values',()=>{
+ const car=new THREE.Group(),m=new THREE.MeshPhysicalMaterial({color:'#aab6c5',roughness:.62,metalness:.18,clearcoat:.015,envMapIntensity:.30,specularIntensity:.1});m.userData.trafficRole='paint';car.add(new THREE.Mesh(new THREE.BoxGeometry(),m));
+ softenIndoorTraffic(car,1,0);assert.ok(m.color.equals(new THREE.Color('#e4e5e4')));assert.equal(m.roughness,.86);assert.equal(m.clearcoat,0);
+ m.color.set('#789abc');Object.assign(m,{roughness:.62,metalness:0,clearcoat:.12,envMapIntensity:.22,specularIntensity:.32});
+ softenIndoorTraffic(car,0);assert.equal(m.clearcoat,.12);assert.equal(m.envMapIntensity,.22);assert.ok(m.color.equals(new THREE.Color('#789abc')));
+ softenIndoorTraffic(car,.5);assert.ok(Math.abs(m.clearcoat-.06)<1e-9);assert.ok(Math.abs(m.specularIntensity-.22)<1e-9);
+});
+
+ test('Traffic gray endpoints darken body continuously and preserve zero influence at night',()=>{
+ const car=new THREE.Group(),m=new THREE.MeshPhysicalMaterial({color:'#789abc'});m.userData.trafficRole='paint';car.add(new THREE.Mesh(new THREE.BoxGeometry(),m));
+ const values=[];for(const gray of [0,.45,1]){m.color.set('#789abc');softenIndoorTraffic(car,1,gray);values.push(m.color.r+m.color.g+m.color.b);}
+ assert.ok(values[0]>values[1]&&values[1]>values[2]);
+ m.color.set('#789abc');softenIndoorTraffic(car,0,1);assert.ok(m.color.equals(new THREE.Color('#789abc')));
+ });
+
+test('Daylight shares normalized contact opacity across ego and traffic, night retains the ego profile',()=>{
+ const group=new THREE.Group(),ego=new THREE.Group(),traffic=new THREE.Group();
+ for(const indoor of [true,false]){
+  const vehicles=syncIndoorVehicleContacts(group,ego,[traffic],indoor,{},0);updateIndoorContactOpacity(vehicles);
+  const e=ego.userData.draftIndoorContact.children,t=traffic.userData.draftIndoorContact.children;
+  for(let i=0;i<6;i++)assert.equal(e[i].material.uniforms.opacity.value,t[i].material.uniforms.opacity.value);
+  if(indoor){assert.equal(e[6].material.uniforms.opacity.value,0);syncIndoorVehicleContacts(group,ego,[traffic],true,{},1);updateIndoorContactOpacity(vehicles);assert.equal(e[6].material.uniforms.opacity.value,.36);}
+ }
 });

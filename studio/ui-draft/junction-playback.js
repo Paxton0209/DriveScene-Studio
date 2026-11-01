@@ -11,8 +11,9 @@ export function junctionBrakeReveal(seconds){return Math.max(0,Math.min(1,(secon
 export function drivingSpeed(world,id){
  if(['05','08'].includes(id))return Math.max(0,world.draftSpeed??0);
  if(Number.isFinite(world.draftCruiseSpeed))return Math.max(0,world.draftCruiseSpeed);
- const w=world.draftWeather?.weights,weather=w?1-.12*(w.overcast||0)-.22*(w.rain||0)-.38*(w.snow||0):1;
- return (['06','07'].includes(id)?13.9:16.8)*weather;
+ const continuous=['02','09','03','06','07'].includes(id);
+ const w=world.draftWeather?.weights,weather=w?1-.12*(w.overcast||0)-(continuous?.25:.22)*(w.rain||0)-(continuous?.25:.38)*(w.snow||0):1;
+ return (continuous?80/3.6:16.8)*weather;
 }
 export function forwardPathEnd(start,speed,total,boundary=Infinity,seconds=LOOKAHEAD_SECONDS){
  return Math.max(start,Math.min(start+previewDistance(speed)*seconds/LOOKAHEAD_SECONDS,total-1,boundary));

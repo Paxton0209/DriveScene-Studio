@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import {createParkingMotion} from '../scene-experience.js';
+import {parkingPose,parkingTiming} from '../parking-motion.js';
 function fixture(){
  const camera=new THREE.PerspectiveCamera(40,16/9,.1,1000);camera.position.set(0,22,14);camera.lookAt(0,.85,0);camera.updateMatrixWorld(true);
  const world={state:{id:'10',mode:'light'},root:new THREE.Group(),scene:new THREE.Scene(),car:new THREE.Group(),camera,cameraAim:new THREE.Vector3(0,.85,0),parkingBays:[-5.9,5.9].flatMap(x=>[3.6,0,-3.6,-7.2].map(z=>({x,z,width:4.9,depth:2.8}))),renderFrame(){},finishCameraMotion(){},captureCamera(){return {position:camera.position.clone(),carPosition:this.car.position.clone(),aim:this.cameraAim.clone()}},applyCamera(p){this.car.position.copy(p.carPosition);camera.position.copy(p.position);this.cameraAim.copy(p.aim);camera.lookAt(p.aim)}};
@@ -34,10 +35,10 @@ test('Parking hover requests repaint only for changed coverage and clears select
  assert.equal(hover(world.parkingBays[2]),false,'active maneuver does not accept hover');
 });
 for(const direction of [-1,1])for(const side of [-5.9,5.9])test(`Independent camera and continuous pause/exit/reselection for bay ${side}, direction ${direction}`,()=>{
- const {world,motion,pick,tick}=fixture();const bay=world.parkingBays.find(b=>b.x===side&&b.z===-3.6),beforeSelection=world.camera.position.clone();assert.ok(pick(bay));assert.ok(beforeSelection.equals(world.camera.position),'selection starts the camera transition without jumping');tick(1);assert.equal(motion.get().camera.tween,false);assert.equal(motion.get().view,'raised');motion.start();tick(8);
- assert.ok(Math.abs(world.car.rotation.y)>.05);assert.ok(Math.abs(motion.get().camera.heading-world.car.rotation.y)<1e-8,'camera follows the reversing vehicle heading');
+ const {world,motion,pick,tick}=fixture();const bay=world.parkingBays.find(b=>b.x===side&&b.z===-3.6),beforeSelection=world.camera.position.clone();assert.ok(pick(bay));assert.ok(beforeSelection.equals(world.camera.position),'selection starts the camera transition without jumping');tick(.5);assert.equal(motion.get().camera.tween,true,'initial rise is still in motion at half a second');tick(.55);assert.equal(motion.get().camera.tween,false);assert.equal(motion.get().view,'raised');motion.start();tick(8);
+ assert.ok(Math.abs(world.car.rotation.y)>.05);assert.ok(Math.abs(motion.get().camera.heading-world.car.rotation.y)<1e-8,'camera follows chassis through reverse');
  motion.sync({assist:false});const held=world.car.position.clone(),beforePause=world.camera.position.clone();motion.step(1);assert.ok(held.equals(world.car.position),'missing path freezes vehicle');assert.ok(beforePause.equals(world.camera.position),'pause transition starts from actual camera');tick(2,false);assert.equal(motion.get().paused,true);
- const beforeResume=world.camera.position.clone();motion.start();assert.ok(beforeResume.equals(world.camera.position),'resume never jumps camera');tick(8);assert.equal(motion.get().complete,true);assert.ok(world.car.position.distanceTo(new THREE.Vector3(bay.x,0,bay.z))<1e-8);assert.equal(motion.start(),false);tick(1.2);assert.equal(motion.get().view,'bev');assert.ok(Math.abs(world.camera.position.z-world.cameraAim.z)<.1,'completion is top view');
+ const beforeResume=world.camera.position.clone();motion.start();assert.ok(beforeResume.equals(world.camera.position),'resume never jumps camera');tick(parkingTiming(bay).total-motion.get().elapsed+.05);assert.equal(motion.get().complete,true);assert.ok(world.car.position.distanceTo(new THREE.Vector3(bay.x,0,bay.z))<1e-8);assert.equal(motion.start(),false);tick(1.2);assert.equal(motion.get().view,'bev');assert.ok(Math.abs(world.camera.position.z-world.cameraAim.z)<.1,'completion is top view');
  assert.equal(motion.prepareExit(),true);assert.equal(motion.start(),false,'exit requires direction');motion.chooseExit(direction);motion.start();tick(7.6);assert.equal(motion.get().target,null);assert.equal(motion.get().exited,true);assert.ok(Math.abs(world.car.position.x)<1e-8);tick(1.2);assert.equal(pick(bay),true);motion.start();tick(30);assert.ok(world.car.position.distanceTo(new THREE.Vector3(bay.x,0,bay.z))<1e-8);
 });
 for(const hz of [30,60,120])for(const direction of [-1,1])for(const side of [-5.9,5.9])test(`Exit camera avoids a one-frame half-turn at ${hz} Hz, bay ${side}, direction ${direction}`,()=>{
@@ -103,4 +104,144 @@ for(const scene of ['10','17'])for(const mode of ['light','dark'])test(`Parking 
  assert.deepEqual(values(),world.parkingBays.map((_,i)=>[3,7,11,14,16].includes(i)?0:1));
  motion.sync({traffic:false});assert.ok(values().every(v=>v===1),'all bays become available when other cars are hidden');
  motion.sync({traffic:true});assert.equal(values().filter(v=>v===0).length,5,'restoring Traffic restores the five occupied bays');
+});
+
+for(const scene of ['10','17'])test(`One-click parking selects a stable reachable vacant bay and supports pause/replay in ${scene}`,()=>{
+ const {world,motion,tick}=fixture();world.state.id=scene;motion.sync({traffic:true});
+ assert.equal(motion.get().target,null,'selection waits for Play');
+ assert.equal(motion.selectDefault(),true);const target=motion.get().target;
+ assert.deepEqual(target,{x:-5.9,z:-3.6});assert.ok(!motion.get().occupied.some(b=>b.x===target.x&&b.z===target.z));
+ assert.equal(motion.start(),true);tick(2);motion.pause();const held=world.car.position.clone();tick(1,false);
+ assert.ok(held.equals(world.car.position));assert.equal(motion.selectDefault(),true);assert.deepEqual(motion.get().target,target);
+ assert.equal(motion.start(),true);tick(30);assert.equal(motion.get().complete,true);
+ assert.ok(world.car.position.distanceTo(new THREE.Vector3(target.x,0,target.z))<1e-8);
+ motion.reset();motion.sync({traffic:true});assert.equal(motion.selectDefault(),true);assert.deepEqual(motion.get().target,target);
+ assert.equal(motion.start(),true);tick(30);assert.equal(motion.get().complete,true);
+});
+test('Automatic parking skips an occupied preferred bay and fails without a reachable alternative',()=>{
+ const {world,motion}=fixture();
+ world.root=new THREE.Group();world.parkingBays=[{x:-5.9,z:8,width:4.9,depth:2.8},{x:-5.9,z:5,width:4.9,depth:2.8},{x:-5.9,z:2,width:4.9,depth:2.8},{x:-5.9,z:-3.6,width:4.9,depth:2.8},{x:5.9,z:-3.6,width:4.9,depth:2.8}];
+ motion.sync({traffic:true});assert.equal(motion.selectDefault(),true);assert.deepEqual(motion.get().target,{x:5.9,z:-3.6});
+ world.root=new THREE.Group();world.parkingBays=[];motion.sync({traffic:true});assert.equal(motion.selectDefault(),false);assert.equal(motion.get().target,null);assert.equal(motion.start(),false);
+});
+
+test('Parking route keeps its continuous seam, remains occluded and fades at the parked rear bumper',()=>{
+ const {world,motion,pick}=fixture(),bay=world.parkingBays.find(b=>b.x===-5.9&&b.z===-3.6);assert.ok(pick(bay));motion.sync({assist:true});
+ const group=world.draftParkingGroup,approach=group.getObjectByName('Parking approach path'),reverse=group.getObjectByName('Parking reverse path'),stop=group.getObjectByName('Approach stop line');
+ const centre=(mesh,index)=>{const a=mesh.geometry.attributes.position;return new THREE.Vector3().fromBufferAttribute(a,index).add(new THREE.Vector3().fromBufferAttribute(a,index+1)).multiplyScalar(.5)};
+ const seam=centre(approach,approach.geometry.attributes.position.count-2);assert.ok(seam.distanceTo(centre(reverse,0))<1e-5);
+ assert.equal(stop.material.depthTest,true);assert.equal(group.getObjectByName('Reverse stop line').visible,false);
+ const endpoint=centre(reverse,reverse.geometry.attributes.position.count-2);const final=parkingPose(parkingTiming(bay).total,bay),offset=4.72/2;assert.ok(Math.hypot(endpoint.x-bay.x-Math.sin(final.yaw)*offset,endpoint.z-bay.z-Math.cos(final.yaw)*offset)<1e-5);assert.equal(reverse.material.uniforms.endFade.value,1);
+ const uv=reverse.geometry.attributes.uv;assert.equal(uv.getY(uv.count-1),1);
+});
+
+for(const side of [-5.9,5.9])for(const frontOffset of [-1.25,-1.72])test(`Approach stops before the front-wheel line for bay ${side} and front axle ${frontOffset}`,()=>{
+ const {world,motion,pick,tick}=fixture();world.car.userData.vehicleSpec={length:4.95,width:2.1,wheels:[{min:[-.9,0,frontOffset-.3],max:[-.6,.6,frontOffset+.3]},{min:[.6,0,frontOffset-.3],max:[.9,.6,frontOffset+.3]},{min:[-.9,0,1.05],max:[-.6,.6,1.65]},{min:[.6,0,1.05],max:[.9,.6,1.65]}]};
+ const bay=world.parkingBays.find(b=>b.x===side&&b.z===-3.6);assert.ok(pick(bay));motion.sync({assist:true});const line=world.draftParkingGroup.getObjectByName('Approach stop line'),options={vehicle:world.car.userData.vehicleSpec},timing=parkingTiming(bay,0,options),end=parkingPose(timing.forward,bay,0,options),heading=new THREE.Vector3(-Math.sin(end.yaw),0,-Math.cos(end.yaw));
+ for(let i=0;i<=300;i++){const p=parkingPose(timing.forward*i/300,bay,0,options),front=new THREE.Vector3(p.x+Math.sin(p.yaw)*frontOffset,0,p.z+Math.cos(p.yaw)*frontOffset),gap=line.position.clone().sub(front).dot(heading);assert.ok(gap>=.0999,`front axle crossed the line at ${i}: ${gap}`);}
+ motion.start();tick(timing.forward+.1);const front=world.car.position.clone().add(new THREE.Vector3(Math.sin(world.car.rotation.y)*frontOffset,0,Math.cos(world.car.rotation.y)*frontOffset));assert.ok(Math.abs(line.position.clone().sub(front).dot(heading)-.10)<1e-7,'live vehicle stops 10 cm before line');assert.equal(motion.get().phase,'shift');
+});
+
+for(const side of [-5.9,5.9])for(const initialView of ['default','raised','bev'])test(`Camera follows the broad turn and ends with the vehicle facing up for ${side}/${initialView}`,()=>{
+ const {world,motion,pick,tick}=fixture(),bay=world.parkingBays.find(b=>b.x===side&&b.z===-3.6);world.state.id={default:'10',raised:'16',bev:'14'}[initialView];world.root=new THREE.Group();motion.sync();pick(bay);tick(1.1);
+ const before=world.camera.position.clone();motion.start();assert.ok(before.equals(world.camera.position),'Play acquires automatic control without a jump');assert.equal(motion.capture().cameraState.reference,false);
+ const end=parkingTiming(bay).forward;let previous=world.camera.quaternion.clone();
+ for(let t=0;t<end;t+=1/60){tick(Math.min(1/60,end-t));const state=motion.get();assert.ok(Math.abs(state.camera.heading-world.car.rotation.y)<1e-9,'camera follows the continuous chassis heading');assert.ok(previous.angleTo(world.camera.quaternion)<.06,'no abrupt camera turn');previous.copy(world.camera.quaternion);assert.equal(state.camera.tween,state.elapsed<1.4-1e-8,'automatic rise completes at 0.4 s + 1.0 s');}
+ assert.equal(motion.get().camera.tween,false,'rise is finished at the first stop');const o=world.camera.position.clone().sub(world.cameraAim);assert.ok(Math.abs(Math.atan2(o.x,o.z)-world.car.rotation.y)<1e-8,'camera aligns with chassis at the stop');assert.ok(Math.abs(world.draftWheelSteer)<1e-6,'wheels unwind before shifting');
+ tick(.8);for(let i=0;i<120;i++){tick(1/60);assert.ok(Math.abs(motion.get().camera.heading-world.car.rotation.y)<1e-9,'reverse camera follows chassis');}
+ tick(20);world.camera.updateMatrixWorld();const rear=world.car.position.clone().project(world.camera),front=world.car.position.clone().add(new THREE.Vector3(-Math.sin(world.car.rotation.y),0,-Math.cos(world.car.rotation.y))).project(world.camera);assert.ok(front.y>rear.y,'parked nose points toward top of screen');assert.ok(Math.abs(front.x-rear.x)<1e-7,'parked nose is vertically aligned');
+});
+
+for(const side of [-5.9,5.9])test(`Slim guidance stays centred on the leading axle through forward and reverse bends for ${side}`,()=>{
+ const {world,motion,pick,tick}=fixture(),front=-1.48,rear=1.36,track=1.58;
+ world.car.userData.vehicleSpec={length:4.72,width:2.1,wheels:[front,rear].flatMap(z=>[-track/2,track/2].map(x=>({min:[x-.1,0,z-.3],max:[x+.1,.6,z+.3]})))};
+ const bay=world.parkingBays.find(b=>b.x===side&&b.z===-3.6),timing=parkingTiming(bay,0,{vehicle:world.car.userData.vehicleSpec});assert.ok(pick(bay));motion.start();
+ const check=(name,offset)=>{const positions=world.draftParkingGroup.getObjectByName(name).geometry.attributes.position,yaw=world.car.rotation.y,s=Math.sin(yaw),c=Math.cos(yaw),heading=yaw+(offset<0?world.draftWheelSteer||0:0);
+  for(let i=0;i<2;i++){const x=(i?1:-1)*.5,point=new THREE.Vector3().fromBufferAttribute(positions,i),expected=new THREE.Vector3(world.car.position.x+s*offset+Math.cos(heading)*x,.036,world.car.position.z+c*offset-Math.sin(heading)*x);assert.ok(point.distanceTo(expected)<1e-5,'one-metre display ribbon stays centred on the leading axle');}
+ };
+ let previous=0;for(const elapsed of [timing.forward*.6,timing.forward*.85,timing.forward+timing.shift+.2,timing.forward+timing.shift+1,timing.total-.5]){tick(elapsed-previous);previous=elapsed;const reversing=elapsed>timing.forward+timing.shift;check(reversing?'Parking reverse path':'Parking approach path',reversing?rear:front);}
+});
+
+for(const time of [.3,2.5,7.5])test(`Pause freezes the complete camera pose at playback ${time}s and resumes without a jump`,()=>{
+ const {world,motion,tick}=fixture();motion.selectDefault();motion.start();tick(time);motion.pause();
+ const camera=world.camera.position.clone(),aim=world.cameraAim.clone(),rotation=world.camera.quaternion.clone(),projection=[...world.camera.projectionMatrix.elements],elapsed=motion.get().elapsed;
+ tick(3,true);assert.ok(world.camera.position.distanceTo(camera)<1e-10);assert.ok(world.cameraAim.distanceTo(aim)<1e-10);assert.ok(world.camera.quaternion.angleTo(rotation)<1e-7);assert.deepEqual(world.camera.projectionMatrix.elements,projection);assert.equal(motion.get().elapsed,elapsed);
+ motion.start();assert.ok(world.camera.position.distanceTo(camera)<1e-10);tick(.1);assert.ok(motion.get().elapsed>elapsed);assert.ok(world.camera.quaternion.angleTo(rotation)<.12,'resume advances from held angle');
+});
+test('High-camera delay and duration follow playback time, including time spent paused',()=>{
+ const {world,motion,tick}=fixture();motion.selectDefault();motion.configureCamera({start:2,duration:1});motion.start();
+ tick(1);assert.equal(motion.capture().cameraTween.legStart,2);const before=world.camera.position.clone().sub(world.car.position).length();motion.pause();tick(4,true);assert.ok(Math.abs(motion.get().elapsed-1)<1e-9);motion.start();tick(.9);assert.ok(Math.abs(world.camera.position.clone().sub(world.car.position).length()-before)<.1,'delay does not consume paused wall time');
+ tick(1.2);assert.equal(motion.get().camera.tween,false);assert.equal(motion.configureCamera().start,2);assert.equal(motion.configureCamera().duration,1);
+});
+
+test('Untravelled guidance vertices keep their world positions and fade coordinates after the first stop',()=>{
+ const {world,motion,tick}=fixture();motion.selectDefault();motion.start();
+ const timing=parkingTiming(motion.get().target),reverseStart=timing.forward+timing.shift;
+ tick(reverseStart+.2);
+ const path=world.draftParkingGroup.getObjectByName('Parking reverse path');
+ const snapshot=()=>{const {position,uv}=path.geometry.attributes;return Array.from({length:position.count/2},(_,i)=>({key:[position.getX(i*2),position.getZ(i*2),position.getX(i*2+1),position.getZ(i*2+1)].join(','),v:uv.getY(i*2)}));};
+ const before=new Map(snapshot().map(p=>[p.key,p.v]));tick(.6);const after=snapshot();
+ assert.ok(after.length<before.size,'only the travelled prefix is removed');
+ for(const p of after.slice(1)){assert.ok(before.has(p.key),'remaining route vertices stay fixed');assert.equal(p.v,before.get(p.key),'colour and fade never sweep through the remaining route');}
+ assert.equal(path.material.uniforms.activation.value,1);assert.equal(path.material.uniforms.opacity.value,.75);
+});
+
+for(const scene of ['10','17'])test(`Completion feedback breathes once with a continuous outline, restores its clock and resets in ${scene}`,()=>{
+ const {world,motion,pick,tick}=fixture();world.state.id=scene;motion.sync();pick(world.parkingBays[2]);motion.start();
+ while(!motion.get().complete)tick(1/30);
+ const uniforms=world.draftParkingGroup.getObjectByName('Parking target space').material.uniforms;
+ assert.equal(uniforms.completion.value,1);assert.equal(uniforms.celebrate.value,0);assert.equal(uniforms.success.value,0);
+ let saved,clock;
+ for(let cycle=0;cycle<1;cycle++){
+  let previous=0;
+  for(let i=0;i<54;i++){tick(1/60);const value=uniforms.celebrate.value;assert.ok(value>=previous-1e-8);assert.ok(value-previous<.04,'no abrupt opacity jump');previous=value;}
+  assert.ok(uniforms.celebrate.value>.99);assert.equal(uniforms.completion.value,1);assert.equal(uniforms.success.value,1);assert.equal(motion.animating(),true);
+  if(!cycle){saved=motion.capture();clock=world.draftTime;}
+  for(let i=0;i<54;i++){tick(1/60);const value=uniforms.celebrate.value;assert.ok(value<=previous+1e-8);assert.ok(previous-value<.04,'900 ms exhale stays continuous');previous=value;assert.equal(uniforms.success.value,1,'outline remains visible through the breath');}
+  assert.ok(uniforms.celebrate.value<1e-8);assert.equal(uniforms.completion.value,1);
+ }
+ tick(.3);assert.ok(uniforms.completion.value>.45&&uniforms.completion.value<.55);tick(.31);assert.equal(uniforms.completion.value,0);
+ motion.restore(saved);world.draftTime=clock;motion.sync({assist:true});assert.equal(uniforms.completion.value,1);
+ tick(1.51);assert.ok(uniforms.completion.value<1e-8);tick(1);assert.equal(uniforms.completion.value,0,'steady Parked never restarts the pulse');assert.equal(uniforms.celebrate.value,0);
+ motion.reset();motion.sync();assert.equal(uniforms.completion.value,1);assert.equal(uniforms.success.value,0);assert.equal(uniforms.celebrate.value,0,'replay shows a fresh selected bay');
+ world.root=new THREE.Group();motion.sync();assert.equal(motion.capture().completionAt,null,'scene replacement clears the completion clock');
+});
+test('Reduced motion completion skips the outline pulse and fades in 200 ms',()=>{
+ const previous=globalThis.matchMedia;globalThis.matchMedia=()=>({matches:true});
+ try{const {world,motion,pick,tick}=fixture();pick(world.parkingBays[2]);motion.start();while(!motion.get().complete)tick(1/30);
+ const uniforms=world.draftParkingGroup.getObjectByName('Parking target space').material.uniforms;
+ tick(.1);assert.equal(uniforms.celebrate.value,0);assert.ok(uniforms.completion.value>0&&uniforms.completion.value<1);
+ tick(.11);assert.equal(uniforms.completion.value,0);
+ }finally{if(previous)globalThis.matchMedia=previous;else delete globalThis.matchMedia;}
+});
+
+
+for(const scene of ['10','17'])for(const selected of ['default','raised','bev'])test(`Play and Replay join ${selected} to automatic camera in ${scene}`,()=>{
+ const {world,motion,tick}=fixture();world.state.id=scene;motion.previewCamera(selected);tick(.9,false);
+ motion.selectDefault();const before=world.camera.position.clone(),orientation=world.camera.quaternion.clone(),car=world.car.position.clone();
+ motion.start();assert.ok(world.camera.position.distanceTo(before)<1e-9,'Play starts at the current camera');assert.equal(motion.get().manualView,null);
+ tick(.35);if(selected==='raised'){assert.ok(motion.get().elapsed>.3,'High starts moving immediately');assert.equal(motion.get().view,'raised');}else{assert.equal(motion.get().elapsed,0,'return completes before the car moves');assert.ok(world.car.position.equals(car));}
+ motion.pause();const held=world.camera.position.clone();tick(2,false);assert.ok(world.camera.position.distanceTo(held)<1e-9,'pause freezes return too');
+ motion.start();assert.ok(world.camera.position.distanceTo(held)<1e-9);tick(.02);assert.ok(world.camera.position.distanceTo(held)<2,'resume continues the spring without catching up paused time');
+ tick(1);assert.ok(motion.get().elapsed>0);assert.equal(motion.get().manualView,null);
+ tick(4);motion.pause();const elapsed=motion.get().elapsed,mid=world.camera.position.clone();tick(1,false);motion.start();assert.equal(motion.get().elapsed,elapsed);assert.ok(world.camera.position.equals(mid));
+ tick(30);assert.equal(motion.get().complete,true);assert.equal(motion.get().view,'bev');
+ const finished=world.camera.quaternion.clone();motion.reset();motion.sync({assist:true});assert.ok(finished.angleTo(world.camera.quaternion)<1e-7,'Replay does not cut orientation');
+ motion.start();tick(30);assert.equal(motion.get().complete,true);assert.equal(motion.get().manualView,null);assert.equal(motion.get().view,'bev');
+});
+for(const scene of ['10','17'])for(const hz of [30,60,120])test(`High joins playback without a Low dip in ${scene} at ${hz} Hz`,()=>{
+ const {world,motion,tick}=fixture();world.state.id=scene;motion.previewCamera('raised');tick(.9,false);motion.selectDefault();motion.start();
+ const elevation=()=>{const offset=world.camera.position.clone().sub(world.cameraAim);return Math.atan2(offset.y,Math.hypot(offset.x,offset.z));};
+ const initial=elevation();let previous=world.camera.quaternion.clone(),maxAngle=0;
+ for(let i=0;i<2*hz;i++){tick(1/hz);assert.equal(motion.get().view,'raised');assert.ok(elevation()>initial-.015,'High never drops toward Low');maxAngle=Math.max(maxAngle,previous.angleTo(world.camera.quaternion));previous.copy(world.camera.quaternion);}
+ assert.ok(maxAngle<.07,`continuous handoff: ${maxAngle}`);assert.ok(motion.get().elapsed>1.9);
+ tick(30);motion.previewCamera('raised');tick(.9,false);motion.reset();motion.sync({assist:true});motion.start();tick(.2);assert.equal(motion.get().view,'raised');assert.ok(motion.get().elapsed>.19,'a manual High before Replay also skips Low');
+});
+for(const scene of ['10','17'])for(const hz of [30,60,120])test(`Camera return and automatic rise are continuous in ${scene} at ${hz} Hz`,()=>{
+ const {world,motion,tick}=fixture();world.state.id=scene;motion.previewCamera('bev');tick(.9,false);motion.selectDefault();motion.start();
+ let previous=world.camera.quaternion.clone(),maxRate=0,returnTail=0;
+ for(let i=0;i<3*hz;i++){tick(1/hz);const rate=previous.angleTo(world.camera.quaternion)*hz;maxRate=Math.max(maxRate,rate);if(i/hz>.7&&i/hz<.8)returnTail=Math.max(returnTail,rate);previous.copy(world.camera.quaternion);}
+ assert.ok(maxRate<10,`angular speed ${maxRate}`);assert.ok(returnTail<.15,`return must settle softly: ${returnTail}`);
+ tick(30);const car=world.car.position.clone().project(world.camera),nose=world.car.position.clone().add(new THREE.Vector3(-Math.sin(world.car.rotation.y),0,-Math.cos(world.car.rotation.y))).project(world.camera);
+ assert.ok(nose.y>car.y);assert.ok(Math.abs(nose.x-car.x)<1e-5,'completed BEV remains nose-up');
 });

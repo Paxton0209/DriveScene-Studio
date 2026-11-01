@@ -24,7 +24,7 @@ function vehicle(){
  return car;
 }
 
-test('Prepared wheel attributes, affected count and shaders match the prior implementation exactly',()=>{
+test('Wheel preparation preserves geometry while front tyres use wheelbase-aware steering',()=>{
  const a=vehicle(),b=vehicle(),old=before(a),next=after(b);
  assert.ok(next.affected>0);assert.equal(next.affected,old.affected);
  a.children.forEach((mesh,i)=>{
@@ -33,10 +33,10 @@ test('Prepared wheel attributes, affected count and shaders match the prior impl
   assert.deepEqual(other.geometry.attributes.position.array,mesh.geometry.attributes.position.array);
   const mats=value=>Array.isArray(value)?value:[value];
   mats(mesh.material).forEach((material,j)=>{
-   const candidate=mats(other.material)[j];assert.equal(candidate.customProgramCacheKey(),material.customProgramCacheKey());
+   const candidate=mats(other.material)[j];assert.ok(candidate.customProgramCacheKey().endsWith('-rolling-ackermann-v2'));
    const shader=()=>({uniforms:{},vertexShader:'#include <beginnormal_vertex>\n#include <begin_vertex>'});
    const x=shader(),y=shader();material.onBeforeCompile(x);candidate.onBeforeCompile(y);
-   assert.equal(y.vertexShader,x.vertexShader);assert.deepEqual(y.uniforms,x.uniforms);
+   assert.ok(y.vertexShader.includes('draftWheelbase+draftAxle.x*tangent'));assert.ok(Math.abs(y.uniforms.draftWheelbase.value-2.9)<1e-9);delete y.uniforms.draftWheelbase;assert.deepEqual(y.uniforms,x.uniforms);
   });
  });
  const geometries=b.children.map(mesh=>mesh.geometry),materials=b.children.map(mesh=>mesh.material);

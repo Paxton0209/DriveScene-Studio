@@ -9,6 +9,7 @@
  --c-line:rgba(0,0,0,.07);--c-fill:rgba(0,0,0,.045);--c-fill-sel:#E4E4E2;
  --c-toggle-on:#1683E8;--c-segment-sel:var(--c-fill-sel);
  --c-t1:#262624;--c-t2:#6E6E6A;--c-t3:#9A9A95;
+ --c-parking-active:#2d7fe1;
  --r-panel:10px;--r-ctl:6px;--r-in:4px;
  --sh-panel:0 0 0 1px var(--c-line),0 1px 2px rgba(0,0,0,.04);
  --sh-raised:0 0 0 .5px rgba(0,0,0,.10),0 1px 2px rgba(0,0,0,.06);
@@ -84,8 +85,8 @@ html,body,#app{background:var(--c-bg)}
 @keyframes shell-menu-in{from{opacity:0;transform:scale(.98) translateY(2px)}to{opacity:1;transform:none}}
 @media(hover:hover) and (pointer:fine){
  .shell-vehicle-card:hover:not(:disabled){opacity:.7}
- .shell-vehicle-menu [role=menuitemradio]:hover{background:var(--c-fill)}
- .shell-vehicle-menu [aria-checked=true]:hover{background:var(--c-fill-sel)}
+ :root #vehicle-panel .shell-vehicle-menu [role=menuitemradio]:hover:not(:disabled){background:var(--c-fill);opacity:.7}
+ :root #vehicle-panel .shell-vehicle-menu [aria-checked=true]:hover:not(:disabled){background:var(--c-fill-sel)}
 }
 .shell-vehicle-card:focus-visible,.shell-vehicle-menu [role=menuitemradio]:focus-visible{outline:2px solid var(--c-t1);outline-offset:2px}
 
@@ -124,7 +125,6 @@ html,body,#app{background:var(--c-bg)}
 
 /* Playback: 12 below the canvas, centred on it */
 :root #canvas-playback #scene-transport{width:88px;min-width:88px;max-width:88px;flex:0 0 88px;justify-content:center;white-space:nowrap;height:32px;padding:0 12px;border:0;border-radius:var(--r-ctl);background:var(--c-raised);box-shadow:var(--sh-raised);color:var(--c-t1);font-size:13px;font-weight:500}
-:root #canvas-playback #indicator-mute{height:32px;width:32px;border:0;border-radius:var(--r-ctl);background:var(--c-raised);box-shadow:var(--sh-raised)}
 
 /* Below 960 the existing stacked layout stays; only the surfaces follow v5. */
 @media(max-width:959px){
@@ -135,15 +135,35 @@ html,body,#app{background:var(--c-bg)}
 
 /* Scene preparation locks input without a disabled-opacity pulse. */
 body[data-ready=true] #canvas-playback #scene-transport:disabled{opacity:1}
-:root #canvas-playback #indicator-mute{position:absolute;left:calc(50% + 52px)}
 
 :root #inspector .segment svg,:root #inspector .shared-weather-options svg{width:16px;height:16px;stroke-width:1.5}
 
 /* State cues: shared opaque selection fill across lists, menus and segments. */
 :root #layers .layer-row[aria-pressed=true]::after{background:var(--c-toggle-on)}
 :root #layers .layer-row[aria-pressed=true]::before{background:#FFFFFF}
+:root #layers .layer-row[aria-pressed=false]:not(:disabled)::after{background:#8c9299;box-shadow:inset 0 0 0 1px #00000012}
+:root[data-theme=dark] #layers .layer-row[aria-pressed=false]:not(:disabled)::after{background:#666d76;box-shadow:inset 0 0 0 1px #ffffff18}
+:root #layers .layer-row[aria-pressed=false]:not(:disabled)::before{background:#fff;box-shadow:0 1px 2px #00000029}
+#parking-status{position:absolute;z-index:4;inset:0;display:flex;align-items:flex-start;gap:9px;padding:14px 16px;overflow:hidden;border-radius:inherit;pointer-events:none;color:var(--c-t1);font-variant-numeric:tabular-nums;opacity:1;visibility:visible;transition:opacity 250ms linear,visibility 0s linear}
+#parking-status[hidden]{display:flex!important;opacity:0;visibility:hidden;transition:opacity 250ms linear,visibility 0s linear 250ms}
+.parking-gear{width:24px;height:24px;flex:none;display:block;margin-top:5px}
+.parking-gear svg{width:100%;height:100%;overflow:visible}
+.parking-gear circle{fill:none;stroke:currentColor;stroke-width:3;opacity:.4}
+.parking-gear text{fill:currentColor;text-anchor:middle;font-family:Arial,sans-serif;font-size:20px;font-weight:600}
+#parking-status[data-executing=true] .parking-ring{color:var(--c-parking-active);opacity:1}
+:root[data-theme=dark]{--c-parking-active:#2865ba}
+.parking-copy{display:flex;flex-direction:column;gap:4px}
+.parking-instruction{font-size:13px;font-weight:500;line-height:1.23;white-space:nowrap}
+.parking-reminder{font-size:11px;font-weight:400;line-height:1.27;color:var(--c-t2)}
+@media(max-width:959px){#parking-status{padding:10px 12px;gap:8px}.parking-gear{width:24px;height:24px;margin-top:4px}.parking-copy{gap:3px}.parking-instruction{font-size:12px;line-height:1.25}.parking-reminder{font-size:11px;line-height:1.27}}
 @media(forced-colors:active){
  :root #inspector .segment-indicator,:root .shell-vehicle-menu [aria-checked=true]{outline:1px solid Highlight;outline-offset:-1px}
  :root #layers .layer-row[aria-pressed=true]::after{background:Highlight}
  :root #layers .layer-row[aria-pressed=true]::before{background:HighlightText}
 }
+
+
+/* Share one opacity transition with the HUD; keep building contours continuous. */
+#parking-status::before{content:"";position:absolute;z-index:-1;inset:0 0 auto;height:128px;pointer-events:none;background:linear-gradient(to bottom,rgba(188,196,207,.76) 0%,rgba(188,196,207,.66) 28%,rgba(188,196,207,.4) 52%,rgba(188,196,207,.14) 76%,rgba(188,196,207,0) 100%)}
+:root[data-theme=dark] #parking-status::before{background:linear-gradient(to bottom,rgba(20,24,29,.7) 0%,rgba(20,24,29,.6) 28%,rgba(20,24,29,.36) 52%,rgba(20,24,29,.12) 76%,rgba(20,24,29,0) 100%)}
+@media(prefers-reduced-motion:reduce){#parking-status{transition-duration:120ms,0s}#parking-status[hidden]{transition-duration:120ms,0s;transition-delay:0s,120ms}}

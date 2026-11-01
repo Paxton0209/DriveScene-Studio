@@ -15,7 +15,7 @@ const source=contents
  function setTrafficAppearance(){}
  const readyTrafficModel=()=>Promise.resolve();`);
 const {createTrafficSystem}=await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
-const factor=w=>1-.12*(w.overcast||0)-.22*(w.rain||0)-.38*(w.snow||0);
+const factor=(w,id)=>1-.12*(w.overcast||0)-(['05','08'].includes(id)?.22:.25)*(w.rain||0)-(['05','08'].includes(id)?.38:.25)*(w.snow||0);
 function fixture(id,weights){
  let time=1000;
  const car=new THREE.Group();car.position.set(1.85,.02,14);
@@ -24,19 +24,19 @@ function fixture(id,weights){
  traffic.update(false);
  return {world,traffic,tick(playing=true){time+=100;traffic.update(playing,16.8);}};
 }
-function assertWeatherEntry(slots,weights){
+function assertWeatherEntry(slots,weights,id){
  for(const slot of slots.filter(s=>s.route)){
-  assert.ok(Math.abs(slot.speed-slot.desiredSpeed*factor(weights))<1e-12,`${slot.id} starts at weather speed`);
+  assert.ok(Math.abs(slot.speed-slot.desiredSpeed*factor(weights,id))<1e-12,`${slot.id} starts at weather speed`);
   assert.ok(slot.desiredSpeed>=9,'desired speed remains the unscaled baseline');
  }
 }
 
 test('Initial traffic uses current weather exactly once in every driving layout',()=>{
- for(const id of ['02','03','06','07','05','08'])for(const weights of [{},{rain:1},{snow:1},{overcast:.2,rain:.3,snow:.5}]){
+ for(const id of ['02','09','03','06','07','05','08'])for(const weights of [{},{rain:1},{snow:1},{overcast:.2,rain:.3,snow:.5}]){
   const {traffic}=fixture(id,weights);
-  assertWeatherEntry(traffic.draftCapture().slots,weights);
+  assertWeatherEntry(traffic.draftCapture().slots,weights,id);
   traffic.setEnabled(false);traffic.setEnabled(true);
-  assertWeatherEntry(traffic.draftCapture().slots,weights);
+  assertWeatherEntry(traffic.draftCapture().slots,weights,id);
  }
 });
 
@@ -50,7 +50,7 @@ test('Recycled traffic retains lane differences and enters at rain/snow speed',(
   traffic.draftRestore(snapshot);tick();
   const recycled=traffic.draftCapture().slots.filter(s=>s.route);
   assert.ok(recycled.every(s=>s.spawns>=2));
-  assertWeatherEntry(recycled,weights);
+  assertWeatherEntry(recycled,weights,id);
  }
 });
 
@@ -66,5 +66,5 @@ test('Weather changes decelerate existing traffic smoothly while new entries use
   assert.ok(a.speed-b.speed<=.22+1e-12,'existing traffic keeps bounded deceleration');
  }
  traffic.setEnabled(false);traffic.setEnabled(true);
- assertWeatherEntry(traffic.draftCapture().slots,{snow:1});
+ assertWeatherEntry(traffic.draftCapture().slots,{snow:1},'02');
 });

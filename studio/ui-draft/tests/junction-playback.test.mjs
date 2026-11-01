@@ -33,7 +33,7 @@ test('Driving path uses physical cruise speed and keeps it in a paused frame',()
   const world={draftCruiseSpeed:7,playing:false};assert.equal(drivingSpeed(world,id),7);
   assert.equal(forwardPathEnd(10,drivingSpeed(world,id),300)-10,17.5);
  }
- assert.equal(drivingSpeed({},'06'),13.9);assert.equal(drivingSpeed({},'02'),16.8);
+ assert.equal(drivingSpeed({},'06'),80/3.6);assert.equal(drivingSpeed({},'02'),80/3.6);
  assert.ok(drivingSpeed({draftWeather:{weights:{snow:1}}},'02')<drivingSpeed({},'02'));
 });
 

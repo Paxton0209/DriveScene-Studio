@@ -1,3 +1,4 @@
+import {stableShadowFilter} from './stable-shadow-filter.mjs';
 import {readFile} from 'node:fs/promises';
 
 // Three's compile() does not initialize per-material clipping state in this
@@ -22,6 +23,6 @@ export function patchClippingPrecompile(source){
 
 export function clippingPrecompilePlugin(){return {name:'draft-clipping-precompile',setup(build){
  build.onLoad({filter:/\/three\/build\/three\.module\.js$/},async({path})=>({
-  contents:patchClippingPrecompile(await readFile(path,'utf8')),loader:'js',resolveDir:path.slice(0,path.lastIndexOf('/')),
+  contents:stableShadowFilter(patchClippingPrecompile(await readFile(path,'utf8'))),loader:'js',resolveDir:path.slice(0,path.lastIndexOf('/')),
  }));
 }};}

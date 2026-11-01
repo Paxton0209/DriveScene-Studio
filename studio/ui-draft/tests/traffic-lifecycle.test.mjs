@@ -109,7 +109,7 @@ test('Repeated road recycling retains pool meshes/materials and applies current 
    const next=traffic.draftCapture().slots.filter(slot=>slot.route);
    assert.ok(next.every((slot,i)=>slot.spawns===spawns[i]+1));
    for(const slot of next){
-    const factor=1-.22*(weights.rain||0)-.38*(weights.snow||0);
+    const factor=1-.25*(weights.rain||0)-.25*(weights.snow||0);
     assert.ok(Math.abs(slot.speed-slot.desiredSpeed*factor)<1e-12);
    }
    assert.equal(runtime.records.length,start,'recycling allocates no new model/material');

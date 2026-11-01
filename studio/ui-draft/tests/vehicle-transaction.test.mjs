@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createProject,setProjectVehicle,setProjectWeather,setProjectOption} from '../artboards.js';
 const source=await readFile(new URL('../draft.js',import.meta.url),'utf8');
-const apply=source.slice(source.indexOf('async function applyParam('),source.indexOf('\nfunction toggleAssist('));
+const apply=source.slice(source.indexOf('async function applyParam('),source.indexOf('\nfunction toggleLayer('));
 const scene=source.slice(source.indexOf('function selectScene('),source.indexOf('\nasync function performScene('));
 const theme=source.slice(source.indexOf('async function setTheme('),source.indexOf("\n$('theme').addEventListener"));
 function harness(){

@@ -1,7 +1,6 @@
 (async()=>{
  if(window.__feedback160)return;
  const qa=window.__feedback160={version:'feedback171-perf-20261027',errors:[],patched:new WeakSet(),events:[],floors:new WeakMap()};
- const style=document.createElement('style');style.textContent='#parking-flow,#assist,#parking-hint,#exit-directions{display:none!important}';document.head.append(style);
  // Saved review profile shares one light Parking state.
  // Scene material updates consume these fixed values in place.
  // Temporary review: reuse the existing export image, with no new inspector entry.
@@ -31,7 +30,7 @@
   "white": 19,
   "body": 104,
   "cool": 21,
-  "roof": 130,
+  "roof": 92,
   "side": 53,
   "glass": 104,
   "wheels": 100,

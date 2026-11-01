@@ -12,7 +12,7 @@ export function updateParkingOcclusion(world,parking,target,route=[]){
  const time=world.draftTime??0,dt=Math.min(.1,Math.max(.016,(time-state.time)/1000));state.time=time;
  for(const item of state.items){const o=item.object;if(!o.visible&&!o.userData.trafficVehicle)continue;
   // Reveal moves each tree vertically; keep its existing box on the live tree.
-  if(o.parent===world.vegetation||o.userData.trafficVehicle&&((o.userData.draftTrafficGrowth??1)<1||item.growth!==o.userData.draftTrafficGrowth)){o.updateWorldMatrix(true,true);item.box.setFromObject(o);item.growth=o.userData.draftTrafficGrowth;}
+  if(o.userData.draftViewColumn||o.parent===world.vegetation||o.userData.trafficVehicle&&((o.userData.draftTrafficGrowth??1)<1||item.growth!==o.userData.draftTrafficGrowth)){o.updateWorldMatrix(true,true);item.box.setFromObject(o);item.growth=o.userData.draftTrafficGrowth;}
   const hit=o.visible&&targets.some(p=>{const direction=p.clone().sub(world.camera.position),length=direction.length();const intersection=new THREE.Ray(world.camera.position,direction.normalize()).intersectBox(item.box,new THREE.Vector3());return intersection&&intersection.distanceTo(world.camera.position)<length-.25;});
   item.hit=hit;item.floor=o.userData.trafficVehicle?.90:.10;item.alpha=THREE.MathUtils.lerp(item.alpha,hit?item.floor:1,1-Math.exp(-dt*5));
   if(!item.materials){

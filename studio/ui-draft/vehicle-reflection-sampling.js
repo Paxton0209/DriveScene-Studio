@@ -1,3 +1,11 @@
+// Enclose the rotated body continuously; a binary 30-degree orientation switch
+// changes the floor response abruptly while the reversing car turns smoothly.
+export function updateVehicleReflectionFootprint(car,target){
+ const spec=car.userData.vehicleSpec||{},width=(spec.width||1.9)+.55,length=(car.userData.physicalLength||spec.length||4.85)+.45;
+ const c=Math.abs(Math.cos(car.rotation.y)),s=Math.abs(Math.sin(car.rotation.y));
+ return target.set(car.position.x,car.position.z,(width*c+length*s)*.75,(length*c+width*s)*.75);
+}
+
 // Weight colour and coverage by source height before filtering. Raw roof/window
 // depth is discontinuous; reapplying it after blur creates detached arches and
 // repeating bands. These are the existing horizontal/vertical car blur passes.

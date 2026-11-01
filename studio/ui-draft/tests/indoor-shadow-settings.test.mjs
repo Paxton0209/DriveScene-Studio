@@ -7,7 +7,7 @@ import {syncIndoorVehicleContacts,updateIndoorContactOpacity,syncParkingCastShad
 test('Fixed Indoor endpoints preserve the selected theme values independently of retired tuning storage',()=>{
  const dark=indoorShadowValues('dark'),light=indoorShadowValues('light');
  assert.deepEqual(dark,{egoShadow:3.21,trafficShadow:1.27,egoOpacity:1,trafficOpacity:1,egoWidth:1,egoLength:1,trafficWidth:1,trafficLength:1,castOpacity:.50,castSoftness:2.9,reflectionGain:2.7,reflectionRange:1.5,reflectionBlur:2.25});
- assert.deepEqual(light,{egoShadow:3.5,trafficShadow:1.54,egoOpacity:.86,trafficOpacity:.71,egoWidth:.99,egoLength:1.39,trafficWidth:1,trafficLength:1.23,castOpacity:.50,castSoftness:2.9,reflectionGain:3,reflectionRange:1.5,reflectionBlur:4});
+ assert.deepEqual(light,{egoShadow:2,trafficShadow:2,egoOpacity:.90,trafficOpacity:.90,egoWidth:1.1,egoLength:1.2,trafficWidth:1.1,trafficLength:1.2,castOpacity:.50,castSoftness:2.9,reflectionGain:3,reflectionRange:1.5,reflectionBlur:4});
  assert.deepEqual(indoorShadowValues('light',{egoShadow:0}),light);
  dark.egoShadow=0;assert.equal(indoorShadowValues('dark').egoShadow,3.21);
 });
@@ -35,7 +35,7 @@ test('Light-source softness invalidates the real map only when needed and restor
  syncIndoorShadowLight(world,true);world.sun.shadow.radius=7;syncIndoorShadowLight(world,false);assert.equal(world.sun.shadow.radius,7);
 });
 
-test('Indoor VSM receiver cannot shadow itself and does not replace the outdoor receiver depth',()=>{
+test('Indoor and Outdoor VSM receivers cannot shadow themselves',()=>{
  const receiverDepth=new THREE.MeshDepthMaterial(),outdoorDepth=new THREE.MeshDepthMaterial();
  const world={state:{mode:'light'},receiverDepth,parkingShadow:new THREE.Mesh(new THREE.PlaneGeometry(1000,1000),new THREE.ShadowMaterial()),renderer:{shadowMap:{needsUpdate:false}},draftParkingFinish:{castOpacity:{value:.76}}};
  const car=new THREE.Mesh(new THREE.BoxGeometry(),new THREE.MeshBasicMaterial());
@@ -48,7 +48,7 @@ test('Indoor VSM receiver cannot shadow itself and does not replace the outdoor 
  assert.equal(world.renderer.shadowMap.needsUpdate,true);
  world.parkingShadow=new THREE.Mesh();world.parkingShadow.customDepthMaterial=outdoorDepth;
  syncParkingCastShadows(world,[ego,car],false);
- assert.equal(world.parkingShadow.customDepthMaterial,outdoorDepth);
+ assert.equal(world.parkingShadow.customDepthMaterial,receiverDepth);
  assert.equal(plate.castShadow,false);
 });
 
@@ -75,4 +75,15 @@ test('Parking shadow precision restores the road frustum and allocation without 
  syncParkingShadowPrecision(world,true);assert.equal(camera.left,-36);assert.equal(shadow.mapSize.x,4096);
  world.renderer.shadowMap.needsUpdate=false;syncParkingShadowPrecision(world,true);assert.equal(world.renderer.shadowMap.needsUpdate,false);
  syncParkingShadowPrecision(world,false);assert.deepEqual([camera.left,camera.right,camera.top,camera.bottom],[-72,72,90,-72]);assert.equal(shadow.mapSize.x,2048);
+});
+
+test('Parking penumbra uses dense samples and restores road sampling on exit',()=>{
+ const camera=new THREE.OrthographicCamera(-72,72,90,-72,1,260),shadow={camera,mapSize:new THREE.Vector2(2048,2048),radius:4,blurSamples:16};
+ const world={state:{id:'18'},sun:{shadow},renderer:{shadowMap:{needsUpdate:false}}};
+ syncIndoorShadowLight(world,true);
+ assert.equal(shadow.radius,4096/72*.48);assert.equal(shadow.blurSamples,32);
+ world.renderer.shadowMap.needsUpdate=false;syncIndoorShadowLight(world,true);
+ assert.equal(world.renderer.shadowMap.needsUpdate,false);
+ syncIndoorShadowLight(world,false);assert.equal(shadow.blurSamples,16);
+ assert.equal(shadow.mapSize.x,2048);
 });

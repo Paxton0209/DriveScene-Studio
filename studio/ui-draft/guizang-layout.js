@@ -56,7 +56,11 @@ weatherOptions.addEventListener('keydown',event=>{
 const playback=document.createElement('div');
 playback.id='canvas-playback';
 byId('artboard').append(playback);
-playback.append(transport,byId('indicator-mute'));
+playback.append(transport);
+const parkingStatus=document.createElement('div');
+parkingStatus.id='parking-status';parkingStatus.hidden=true;
+parkingStatus.innerHTML='<span class="parking-gear"><svg viewBox="0 0 40 40" aria-hidden="true"><circle class="parking-ring" cx="20" cy="20" r="18.5"/><text class="parking-letter" x="20" y="27"></text></svg></span><span class="parking-copy"><span class="parking-instruction"></span><span class="parking-reminder"></span></span>';
+byId('artboard').append(parkingStatus);
 // Compare existing neutral controls with the approved path-blue proposal.
 if(new URLSearchParams(location.search).get('controls')==='blue')document.documentElement.dataset.controls='blue';
 const sync=()=>{

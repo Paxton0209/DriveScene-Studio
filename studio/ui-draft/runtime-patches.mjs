@@ -282,8 +282,8 @@ export function isolatedRuntimePlugin(){return {name:'isolated-ui-draft',setup(b
  if(name==='activation-sweep.js')source=refineActivation(source).replaceAll('performance.now()','(world.draftTime??performance.now())');
  if(name==='parking-reference.js'){source="import {createIndoorDetails} from '../ui-draft/parking-materials.js';\n"+source;source=replace(source,'world.parkingReplica={','createIndoorDetails(world);world.parkingReplica={');}
  if(name==='continuous-driving.js'){
-  source=replace(source,'const span=420,exit=65,speed=16.8;',`const span=420,exit=65;let speed=null;const cruise=()=>['06','07'].includes(world.state?.id)?13.9:16.8;
- function weatherFactor(){const w=world.draftWeather?.weights;return w?1-.12*(w.overcast||0)-.22*(w.rain||0)-.38*(w.snow||0):1;}`);
+  source=replace(source,'const span=420,exit=65,speed=16.8;',`const span=420,exit=65;let speed=null;const cruise=()=>80/3.6;
+ function weatherFactor(){const w=world.draftWeather?.weights;return w?1-.12*(w.overcast||0)-.25*(w.rain||0)-.25*(w.snow||0):1;}`);
   source=replace(source,'bind();const delta=Math.max(0,Math.min(.1,dt))*speed;distance+=delta;',`bind();const seconds=Math.max(0,Math.min(.1,dt)),reference=cruise()*weatherFactor(),prior=speed??reference;let target=reference;const traffic=world.trafficSystem?.audit();if(traffic?.visible)for(let i=0;i<traffic.positions.length;i++){const p=traffic.positions[i],lane=traffic.lanes[i],gap=world.car.position.z-p[2];if(lane.direction<0&&Math.abs(p[0]-world.car.position.x)<1.7&&gap>0)target=Math.min(target,Math.max(0,lane.speed+(gap-(6+prior*1.5))/3));}speed=prior+Math.max(-2.2*seconds,Math.min(.9*seconds,target-prior));const delta=(prior+speed)*.5*seconds;distance+=delta;world.draftCruiseSpeed=speed;`);
   source=replace(source,'pause();restore();distance=0;recycled=0;', 'pause();restore();distance=0;recycled=0;speed=null;world.draftCruiseSpeed=null;');
   // Rebind restores the outgoing root after world.lawns points at the incoming
@@ -368,12 +368,12 @@ export function isolatedRuntimePlugin(){return {name:'isolated-ui-draft',setup(b
   source="import {junctionTrafficPlan,isJunction,advanceJunctionTraffic,stoppedApproachZ} from '../ui-draft/junction-traffic.js';\n"+source;
   // Initial pending cars own their shadow materials, but share geometry.
   source=replace(source,'while(slot.car.children.length)slot.car.remove(slot.car.children[0]);','for(const material of new Set(slot.car.children.map(child=>child.material)))material?.dispose();for(const child of [...slot.car.children])slot.car.remove(child);');
-  source=replace(source,'slot.speed=route.speed+(random()-.5)*2.2;',`const reference=['06','07'].includes(world.state?.id)?13.9:16.8;slot.speed=isJunction(world.state?.id)?route.speed:reference*(route.direction>0?1.02:route.egoLane?.99:Math.abs(route.x)>7?1.025:1.055);slot.speed+=(random()-.5)*.5;`);
-  source=replace(source,'let target=slot.desiredSpeed;',`const weights=world.draftWeather?.weights,factor=weights?1-.12*(weights.overcast||0)-.22*(weights.rain||0)-.38*(weights.snow||0):1;let target=slot.desiredSpeed*factor;`);
+  source=replace(source,'slot.speed=route.speed+(random()-.5)*2.2;',`const reference=80/3.6;slot.speed=isJunction(world.state?.id)?route.speed:reference*(route.direction>0?1.02:route.egoLane?.99:Math.abs(route.x)>7?1.025:1.055);slot.speed+=(random()-.5)*.5;`);
+  source=replace(source,'let target=slot.desiredSpeed;',`const weights=world.draftWeather?.weights,factor=weights?1-.12*(weights.overcast||0)-(isJunction(world.state?.id)?.22:.25)*(weights.rain||0)-(isJunction(world.state?.id)?.38:.25)*(weights.snow||0):1;let target=slot.desiredSpeed*factor;`);
   source=replace(source,"const id=state.id;if(!", "const id=state.id;const junction=junctionTrafficPlan(id);if(junction)return junction;if(!");
   // Keep desiredSpeed as the clear-weather baseline. A newly entered car must
   // already match the current weather, including after it recycles offscreen.
-  source=replace(source,'slot.desiredSpeed=slot.speed;','slot.desiredSpeed=slot.speed;const weather=world.draftWeather?.weights;if(weather)slot.speed*=1-.12*(weather.overcast||0)-.22*(weather.rain||0)-.38*(weather.snow||0);if(isJunction(world.state?.id)){slot.cooldown=0;slot.car.position.set(route.x,.02,route.z);const offset=random()*24;if(route.axis===\'x\')slot.car.position.x-=route.direction*offset;else if(!recycled&&route.direction<0){const stop=stoppedApproachZ(route.direction,slot.car.userData.physicalLength,world.junctionDimensions?.markingEnd),end=Math.min(route.z+24,world.car.position.z-28);if(end>=stop){const start=Math.min(end,Math.max(stop,route.z-24));slot.car.position.z=start+offset/24*(end-start);}else slot.car.position.z=world.car.position.z+48+offset;}else slot.car.position.z-=route.direction*offset;return;}');
+  source=replace(source,'slot.desiredSpeed=slot.speed;','slot.desiredSpeed=slot.speed;const weather=world.draftWeather?.weights;if(weather)slot.speed*=1-.12*(weather.overcast||0)-(isJunction(world.state?.id)?.22:.25)*(weather.rain||0)-(isJunction(world.state?.id)?.38:.25)*(weather.snow||0);if(isJunction(world.state?.id)){slot.cooldown=0;slot.car.position.set(route.x,.02,route.z);const offset=random()*24;if(route.axis===\'x\')slot.car.position.x-=route.direction*offset;else if(!recycled&&route.direction<0){const stop=stoppedApproachZ(route.direction,slot.car.userData.physicalLength,world.junctionDimensions?.markingEnd),end=Math.min(route.z+24,world.car.position.z-28);if(end>=stop){const start=Math.min(end,Math.max(stop,route.z-24));slot.car.position.z=start+offset/24*(end-start);}else slot.car.position.z=world.car.position.z+48+offset;}else slot.car.position.z-=route.direction*offset;return;}');
   source=replace(source,"if(route.axis==='x'){car.position.x+=slot.speed", "if(isJunction(state.id)){advanceJunctionTraffic(slot,dt,world);continue;}if(route.axis==='x'){car.position.x+=slot.speed");
   source=replace(source,'const egoLane=active.filter','const egoLane=(isJunction(state.id)?[]:active).filter');
   source=replace(source,"setTrafficAppearance(car,state.mode==='dark',slot.alpha)","setTrafficAppearance(car,state.mode==='dark',slot.alpha,world.draftThemeTone?.value??(state.mode==='dark'?1:0))");
@@ -421,23 +421,24 @@ export function isolatedRuntimePlugin(){return {name:'isolated-ui-draft',setup(b
   source=replace(source,'...(vehicle?[this.car]:[]),...(trafficVisible?', '...(vehicle?[this.car]:[]),...parkingVehicles,...(trafficVisible?');
   source=replace(source,'this.car.visible=vehicle;this.tailReflection.visible=vehicle;', 'for(const o of draftOverlays)o.visible=true;this.car.visible=vehicle;this.tailReflection.visible=vehicle;');
   source=replace(source,'const reflectedVehicles=[','(this.draftEgoReflectionCount??={value:0}).value=vehicle?1:0;const reflectedVehicles=[');
-  source="import {vehicleReflectionPrefilter} from '../ui-draft/vehicle-reflection-sampling.js';\n"+source;
+  source="import {vehicleReflectionPrefilter,updateVehicleReflectionFootprint} from '../ui-draft/vehicle-reflection-sampling.js';\n"+source;
   source=replace(source,'this.carBlurQuad=new FullScreenQuad(this.carBlurMaterial);',`this.carBlurMaterial.fragmentShader=vehicleReflectionPrefilter;Object.assign(this.carBlurMaterial.uniforms,{reflectionDepth:this.carReflectionDepth,reflectionInverse:this.carReflectionInverse,absorbSource:{value:1},reflectionTone:{value:0},groundY:{value:0}});this.carBlurQuad=new FullScreenQuad(this.carBlurMaterial);`);
   // Move the existing inverse before source-height absorption. The fullscreen
   // blur passes do not change the capture camera, so the receiver reuses it.
   source=replace(source,'this.carReflectionInverse.value.copy(this.carMirror.camera.projectionMatrix).multiply(this.carMirror.camera.matrixWorldInverse).invert();','');
   source=replace(source,'this.carBlurMaterial.uniforms.source.value=this.carMirror.getRenderTarget().texture;',`this.carReflectionInverse.value.copy(this.carMirror.camera.projectionMatrix).multiply(this.carMirror.camera.matrixWorldInverse).invert();this.carBlurMaterial.uniforms.absorbSource.value=1;this.carBlurMaterial.uniforms.reflectionTone.value=mode==='dark'?1:0;this.carBlurMaterial.uniforms.groundY.value=this.carMirror.position.y;this.carBlurMaterial.uniforms.source.value=this.carMirror.getRenderTarget().texture;`);
   source=replace(source,'this.carBlurMaterial.uniforms.source.value=this.carBlurTargets[0].texture;', 'this.carBlurMaterial.uniforms.absorbSource.value=0;this.carBlurMaterial.uniforms.source.value=this.carBlurTargets[0].texture;');
-  // The road receiver must end near the real footprint, not four metres aft.
-  source=replace(source,'(horizontal?1.1:length/2)+4.0','(horizontal?(o.userData.vehicleSpec?.width||1.9)+.55:length+.45)*.75');
-  source=replace(source,'(horizontal?length/2:1.1)+.5','(horizontal?length+.45:(o.userData.vehicleSpec?.width||1.9)+.55)*.75');
+  // Keep the short floor response attached through every heading, including
+  // the old 30-degree orientation threshold during parking reverse.
+  source=replace(source,'reflectedVehicles.slice(0,12).forEach((o,i)=>{const length=o.userData.physicalLength||o.userData.vehicleSpec?.length||4.85,horizontal=Math.abs(Math.sin(o.rotation.y))>.5;this.vehicleFootprints.value[i].set(o.position.x,o.position.z,(horizontal?length/2:1.1)+.5,(horizontal?1.1:length/2)+4.0);});',
+   'reflectedVehicles.slice(0,12).forEach((o,i)=>updateVehicleReflectionFootprint(o,this.vehicleFootprints.value[i]));');
   // Match roughness in UV space to the accepted 1408x792 preview at every raster.
   source=replace(source,'this.carBlurMaterial.uniforms.direction.value.set(2/this.width,0)','this.carBlurMaterial.uniforms.direction.value.set(3.5/1408,0)');
   source=replace(source,'this.carBlurMaterial.uniforms.direction.value.set(0,2/this.height)','this.carBlurMaterial.uniforms.direction.value.set(0,3.5/792)');
 
   // The simulation and UI animations share frames; do not force synchronous
   // geometry projection/audit work into every animation frame.
-  source=replace(source,'this.egoContact.visible=vehicle;this.egoContact.position.set','this.egoContact.rotation.y=this.car.rotation.y;this.egoContact.visible=vehicle;this.egoContact.position.set');
+  source=replace(source,'this.egoContact.visible=vehicle;this.egoContact.position.set','this.egoContact.rotation.y=this.car.rotation.y;this.egoContact.visible=vehicle&&(!isParking||dark);this.egoContact.position.set');
   // Moving buildings and their reflection must be captured on the same frame.
   // Reusing every third capture makes the reflection visibly step behind them.
   source=replace(source,'const construction=[];for(const o of this.root.children)', 'const laneMeshes=[];this.root.traverse(o=>{if(o.userData.laneOffset!==undefined)laneMeshes.push(o)});const construction=[];for(const o of this.root.children)');

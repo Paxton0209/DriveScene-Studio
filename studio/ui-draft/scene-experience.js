@@ -1,13 +1,16 @@
 import {createTrafficReveal,applyTrafficGrowth,trafficEntryOpacity} from './traffic-reveal.js';
-import {parkingTargetFragment,parkingPathFragment,syncIndoorVehicleContacts,updateIndoorContactOpacity,syncParkingCastShadows,createParkingSightTarget} from './parking-materials.js';
+import {parkingTargetFragment,parkingPathFragment,parkingStopFragment,softenIndoorTraffic,syncIndoorVehicleContacts,syncIndoorColumns,updateIndoorContactOpacity,syncParkingCastShadows,syncOutdoorLawns,createParkingSightTarget} from './parking-materials.js';
 import * as THREE from 'three';
 import {vehicleFrame} from '../engine/framing.js';
 import {fitParkingCamera,sampleParkingView,parkingFrame,captureParkingView,parkingViewPose,applyParkingView} from './parking-camera.js';
 import {updateParkingOcclusion} from './parking-occlusion.js';
-import {parkingPose,parkingTiming,parkingPlan,exitPose,localBay,worldPose,reverseReplan} from './parking-motion.js';
+import {parkingVehicle} from './parking-kinematics.js';
+import {parkingPose,parkingTiming,parkingSegment,parkingPlan,exitPose,localBay,worldPose,reverseReplan} from './parking-motion.js';
 import {createTrafficVehicle,readyTrafficModel,setTrafficAppearance} from '../engine/traffic-model.js';
 
 const clamp=THREE.MathUtils.clamp, smooth=t=>{t=clamp(t,0,1);return t*t*(3-2*t)};
+// One slow breath confirms arrival before the complete bay fades away.
+const completionRiseMs=900,completionFallMs=900,completionBreathMs=completionRiseMs+completionFallMs,completionCycles=1,completionPulseMs=completionBreathMs*completionCycles,completionFadeMs=600,completionDuration=completionPulseMs+completionFadeMs;
 export const isParking=id=>['10','14','15','16','17','18','19'].includes(id);
 
 // One continuous sky shader. Weather never replaces or reloads the scene.
@@ -39,6 +42,7 @@ export function weatherFrame(world,weather,material,palette){
 export function installRollingWheels(car){
  if(car.userData.draftRolling)return car.userData.draftRolling;
  const wheels=car.userData.vehicleSpec?.wheels||[],distance={value:0},steer={value:0};
+ const centres=wheels.map(w=>(w.min[2]+w.max[2])/2),front=centres.filter(z=>z<0),rear=centres.filter(z=>z>0),wheelbase={value:front.length&&rear.length?rear.reduce((a,b)=>a+b,0)/rear.length-front.reduce((a,b)=>a+b,0)/front.length:2.85};
  if(!wheels.length)return null;
  car.updateMatrixWorld(true);const inv=new THREE.Matrix4().copy(car.matrixWorld).invert();let affected=0;
  car.traverse(mesh=>{
@@ -53,10 +57,10 @@ export function installRollingWheels(car){
    }
   }
   if(!count)return;affected+=count;mesh.geometry=mesh.geometry.clone();mesh.geometry.setAttribute('draftAxle',new THREE.BufferAttribute(data,4));
-  const patch=material=>{const copy=material.clone(),compile=material.onBeforeCompile,key=material.customProgramCacheKey();copy.onBeforeCompile=(shader,renderer)=>{compile.call(copy,shader,renderer);Object.assign(shader.uniforms,{draftWheelDistance:distance,draftWheelSteer:steer,draftToCar:{value:toCar},draftFromCar:{value:fromCar}});
-   shader.vertexShader='attribute vec4 draftAxle;uniform float draftWheelDistance;uniform float draftWheelSteer;uniform mat4 draftToCar;uniform mat4 draftFromCar;\n'+shader.vertexShader;
-   shader.vertexShader=shader.vertexShader.replace('#include <beginnormal_vertex>','#include <beginnormal_vertex>\nfloat wheelAngle=-draftWheelDistance/max(.25,draftAxle.y);float wc=cos(wheelAngle),ws=sin(wheelAngle);mat3 wheelTurn=mat3(1.,0.,0.,0.,wc,ws,0.,-ws,wc);if(draftAxle.z<0.){float sc=cos(draftWheelSteer),ss=sin(draftWheelSteer);wheelTurn=mat3(sc,0.,-ss,0.,1.,0.,ss,0.,sc)*wheelTurn;}if(draftAxle.w>.5)objectNormal=mat3(draftFromCar)*wheelTurn*mat3(draftToCar)*objectNormal;');
-   shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nif(draftAxle.w>.5){vec3 wheelP=(draftToCar*vec4(transformed,1.)).xyz;wheelP=wheelTurn*(wheelP-draftAxle.xyz)+draftAxle.xyz;transformed=(draftFromCar*vec4(wheelP,1.)).xyz;}');};copy.customProgramCacheKey=()=>key+'-rolling-axle-v1';return copy;};
+  const patch=material=>{const copy=material.clone(),compile=material.onBeforeCompile,key=material.customProgramCacheKey();copy.onBeforeCompile=(shader,renderer)=>{compile.call(copy,shader,renderer);Object.assign(shader.uniforms,{draftWheelDistance:distance,draftWheelSteer:steer,draftWheelbase:wheelbase,draftToCar:{value:toCar},draftFromCar:{value:fromCar}});
+   shader.vertexShader='attribute vec4 draftAxle;uniform float draftWheelDistance;uniform float draftWheelSteer;uniform float draftWheelbase;uniform mat4 draftToCar;uniform mat4 draftFromCar;\n'+shader.vertexShader;
+   shader.vertexShader=shader.vertexShader.replace('#include <beginnormal_vertex>','#include <beginnormal_vertex>\nfloat wheelAngle=-draftWheelDistance/max(.25,draftAxle.y);float wc=cos(wheelAngle),ws=sin(wheelAngle);mat3 wheelTurn=mat3(1.,0.,0.,0.,wc,ws,0.,-ws,wc);if(draftAxle.z<0.){float tangent=tan(draftWheelSteer);float wheelSteer=atan(draftWheelbase*tangent/(draftWheelbase+draftAxle.x*tangent));float sc=cos(wheelSteer),ss=sin(wheelSteer);wheelTurn=mat3(sc,0.,-ss,0.,1.,0.,ss,0.,sc)*wheelTurn;}if(draftAxle.w>.5)objectNormal=mat3(draftFromCar)*wheelTurn*mat3(draftToCar)*objectNormal;');
+   shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nif(draftAxle.w>.5){vec3 wheelP=(draftToCar*vec4(transformed,1.)).xyz;wheelP=wheelTurn*(wheelP-draftAxle.xyz)+draftAxle.xyz;transformed=(draftFromCar*vec4(wheelP,1.)).xyz;}');};copy.customProgramCacheKey=()=>key+'-rolling-ackermann-v2';return copy;};
   mesh.material=Array.isArray(mesh.material)?mesh.material.map(patch):patch(mesh.material);
  });
  return car.userData.draftRolling={distance,steer,affected};
@@ -66,19 +70,23 @@ export function installRollingWheels(car){
 export function createParkingMotion(world){
  const trafficReveal=createTrafficReveal(),preparedGroups=new WeakMap();
  const axis=new THREE.Vector3(0,1,0),raised=new THREE.Vector3(0,22,14),bev=new THREE.Vector3(0,32,.015);
- let root,group,target=null,highlight,paths=[],stops=[],cars=[],occupied=[],active=false,elapsed=0,done=false,origin=null,modelReady=false,trafficVisible=false,cameraTween=null,ownedOffset=null,mode='in',exitChoice=0,exited=false,assistOn=false,lastPath='',routeYaw=0,cameraHeading=0,view='default',cameraState=null,cameraGoal=null,lastCameraTime=0,cameraVelocity={position:new THREE.Vector3(),aim:new THREE.Vector3(),anchor:0},replan=null,paused=false,resumeView='raised',badges=[],selectedAt=0;
+ let root,group,target=null,highlight,paths=[],stops=[],cars=[],occupied=[],active=false,elapsed=0,done=false,origin=null,modelReady=false,trafficVisible=false,cameraTween=null,ownedOffset=null,mode='in',exitChoice=0,exited=false,assistOn=false,lastPath='',routeYaw=0,cameraHeading=0,view='default',cameraState=null,cameraGoal=null,lastCameraTime=0,cameraVelocity={position:new THREE.Vector3(),aim:new THREE.Vector3(),anchor:0},replan=null,paused=false,resumeView='raised',badges=[],selectedAt=0,completionAt=null;
+ let riseStart=.4,riseDuration=1,manualView=null,playbackReturn=null;
+ const cameraOffset=kind=>kind==='bev'?bev:kind==='raised'?raised:new THREE.Vector3(0,11,22);
  let readyPromise;function ensureReady(){return readyPromise??=readyTrafficModel(null,'model-y').then(()=>{modelReady=true;if(world.state&&!world.initializingScene)world.renderFrame()}).catch(error=>{readyPromise=null;throw error})}
  const now=()=>world.draftTime??0;
  const own=mesh=>{mesh.userData.draftOwned=true;group.add(mesh);return mesh;};
  function currentCamera(){return {...captureParkingView(world.camera,world.car,world.cameraAim),anchor:world.framing?.targetCenter??.5};}
  function goalFor(kind){
+  // Keep the selected elevation and align the vehicle nose with screen up.
+  if(manualView)return parkingViewPose(world.camera,world.car,manualView);
   if(kind==='default'||!target||cameraState?.reference)return parkingViewPose(world.camera,world.car,kind);
   const car=world.car.position,focus=car.clone().add(new THREE.Vector3(0,.85,0));
   const reverse=mode==='in'&&!done&&target?(replan?clamp(elapsed/replan.duration,0,1):clamp((elapsed-timing().forward-timing().shift)/timing().reverse,0,1)):0;
 
   const extent=target?Math.hypot(target.x-car.x,target.z-car.z):0;
   const distance=Math.max(30,Math.min(50,30+extent*.35));
-  const top=kind==='bev'?1:kind==='raised'&&!paused?smooth(clamp((reverse-.14)/.72,0,1)):0;
+  const top=kind==='bev'?1:kind==='raised'?smooth(clamp((reverse-.14)/.72,0,1)):0;
   const elevation=THREE.MathUtils.lerp(.91,Math.PI/2-.001,top);
   const offset=new THREE.Vector3(0,Math.sin(elevation),Math.cos(elevation)).applyAxisAngle(axis,cameraHeading);
   const points=[];
@@ -95,11 +103,12 @@ export function createParkingMotion(world){
  }
  function camera(){
   if(!ownedOffset)return;
+  if(paused&&(!cameraTween?.manual||playbackReturn!==null)){lastCameraTime=now();return;}
   const time=now(),dt=clamp((time-lastCameraTime)/1000,0,.1);lastCameraTime=time;
   cameraGoal=goalFor(view);
   const previous={position:cameraState.position.clone(),aim:cameraState.aim.clone(),anchor:cameraState.anchor};
-  if(cameraTween?.manual||!cameraTween&&(cameraState.reference||!target)){
-   cameraGoal=parkingViewPose(world.camera,world.car,view);
+  if(manualView||cameraTween?.manual||!cameraTween&&(cameraState.reference||!target)){
+   cameraGoal=goalFor(view);
    cameraState=cameraTween?sampleParkingView(cameraTween.from,cameraGoal,globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches?10000:time-cameraTween.start,world.car.position.clone().add(new THREE.Vector3(0,.85,0))):cameraGoal;
    if(cameraState.complete)cameraTween=null;
    if(dt>0){cameraVelocity.position.copy(cameraState.position).sub(previous.position).divideScalar(dt);cameraVelocity.aim.copy(cameraState.aim).sub(previous.aim).divideScalar(dt);cameraVelocity.anchor=(cameraState.anchor-previous.anchor)/dt;}
@@ -107,8 +116,18 @@ export function createParkingMotion(world){
    const actual=vehicleFrame(world.car,world.camera);world.framing={group:view==='default'?'low':'high',targetCenter:cameraState.anchor,targetBottom:actual.bottom,vehicleFrame:actual};
    return;
   }
-  if(cameraTween){const u=clamp((time-cameraTween.start)/cameraTween.duration,0,1),t=smooth(u),v=u*(1-u)*(1-u)*cameraTween.duration/1000;
+  if(cameraTween){const u=clamp(cameraTween.legEnd!==undefined?(elapsed-cameraTween.legStart)/Math.max(.001,cameraTween.legEnd-cameraTween.legStart):(time-cameraTween.start)/cameraTween.duration,0,1),t=smooth(u),v=u*(1-u)*(1-u)*cameraTween.duration/1000;
    for(const key of ['position','aim'])cameraState[key].copy(cameraTween.from[key]).lerp(cameraGoal[key],t).addScaledVector(cameraTween.velocity[key],v);
+   // Lift around a single vehicle pivot; avoid a diagonal dolly during rise.
+   if((cameraTween.legEnd!==undefined||cameraTween.duration===1000)&&!cameraTween.manual){
+    const pivot=world.car.position.clone().add(new THREE.Vector3(0,.85,0)),startPivot=cameraTween.pivot||pivot,a=new THREE.Spherical().setFromVector3(cameraTween.from.position.clone().sub(startPivot)),b=new THREE.Spherical().setFromVector3(cameraGoal.position.clone().sub(pivot));
+    if(cameraTween.legEnd!==undefined)a.theta+=cameraHeading-cameraTween.heading;
+    b.theta=a.theta+Math.atan2(Math.sin(b.theta-a.theta),Math.cos(b.theta-a.theta));
+    cameraState.position.setFromSpherical(new THREE.Spherical(THREE.MathUtils.lerp(a.radius,b.radius,t),THREE.MathUtils.lerp(a.phi,b.phi,t),THREE.MathUtils.lerp(a.theta,b.theta,t))).add(pivot);
+    // Position and aim follow the same translating pivot. A stationary aim
+    // crosses the overhead pole as the vehicle starts, causing a half-turn.
+    cameraState.aim.copy(cameraTween.from.aim).add(pivot.clone().sub(startPivot)).lerp(cameraGoal.aim,t);
+   }
    // Return behind a reversed car by orbiting the aim, avoiding the lookAt pole.
    const fromOffset=cameraTween.from.position.clone().sub(cameraTween.from.aim),toOffset=cameraGoal.position.clone().sub(cameraGoal.aim);
    const fromHeading=Math.atan2(fromOffset.x,fromOffset.z),turn=Math.atan2(Math.sin(Math.atan2(toOffset.x,toOffset.z)-fromHeading),Math.cos(Math.atan2(toOffset.x,toOffset.z)-fromHeading));
@@ -133,16 +152,16 @@ export function createParkingMotion(world){
   if(!isParking(world.state?.id)){if(group)group.visible=false;return false;}
   if(root===world.root)return true;
   if(group&&root)preparedGroups.set(root,{group,highlight,paths,stops,cars,occupied,badges});group?.removeFromParent();
-  view=['14','19'].includes(world.state.id)?'bev':['16','18'].includes(world.state.id)?'raised':'default';root=world.root;group=new THREE.Group();group.name='Parking maneuver';world.scene.add(group);world.draftParkingGroup=group;delete world.car.userData.draftIndoorContact;cars=[];target=null;active=false;elapsed=0;done=false;origin=null;ownedOffset=null;cameraTween=null;mode='in';exited=false;exitChoice=0;lastPath='';cameraState=null;cameraGoal=null;cameraVelocity={position:new THREE.Vector3(),aim:new THREE.Vector3(),anchor:0};replan=null;paused=false;badges=[];selectedAt=0;
+  playbackReturn=null;manualView=null;view=['14','19'].includes(world.state.id)?'bev':['16','18'].includes(world.state.id)?'raised':'default';root=world.root;group=new THREE.Group();group.name='Parking maneuver';world.scene.add(group);world.draftParkingGroup=group;delete world.car.userData.draftIndoorContact;cars=[];target=null;active=false;elapsed=0;done=false;origin=null;ownedOffset=null;cameraTween=null;mode='in';exited=false;exitChoice=0;lastPath='';cameraState=null;cameraGoal=null;cameraVelocity={position:new THREE.Vector3(),aim:new THREE.Vector3(),anchor:0};replan=null;paused=false;badges=[];selectedAt=0;completionAt=null;
   const cached=preparedGroups.get(root);
   if(cached){group.removeFromParent();({group,highlight,paths,stops,cars,occupied,badges}=cached);world.scene.add(group);world.draftParkingGroup=group;ownedOffset=view==='bev'?bev.clone():view==='raised'?raised.clone():new THREE.Vector3(0,11,22);cameraState=goalFor(view);cameraGoal=cameraState;lastCameraTime=now();camera();return true;}
   const bays=world.parkingBays||[];occupied=bays.filter((b,i)=>[3,7,11,14,16].includes(i));const b=bays[0];if(!b)return true;
-  highlight=own(new THREE.Mesh(new THREE.PlaneGeometry(8,b.depth),new THREE.ShaderMaterial({transparent:true,depthWrite:false,toneMapped:false,polygonOffset:true,polygonOffsetFactor:-4,uniforms:{tone:{value:0},celebrate:{value:0},selected:{value:0}},vertexShader:'varying vec2 v;void main(){v=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:parkingTargetFragment})));
+  highlight=own(new THREE.Mesh(new THREE.PlaneGeometry(8,b.depth),new THREE.ShaderMaterial({transparent:true,depthWrite:false,toneMapped:false,polygonOffset:true,polygonOffsetFactor:-4,uniforms:{tone:{value:0},celebrate:{value:0},completion:{value:1},success:{value:0},selected:{value:0}},vertexShader:'varying vec2 v;void main(){v=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:parkingTargetFragment})));
   for(const [i,bay]of bays.entries()){const badge=createParkingSightTarget(i+1);if(badge){badge.userData.bay=bay;badge.position.set(bay.x,.055,bay.z);group.add(badge);badges.push(badge);}}
-  highlight.renderOrder=2;highlight.rotation.x=-Math.PI/2;highlight.position.y=.032;
+  highlight.name='Parking target space';highlight.renderOrder=2;highlight.rotation.x=-Math.PI/2;highlight.position.y=.032;
   paths=[0,1].map(i=>own(new THREE.Mesh(new THREE.BufferGeometry(),new THREE.ShaderMaterial({transparent:true,depthWrite:false,toneMapped:false,side:THREE.DoubleSide,uniforms:{tone:{value:0},opacity:{value:i?.40:.84},activation:{value:1},startFade:{value:i?0:1},endFade:{value:i?1:0}},vertexShader:'attribute vec2 uv;varying vec2 v;void main(){v=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}'.replace('attribute vec2 uv;',''),fragmentShader:parkingPathFragment}))));
   paths.forEach((p,i)=>{p.name=i?'Parking reverse path':'Parking approach path';p.renderOrder=3});
-  stops=[0,1].map(i=>{const m=own(new THREE.Mesh(new THREE.PlaneGeometry(1,.18),new THREE.ShaderMaterial({transparent:true,depthWrite:false,depthTest:false,side:THREE.DoubleSide,toneMapped:false,vertexShader:'void main(){gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:`void main(){gl_FragColor=vec4(1.,1.,1.,1.);}`})));m.name=i?'Reverse stop line':'Approach stop line';m.rotation.x=-Math.PI/2;m.renderOrder=4;return m;});
+  stops=[0,1].map(i=>{const m=own(new THREE.Mesh(new THREE.PlaneGeometry(1,.065),new THREE.ShaderMaterial({transparent:true,depthWrite:false,depthTest:true,side:THREE.DoubleSide,toneMapped:false,vertexShader:'void main(){gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:parkingStopFragment})));m.name=i?'Reverse stop line':'Approach stop line';m.rotation.x=-Math.PI/2;m.renderOrder=4;return m;});
   ownedOffset=view==='bev'?bev.clone():view==='raised'?raised.clone():new THREE.Vector3(0,11,22);cameraState=goalFor(view);cameraGoal=cameraState;lastCameraTime=now();camera();
   return true;
  }
@@ -161,7 +180,7 @@ export function createParkingMotion(world){
    .map(o=>({...o,...localBay(o,start,base),yaw:o.yaw-base}));
   return {vehicle:vehicleBounds(world.car),obstacles};
  }
- function timing(){if(replan)return {forward:0,shift:0,reverse:replan.duration,total:replan.duration};if(!target)return {forward:5,shift:.65,reverse:7.5,total:13.15};return parkingTiming(localBay(target,origin?.carPosition||world.car.position,routeYaw),0,planningOptions());}
+ function timing(){if(replan)return {forward:0,shift:0,reverse:replan.duration,total:replan.duration};if(!target)return {forward:5,shift:.3,reverse:7.5,total:12.8};return parkingTiming(localBay(target,origin?.carPosition||world.car.position,routeYaw),0,planningOptions());}
  function pose(t){
   if(mode==='out')return exitPose(t,target,exitChoice||-1);
   if(replan)return replan.sample(t);
@@ -182,33 +201,48 @@ export function createParkingMotion(world){
    if(i)length+=points[i].distanceTo(points[i-1]);
    const p=points[i],next=points[Math.min(i+1,count-1)],previous=points[Math.max(0,i-1)];
    const dx=next.x-previous.x,dy=next.y-previous.y,dz=next.z-previous.z,inverse=1/(Math.sqrt(dx*dx+dy*dy+dz*dz)||1),sx=dz*inverse*.5,sz=-dx*inverse*.5;
-   position.setXYZ(i*2,p.x+sx,p.y,p.z+sz);position.setXYZ(i*2+1,p.x-sx,p.y,p.z-sz);
-   uv.setXY(i*2,0,length/total);uv.setXY(i*2+1,1,length/total);
+   const left=p.edges?.[0],right=p.edges?.[1];
+   position.setXYZ(i*2,left?.x??p.x+sx,p.y,left?.z??p.z+sz);position.setXYZ(i*2+1,right?.x??p.x-sx,p.y,right?.z??p.z-sz);
+   const v=p.routeV??length/total;uv.setXY(i*2,0,v);uv.setXY(i*2+1,1,v);
   }
   position.needsUpdate=true;uv.needsUpdate=true;geometry.computeBoundingSphere();
  }
  function ribbon(){
   const key=[elapsed,mode,exitChoice,target.x,target.z].join('|');if(key===lastPath)return;lastPath=key;
   const {forward,shift,total}=timing(),reverseStart=forward+shift,half=(world.car.userData.vehicleSpec?.length||4.85)/2;
-  // Sample the vehicle centre curve. Parking legs start beneath the chassis;
-  // only the forward exit trims the length already occupied by the vehicle.
-  const sample=(begin,end,count=72)=>Array.from({length:count+1},(_,i)=>{const p=pose(begin+(end-begin)*i/count);return new THREE.Vector3(p.x,.036,p.z)});
+  // Follow the leading axle in each gear. The one-metre ribbon shares the
+  // tangent of the leading axle, including front-wheel steering.
+  const spec=world.car.userData.vehicleSpec||{},vehicle=parkingVehicle(spec),front=vehicle.rearOffset-vehicle.wheelbase;
+  const guideHalfWidth=.5;
+  const pointAt=(time,offset)=>{const p=pose(time),s=Math.sin(p.yaw),c=Math.cos(p.yaw),point=new THREE.Vector3(p.x+s*offset,.036,p.z+c*offset);point.time=time;if(mode==='in'){const heading=p.yaw+(offset<0?p.steer||0:0);point.edges=[-guideHalfWidth,guideHalfWidth].map(x=>({x:point.x+Math.cos(heading)*x,z:point.z-Math.sin(heading)*x}));}return point;};
+  const sample=(begin,end,offset=0,count=144)=>Array.from({length:count+1},(_,i)=>pointAt(begin+(end-begin)*i/count,offset));
+  // Anchor colour and fade coordinates to the complete leg. Only its travelled
+  // prefix changes; future vertices never slide along or repaint the route.
+  const anchor=points=>{let length=0;points[0].routeV=0;for(let i=1;i<points.length;i++){length+=points[i].distanceTo(points[i-1]);points[i].routeV=length;}for(const p of points)p.routeV/=Math.max(length,.00001);return points;};
+  const remaining=(points,time,offset)=>{if(time<=points[0].time)return points;const index=points.findIndex(p=>p.time>time);if(index<0)return [points.at(-1)];const head=pointAt(time,offset),a=points[index-1],b=points[index];head.routeV=THREE.MathUtils.lerp(a.routeV,b.routeV,(time-a.time)/Math.max(b.time-a.time,.00001));return [head,...points.slice(index)];};
   const trim=(points,length)=>{while(points.length>2&&length>0){const d=points[0].distanceTo(points[1]);if(d>=length){points[0].lerp(points[1],length/Math.max(d,.00001));break;}length-=d;points.shift();}return points;};
-  const stopAt=(index,points,yaw,direction=1)=>{const cap=points.at(-1).clone().add(new THREE.Vector3(-Math.sin(yaw)*half*direction,0,-Math.cos(yaw)*half*direction));cap.y=.039;stops[index].position.copy(cap);stops[index].rotation.z=yaw;points.push(cap.clone().setY(.036));};
+  const stopAt=(index,points,yaw,front=0)=>{const cap=points.at(-1).clone();cap.x-=Math.sin(yaw)*front;cap.z-=Math.cos(yaw)*front;cap.y=.039;stops[index].position.copy(cap);stops[index].rotation.z=yaw;};
   if(mode==='out'){const points=trim(sample(elapsed,7.5),half);stopAt(0,points,pose(7.5).yaw);meshRibbon(paths[0],points);paths[1].visible=false;stops[1].visible=false;return;}
-  const first=sample(Math.min(elapsed,forward),forward),second=sample(Math.max(reverseStart,elapsed),total);
+  let first=sample(0,forward,front),second=sample(reverseStart,total,vehicle.rearOffset);
+  // Finish the fade at the parked rear bumper, next to the bay's wheel stop.
+  const finish=pose(total),tail=(spec.length||4.72)/2,endpoint=new THREE.Vector3(finish.x+Math.sin(finish.yaw)*tail,.036,finish.z+Math.cos(finish.yaw)*tail);
+  endpoint.edges=[-guideHalfWidth,guideHalfWidth].map(x=>({x:endpoint.x+Math.cos(finish.yaw)*x,z:endpoint.z-Math.sin(finish.yaw)*x}));second.push(endpoint);
+  // The front/rear axle handover lies entirely beneath the stationary chassis.
+  const seam=first.at(-1).clone();seam.edges=first.at(-1).edges;seam.time=reverseStart;second.unshift(seam);
+  endpoint.time=total;anchor(first);anchor(second);first=remaining(first,Math.min(elapsed,forward),front);second=remaining(second,Math.max(reverseStart,elapsed),vehicle.rearOffset);
   // The next leg is visible from selection. Both legs meet at the same
   // direction-change point; the vehicle naturally masks the seam.
   // Keep the route under the chassis; AO and the body mask its exact origin.
-  const last=pose(total);
-  stopAt(0,first,pose(forward).yaw,pose(forward).phase==='aligning'?-1:1);stopAt(1,second,last.yaw,-1);meshRibbon(paths[0],first);meshRibbon(paths[1],second);
+  const approach=pose(forward);
+  // Stop with the front axle 10 cm behind the ground line.
+  stopAt(0,first,approach.yaw,.10);meshRibbon(paths[0],first);meshRibbon(paths[1],second);
  }
  function sync({traffic=false,assist=false}={}){
-  const first=root!==world.root;if(!ensure())return;trafficReveal.set(traffic,{snap:first||world.draftInitialFrameReady!==true});const growth=trafficReveal.sample();group.visible=true;trafficVisible=traffic;assistOn=assist;if(!assist&&active){resumeView=view;active=false;paused=true;moveCamera(raised,2000);}
+  const first=root!==world.root;if(!ensure())return;trafficReveal.set(traffic,{snap:first||world.draftInitialFrameReady!==true});const growth=trafficReveal.sample();group.visible=true;trafficVisible=traffic;assistOn=assist;if(!assist&&active)pause();
   // Leave the foreground-left bay empty; retain the other vehicles' original offsets.
   if(modelReady&&!cars.length)for(const [index,bay]of occupied.entries()){const i=index+1,car=createTrafficVehicle('model-y');car.position.set(bay.x+(i%2?.10:-.10),.02,bay.z+(i%3-1)*.10);car.rotation.y=(bay.x>0?Math.PI/2:-Math.PI/2)+(i%2?.014:-.012);car.userData.bay=bay;group.add(car);cars.push(car);}
   if(traffic&&target&&occupied.includes(target)&&!elapsed&&!active)target=null;
-  cars.forEach(car=>{car.userData.draftPaintBrightness=(['10','14','15','16'].includes(world.state.id)?(world.draftParkingFinish?.traffic?.value??1):1)*(1+.22*(1-(world.draftThemeTone?.value??(world.state.mode==='dark'?1:0))));car.visible=trafficReveal.present&&car.userData.bay!==target;setTrafficAppearance(car,world.state.mode==='dark',trafficEntryOpacity(growth),world.draftThemeTone?.value??(world.state.mode==='dark'?1:0),.6*(1-(world.draftThemeTone?.value??(world.state.mode==='dark'?1:0))));applyTrafficGrowth(car,growth,world)});
+  cars.forEach(car=>{car.userData.draftPaintBrightness=(['10','14','15','16'].includes(world.state.id)?(world.draftParkingFinish?.traffic?.value??1):1)*(1+.22*(1-(world.draftThemeTone?.value??(world.state.mode==='dark'?1:0))));car.visible=trafficReveal.present&&car.userData.bay!==target;setTrafficAppearance(car,world.state.mode==='dark',trafficEntryOpacity(growth),world.draftThemeTone?.value??(world.state.mode==='dark'?1:0),.6*(1-(world.draftThemeTone?.value??(world.state.mode==='dark'?1:0))));softenIndoorTraffic(car,1-(world.draftThemeTone?.value??(world.state.mode==='dark'?1:0)),world.draftParkingFinish?.trafficGray?.value??.6);applyTrafficGrowth(car,growth,world)});
   for(const bay of world.parkingBays||[])if(bay.tile?.material.uniforms.available)bay.tile.material.uniforms.available.value=bay!==target&&(!traffic||!occupied.includes(bay))?1:0;
   // Hide markers during material review; preserve their sight targets and occlusion behavior.
   badges.forEach(b=>{b.userData.parkingSightTarget=!active&&!done&&mode==='in'&&(!traffic||!occupied.includes(b.userData.bay));b.visible=false;});
@@ -219,25 +253,88 @@ export function createParkingMotion(world){
   }
   const indoor=['10','14','15','16'].includes(world.state.id);
   const vehicles=syncIndoorVehicleContacts(group,world.car,cars,indoor,world.draftParkingFinish,world.draftThemeTone?.value??(world.state.mode==='dark'?1:0));
-  camera();updateParkingOcclusion(world,group,target,sightPoints);
+  camera();syncIndoorColumns(world);if(!indoor)syncOutdoorLawns(world);updateParkingOcclusion(world,group,target,sightPoints);
   updateIndoorContactOpacity(vehicles,world.draftParkingFinish?.trafficShadow??world.draftParkingFinish?.shadow,world.draftParkingFinish?.egoShadow??world.draftParkingFinish?.shadow,world.car);syncParkingCastShadows(world,vehicles,indoor);
   if(!highlight)return;
   highlight.material.uniforms.selected.value=globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches?1:smooth((now()-selectedAt)/850);
-  highlight.visible=!!target;highlight.material.uniforms.tone.value=world.draftThemeTone?.value??(world.state.mode==='dark'?1:0);highlight.material.uniforms.celebrate.value=done&&mode==='in'&&cameraTween?Math.sin(Math.PI*smooth((now()-cameraTween.start)/cameraTween.duration)):0;
-  const visible=!!target&&!done&&(elapsed===0||assist);paths.forEach((p,i)=>{p.visible=visible&&(mode==='out'?i===0:elapsed<timing().forward+.65||i===1);p.material.uniforms.tone.value=highlight.material.uniforms.tone.value;p.material.uniforms.activation.value=1;p.material.uniforms.opacity.value=i?.68:1;p.material.uniforms.endFade.value=mode==='out'||i===1?1:0;stops[i].visible=p.visible&&mode==='in';});if(visible)ribbon();
+  highlight.visible=!!target;highlight.material.uniforms.tone.value=world.draftThemeTone?.value??(world.state.mode==='dark'?1:0);const reduced=!!globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches,age=done&&mode==='in'&&completionAt!==null?Math.max(0,now()-completionAt):null;
+  const cycleAge=age===null||age>=completionPulseMs?null:age%completionBreathMs;
+  const breath=cycleAge===null?0:cycleAge<completionRiseMs?cycleAge/completionRiseMs:1-(cycleAge-completionRiseMs)/completionFallMs;
+  highlight.material.uniforms.success.value=age===null?0:reduced?1:smooth(age/200);
+  highlight.material.uniforms.celebrate.value=age===null||reduced?0:Math.sin(Math.PI/2*clamp(breath,0,1))**2;highlight.material.uniforms.completion.value=age===null?1:1-smooth(reduced?age/200:(age-completionPulseMs)/completionFadeMs);
+  const visible=!!target&&!done&&(elapsed===0||assist);paths.forEach((p,i)=>{p.visible=visible&&(mode==='out'?i===0:timing().forward>0&&elapsed<timing().forward+timing().shift||i===1);p.material.uniforms.tone.value=highlight.material.uniforms.tone.value;p.material.uniforms.activation.value=1;p.material.uniforms.opacity.value=i?(mode==='out'||timing().forward===0?.75:THREE.MathUtils.lerp(.4,.75,smooth((elapsed-timing().forward)/timing().shift))):1;p.material.uniforms.endFade.value=mode==='out'||i===1?1:0;stops[i].visible=i===0&&p.visible&&mode==='in'&&!replan;});if(visible)ribbon();
  }
  function hitBay(x,y){
   const ray=new THREE.Raycaster();ray.setFromCamera(new THREE.Vector2(x,y),world.camera);const badge=ray.intersectObjects(badges.filter(b=>b.visible))[0]?.object;if(badge)return badge.userData.bay;const p=ray.ray.intersectPlane(new THREE.Plane(axis,-.03),new THREE.Vector3());
   return p?(world.parkingBays||[]).find(b=>Math.abs(p.x-b.x)<b.width/2&&Math.abs(p.z-b.z)<b.depth/2&&(!trafficVisible||!occupied.includes(b))):null;
  }
  function hover(x,y){if(!ensure())return false;const bay=!active&&!done&&mode==='in'&&x!==null?hitBay(x,y):null;let changed=false;for(const b of world.parkingBays||[]){const uniform=b.tile?.material.uniforms.hover;if(!uniform)continue;const value=b===bay&&b!==target?1:0;if(uniform.value!==value){uniform.value=value;changed=true;}}return changed;}
+ function selectBay(bay){
+  if(!bay||trafficVisible&&occupied.includes(bay))return false;selectedAt=now();completionAt=null;
+  const retarget=elapsed>0;target=bay;routeYaw=world.car.rotation.y;origin=world.captureCamera();if(!retarget&&!parkingPlan(localBay(target,origin.carPosition,routeYaw),0,planningOptions())){target=null;origin=null;return false;}replan=retarget&&Math.abs(Math.sin(routeYaw))>.02?reverseReplan({x:world.car.position.x,z:world.car.position.z,yaw:routeYaw},bay):null;elapsed=0;paused=false;exited=false;cameraHeading=pose(timing().total).yaw-Math.sign(bay.x)*Math.PI/2;lastPath='';highlight.position.set(bay.x,.032,bay.z);if(!manualView&&view==='default')moveCamera(raised,1000);return true;
+ }
  function pick(x,y){
   if(!ensure()||active||done||mode==='out')return false;
-  const bay=hitBay(x,y);if(!bay)return false;selectedAt=now();
-  const retarget=elapsed>0;target=bay;routeYaw=world.car.rotation.y;origin=world.captureCamera();if(!retarget&&!parkingPlan(localBay(target,origin.carPosition,routeYaw),0,planningOptions())){target=null;origin=null;return false;}replan=retarget&&Math.abs(Math.sin(routeYaw))>.02?reverseReplan({x:world.car.position.x,z:world.car.position.z,yaw:routeYaw},bay):null;elapsed=0;paused=false;exited=false;cameraHeading=pose(timing().total).yaw-Math.sign(bay.x)*Math.PI/2;lastPath='';highlight.position.set(bay.x,.032,bay.z);if(view==='default')moveCamera(raised,650);return true;
+  return selectBay(hitBay(x,y));
  }
- function start(){ensure();if(!target||mode==='out'&&!exitChoice||done)return false;if(!origin)origin=world.captureCamera();if(!ownedOffset||paused){const restoring=paused;paused=false;moveCamera(restoring&&resumeView==='bev'?bev:raised,restoring?2000:650);}active=true;paused=false;assistOn=true;return true;}
- function reset(){active=false;elapsed=0;done=false;exited=false;mode='in';exitChoice=0;world.draftWheelDistance=0;world.draftWheelSteer=0;if(origin)world.applyCamera(origin);world.car.rotation.y=0;origin=null;ownedOffset=null;cameraTween=null;cameraState=null;replan=null;paused=false;lastPath='';}
- function step(dt){if(!active||!target||!assistOn)return false;elapsed=Math.min(mode==='out'?7.5:timing().total,elapsed+dt);const p=pose(elapsed);cameraHeading=p.yaw;world.car.position.set(p.x,origin.carPosition.y,p.z);world.car.rotation.y=p.yaw;world.draftWheelDistance=p.distance;world.draftWheelSteer=p.complete?0:(p.steer??0);camera();if(p.complete){active=false;done=true;world.draftWheelSteer=0;if(mode==='in')moveCamera(bev,650);else{exited=true;target=null;elapsed=0;done=false;mode='in';exitChoice=0;origin=null;routeYaw=world.car.rotation.y;cameraHeading=routeYaw;replan=null;}}return true;}
- return {get ready(){return ensureReady()},sync,start,pick,hover,step,reset,finishPreview(){if(cameraTween){cameraState=goalFor(view);cameraTween=null;camera();}},previewCamera(value){ensure();const kind={'10':'default','16':'raised','14':'bev'}[value]||value;moveCamera(kind==='bev'?bev:kind==='raised'?raised:new THREE.Vector3(0,11,22),650,true);return true;},pause(){if(active){resumeView=view;active=false;paused=true;moveCamera(raised,2000)}},useCamera(){ownedOffset=null;cameraTween=null},animating:()=>trafficReveal.active||!!cameraTween||!!world.draftOcclusionActive||(!!ownedOffset&&!!cameraState&&!!cameraGoal&&cameraState.position.distanceTo(cameraGoal.position)>.003),prepareExit(){if(!done)return false;mode='out';done=false;elapsed=0;exitChoice=0;origin=null;replan=null;paused=false;lastPath='';return true},chooseExit(direction){if(mode!=='out'||active)return false;exitChoice=direction<0?-1:1;lastPath='';moveCamera(raised);return true},get:()=>({active,elapsed,selectedAt,complete:done,target:target?{x:target.x,z:target.z}:null,phase:mode==='out'&&!exitChoice?'exit-select':done?'parked':target?pose(elapsed).phase:'select',mode,exitChoice,exited,cameraLocked:active,view,paused,camera:{position:world.camera.position.toArray(),aim:world.cameraAim.toArray(),heading:cameraHeading,tween:!!cameraTween},occupied:occupied.map(b=>({x:b.x,z:b.z}))}),capture:()=>({trafficReveal:trafficReveal.capture(),elapsed,active,done,selectedAt,origin,target,ownedOffset:ownedOffset?.clone(),cameraTween:cameraTween?{...cameraTween,from:{...cameraTween.from,position:cameraTween.from.position.clone(),aim:cameraTween.from.aim.clone()},velocity:{position:cameraTween.velocity.position.clone(),aim:cameraTween.velocity.aim.clone(),anchor:cameraTween.velocity.anchor}}:null,mode,exitChoice,exited,assistOn,routeYaw,cameraHeading,view,cameraState:cameraState?{...cameraState,position:cameraState.position.clone(),aim:cameraState.aim.clone()}:null,cameraGoal:cameraGoal?{...cameraGoal,position:cameraGoal.position.clone(),aim:cameraGoal.aim.clone()}:null,replan,paused,resumeView,lastCameraTime,cameraVelocity:{position:cameraVelocity.position.clone(),aim:cameraVelocity.aim.clone(),anchor:cameraVelocity.anchor}}),restore(s){if(s.trafficReveal)trafficReveal.restore(s.trafficReveal);({elapsed,active,done,selectedAt,origin,target,ownedOffset,cameraTween,mode,exitChoice,exited,assistOn,routeYaw,cameraHeading,view,cameraState,cameraGoal,replan,paused,resumeView,lastCameraTime,cameraVelocity}=s);lastPath=''}};
+ function selectDefault(){
+  if(!ensure()||active||done||mode==='out')return false;
+  if(target)return true;
+  const bays=[...(world.parkingBays||[])].sort((a,b)=>Math.abs(a.z+3.6)-Math.abs(b.z+3.6)||a.x-b.x);
+  return bays.some(selectBay);
+ }
+ function progress(){
+  if(!target)return {gear:null,remaining:null};
+  if(done)return {gear:'P',remaining:0};
+  if(mode==='out')return exitChoice?{gear:'D',remaining:Math.max(0,Math.abs(target.x)*Math.PI/2-pose(elapsed).distance)}:{gear:'P',remaining:null};
+  if(replan)return {gear:'R',remaining:replan.remaining(elapsed)};
+  return parkingSegment(elapsed,localBay(target,origin?.carPosition||world.car.position,routeYaw),0,planningOptions());
+ }
+ function automaticRise(){
+  cameraState.reference=false;
+  const end=mode==='in'&&!replan?riseStart+(riseDuration??timing().forward):0;
+  moveCamera(raised,elapsed<end?(end-elapsed)*1000:1000);
+  if(elapsed<end&&!globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches){Object.assign(cameraTween,{legStart:Math.max(elapsed,riseStart),legEnd:end,pivot:world.car.position.clone().add(new THREE.Vector3(0,.85,0)),heading:cameraHeading});}
+ }
+ function start(){
+  ensure();if(!target||mode==='out'&&!exitChoice||done)return false;if(active)return true;
+  if(!origin)origin=world.captureCamera();const restoring=paused;paused=false;
+  cameraHeading=pose(elapsed).yaw;
+  if(restoring){if(playbackReturn!==null&&cameraTween)cameraTween.start=now()-playbackReturn*1000;lastCameraTime=now();active=true;assistOn=true;return true;}
+  // High already begins at the assisted elevation. Join the automatic camera
+  // from that pose; only the end-stage BEV needs the return through Low.
+  if(manualView==='raised'&&mode==='in'){
+   manualView=null;automaticRise();
+  }else if(manualView&&mode==='in'){
+   manualView=null;playbackReturn=0;moveCamera(cameraOffset('default'),650,true);
+  }else automaticRise();
+  active=true;assistOn=true;return true;
+ }
+ function pause(){if(active){resumeView=view;active=false;paused=true;lastCameraTime=now();}}
+ function configureCamera(values={}){
+  const nextStart=Number.isFinite(values.start)?clamp(values.start,0,8):riseStart,nextDuration=values.duration===null?null:Number.isFinite(values.duration)?clamp(values.duration,.2,8):riseDuration;
+  const changed=nextStart!==riseStart||nextDuration!==riseDuration;riseStart=nextStart;riseDuration=nextDuration;
+  if(changed&&!manualView&&target&&!done&&mode==='in'&&!replan&&(active||paused)){
+   const end=riseStart+(riseDuration??timing().forward);moveCamera(raised,Math.max(.001,end-Math.max(elapsed,riseStart))*1000);
+   Object.assign(cameraTween,{legStart:Math.max(elapsed,riseStart),legEnd:Math.max(elapsed+.001,end),pivot:world.car.position.clone().add(new THREE.Vector3(0,.85,0)),heading:cameraHeading});
+  }
+  return {start:riseStart,duration:riseDuration};
+ }
+ function reset(){
+  const from=currentCamera(),previous=world.car.position.clone(),previousView=view,previousManual=manualView;
+  active=false;elapsed=0;done=false;completionAt=null;exited=false;mode='in';exitChoice=0;world.draftWheelDistance=0;world.draftWheelSteer=0;
+  if(origin)world.applyCamera(origin);world.car.rotation.y=0;origin=null;ownedOffset=null;cameraTween=null;cameraState=null;replan=null;paused=false;playbackReturn=null;lastPath='';cameraVelocity={position:new THREE.Vector3(),aim:new THREE.Vector3(),anchor:0};
+  if(isParking(world.state?.id)&&root===world.root){
+   // Replay resets the car while retaining the current viewing direction;
+   // start() then eases that view to Low instead of snapping the camera.
+   const shift=world.car.position.clone().sub(previous);from.position.add(shift);from.aim.add(shift);
+   view=previousView;manualView=previousView;cameraHeading=world.car.rotation.y;ownedOffset=cameraOffset(view).clone();cameraState=from;cameraGoal=from;lastCameraTime=now();
+   applyParkingView(world.camera,world.car,from);world.cameraAim.copy(from.aim);manualView=previousManual==='raised'?'raised':'default';moveCamera(cameraOffset(manualView),650,true);
+  }
+ }
+
+ // The broad setup arc lets the camera turn with the chassis continuously,
+ // keeping the final parked vehicle facing up in the frame.
+ function step(dt){if(!active||!target||!assistOn)return false;if(playbackReturn!==null){playbackReturn+=dt;camera();if(playbackReturn>=.85||globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches){playbackReturn=null;cameraVelocity.position.set(0,0,0);cameraVelocity.aim.set(0,0,0);cameraVelocity.anchor=0;automaticRise();}return true;}elapsed=Math.min(mode==='out'?7.5:timing().total,elapsed+dt);const p=pose(elapsed);cameraHeading=p.yaw;world.car.position.set(p.x,origin.carPosition.y,p.z);world.car.rotation.y=p.yaw;world.draftWheelDistance=p.distance;world.draftWheelSteer=p.complete?0:(p.steer??0);camera();if(p.complete){active=false;done=true;world.draftWheelSteer=0;if(mode==='in'){completionAt=now();if(!manualView)moveCamera(bev,650);}else{exited=true;target=null;elapsed=0;done=false;mode='in';exitChoice=0;origin=null;routeYaw=world.car.rotation.y;cameraHeading=routeYaw;replan=null;}}return true;}
+ return {get ready(){return ensureReady()},sync,start,pick,selectDefault,hover,step,reset,configureCamera,finishPreview(){if(done&&mode==='in')completionAt=now()-completionDuration;if(cameraTween){cameraState=goalFor(view);cameraTween=null;camera();}},previewCamera(value){ensure();const kind={'10':'default','16':'raised','14':'bev'}[value]||value;manualView=kind;moveCamera(cameraOffset(kind),650,true);return true;},pause,useCamera(){ownedOffset=null;cameraTween=null},animating:()=>done&&mode==='in'&&completionAt!==null&&now()-completionAt<(globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches?200:completionDuration)||trafficReveal.active||!!world.draftOcclusionActive||(!paused||cameraTween?.manual)&&(!!cameraTween||!!ownedOffset&&!!cameraState&&!!cameraGoal&&cameraState.position.distanceTo(cameraGoal.position)>.003),prepareExit(){if(!done)return false;mode='out';done=false;completionAt=null;elapsed=0;exitChoice=0;origin=null;replan=null;paused=false;lastPath='';return true},chooseExit(direction){if(mode!=='out'||active)return false;exitChoice=direction<0?-1:1;lastPath='';if(!manualView)moveCamera(raised);return true},get:()=>({...progress(),active,elapsed,selectedAt,complete:done,target:target?{x:target.x,z:target.z}:null,phase:mode==='out'&&!exitChoice?'exit-select':done?'parked':target?pose(elapsed).phase:'select',mode,exitChoice,exited,cameraLocked:active,view,manualView,paused,camera:{position:world.camera.position.toArray(),aim:world.cameraAim.toArray(),heading:cameraHeading,tween:!!cameraTween},occupied:occupied.map(b=>({x:b.x,z:b.z}))}),capture:()=>({playbackReturn,trafficReveal:trafficReveal.capture(),elapsed,active,done,selectedAt,completionAt,origin,target,ownedOffset:ownedOffset?.clone(),cameraTween:cameraTween?{...cameraTween,from:{...cameraTween.from,position:cameraTween.from.position.clone(),aim:cameraTween.from.aim.clone()},velocity:{position:cameraTween.velocity.position.clone(),aim:cameraTween.velocity.aim.clone(),anchor:cameraTween.velocity.anchor}}:null,mode,exitChoice,exited,assistOn,routeYaw,cameraHeading,view,manualView,cameraState:cameraState?{...cameraState,position:cameraState.position.clone(),aim:cameraState.aim.clone()}:null,cameraGoal:cameraGoal?{...cameraGoal,position:cameraGoal.position.clone(),aim:cameraGoal.aim.clone()}:null,replan,paused,resumeView,lastCameraTime,cameraVelocity:{position:cameraVelocity.position.clone(),aim:cameraVelocity.aim.clone(),anchor:cameraVelocity.anchor}}),restore(s){if(s.trafficReveal)trafficReveal.restore(s.trafficReveal);({playbackReturn,elapsed,active,done,selectedAt,completionAt,origin,target,ownedOffset,cameraTween,mode,exitChoice,exited,assistOn,routeYaw,cameraHeading,view,manualView,cameraState,cameraGoal,replan,paused,resumeView,lastCameraTime,cameraVelocity}=s);lastPath=''}};
 }

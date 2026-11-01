@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import {vehicleReflectionSampling,LIGHT_REFLECTION_GAIN,bodyReflectionStrength} from '../vehicle-reflection-sampling.js';
+import {vehicleReflectionSampling,LIGHT_REFLECTION_GAIN,bodyReflectionStrength,updateVehicleReflectionFootprint} from '../vehicle-reflection-sampling.js';
 import {isolatedRuntimePlugin} from '../runtime-patches.mjs';
 async function worldSource(){let load;isolatedRuntimePlugin().setup({onLoad(_options,handler){load=handler}});return (await load({path:new URL('../../engine/world.js',import.meta.url).pathname})).contents;}
 test('Prepared draws discard their vehicle capture and restore scene state even when drawing fails',async()=>{
@@ -67,4 +67,20 @@ test('Current gain replaces the rejected boost and traffic remains subordinate t
 test('Generated runtime has no independent lamp reflection receiver',async()=>{
  const source=await worldSource();
  assert.doesNotMatch(source,/createTailLight|updateTailLight|this\.tailReflection/);
+});
+
+test('Vehicle floor reflection remains continuous across the reverse turn and retains its axis-aligned endpoints',async()=>{
+ const source=await worldSource(),start=source.indexOf('reflectedVehicles.slice(0,12).forEach'),end=source.indexOf('const trafficShadows=',start);
+ assert.ok(start>0&&end>start);
+ const update=new Function('reflectedVehicles','updateVehicleReflectionFootprint',source.slice(start,end));
+ const car={position:{x:1.37,z:-8.2},rotation:{y:0},userData:{vehicleSpec:{width:2.1,length:4.72}}},box=new THREE.Vector4(),world={vehicleFootprints:{value:[box]}};
+ let previous;
+ for(let i=0;i<=1800;i++){
+  car.rotation.y=-i*Math.PI/1800;update.call(world,[car],updateVehicleReflectionFootprint);
+  assert.equal(box.x,car.position.x);assert.equal(box.y,car.position.z);
+  if(previous)assert.ok(Math.hypot(box.z-previous.z,box.w-previous.w)<.01,'no frame jumps as the heading crosses 30 degrees');
+  if(i===0)assert.deepEqual([box.z,box.w],[(2.1+.55)*.75,(4.72+.45)*.75]);
+  if(i===900){assert.ok(Math.abs(box.z-(4.72+.45)*.75)<1e-10);assert.ok(Math.abs(box.w-(2.1+.55)*.75)<1e-10);}
+  previous=box.clone();
+ }
 });

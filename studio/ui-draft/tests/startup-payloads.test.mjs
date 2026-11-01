@@ -5,6 +5,13 @@ import {readFile} from 'node:fs/promises';
 import {packedNormalsModule} from '../startup-bundles.mjs';
 import {createControlPaint} from '../control-paint.js';
 
+test('Public entry serves the approved shell and parking status without review parameters',async()=>{
+ const [entry,review]=await Promise.all(['index.html','skill.html'].map(name=>readFile(new URL('../'+name,import.meta.url),'utf8')));
+ assert.equal(entry,review);
+ assert.match(entry,/src="\.\/guizang-layout\.js\?v=/);
+ assert.match(entry,/href="\.\/shell-v5\.css\?v=/);
+});
+
 test('Packed Parking normals preserve every GPU Float32 bit in the approved source',async()=>{
  const data=JSON.parse(await readFile(new URL('../saved-preview/parking-material-normals.json',import.meta.url),'utf8'));
  const source=packedNormalsModule(data);

@@ -43,13 +43,13 @@ test('Startup publication follows traffic, saved finish and immediate final rast
   const shared = await readFile(new URL('../../engine/app.js', import.meta.url), 'utf8');
   assert.ok(patchApp(shared).includes("preview.setAttribute('aria-busy',String(world.draftInitialFrameReady!==true||world.initializingScene||"));
 });
-test('Parking transport stays hidden throughout startup; driving identifies pending readiness', () => {
+test('All scenes share a visible transport while readiness disables playback', () => {
   const block = source.slice(source.indexOf('let transportRenderKey='), source.indexOf("\nwindow.addEventListener('message'"));
   for (const active of ['road', 'parking', 'outdoor']) {
-    const transport = {setAttribute() {}},document={body:{dataset:{}}};
+    const transport = {dataset:{},setAttribute() {}},document={body:{dataset:{}}};
     const render=new Function('$', 'project','document', `let status={playing:false};const syncJunctionPathLock=()=>{};${block};return renderTransport;`)(() => transport, {active},document);
-    render();assert.equal(transport.hidden,active!=='road');assert.equal(transport.disabled,true);assert.equal(transport.textContent,'Loading…');
-    document.body.dataset.ready='true';render();assert.equal(transport.hidden,active!=='road');assert.notEqual(transport.textContent,'Loading…');
+    render();assert.equal(transport.hidden,false);assert.equal(transport.disabled,true);assert.equal(transport.textContent,'Loading…');
+    document.body.dataset.ready='true';render();assert.equal(transport.hidden,false);assert.notEqual(transport.textContent,'Loading…');
   }
 });
 test('Initial label population skips the replacement blur; subsequent changes still animate', () => {
@@ -120,9 +120,9 @@ test('Embedded startup passes the selected query without borrowing the parent UR
 // A scene restored while pending must not reuse another scene's loading state.
 test('Transport loading cache follows the active scene before readiness',()=>{
  const block=source.slice(source.indexOf('let transportRenderKey='),source.indexOf("\nwindow.addEventListener('message'"));
- const transport={setAttribute(){}},project={active:'road'},document={body:{dataset:{}}};
+ const transport={dataset:{},setAttribute(){}},project={active:'road'},document={body:{dataset:{}}};
  const render=new Function('$','project','document',`let status={playing:false};const syncJunctionPathLock=()=>{};${block};return renderTransport;`)(()=>transport,project,document);
- for(const active of ['road','parking','outdoor','road']){project.active=active;render();assert.equal(transport.hidden,active!=='road');}
+ for(const active of ['road','parking','outdoor','road']){project.active=active;render();assert.equal(transport.hidden,false);}
 });
 
  test('Reload preserves saved parking camera choices before the first inspector and engine frame', () => {

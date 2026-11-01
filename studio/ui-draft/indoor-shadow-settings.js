@@ -1,7 +1,7 @@
 // Fixed user-selected Indoor endpoints; independent from Road and Outdoor.
 export const indoorShadowPresets=Object.freeze({
  dark:Object.freeze({egoShadow:3.21,trafficShadow:1.27,egoOpacity:1,trafficOpacity:1,egoWidth:1,egoLength:1,trafficWidth:1,trafficLength:1,castOpacity:.50,castSoftness:2.9,reflectionGain:2.7,reflectionRange:1.5,reflectionBlur:2.25}),
- light:Object.freeze({egoShadow:3.5,trafficShadow:1.54,egoOpacity:.86,trafficOpacity:.71,egoWidth:.99,egoLength:1.39,trafficWidth:1,trafficLength:1.23,castOpacity:.50,castSoftness:2.9,reflectionGain:3,reflectionRange:1.5,reflectionBlur:4})
+ light:Object.freeze({egoShadow:2,trafficShadow:2,egoOpacity:.90,trafficOpacity:.90,egoWidth:1.1,egoLength:1.2,trafficWidth:1.1,trafficLength:1.2,castOpacity:.50,castSoftness:2.9,reflectionGain:3,reflectionRange:1.5,reflectionBlur:4})
 });
 // Capture vehicle silhouettes at the live raster before material roughness filtering.
 // Full-size capture retains tyre/body boundaries before roughness filtering.
@@ -20,13 +20,14 @@ export function syncIndoorShadowLight(world,enabled){
  const shadow=world.sun.shadow;
  syncParkingShadowPrecision(world,enabled);
  let state=world.draftIndoorShadowLight;
- if(!enabled){const density=shadow.mapSize&&shadow.camera?shadow.mapSize.x/(shadow.camera.right-shadow.camera.left):0;const radius=Math.max(state&&shadow.radius===state.applied?state.base:shadow.radius,density*.30);if(shadow.radius!==radius){shadow.radius=radius;world.renderer.shadowMap.needsUpdate=true;}world.draftIndoorShadowLight=null;return;}
- if(!state)state=world.draftIndoorShadowLight={base:shadow.radius,applied:null};
+ if(!enabled){const density=shadow.mapSize&&shadow.camera?shadow.mapSize.x/(shadow.camera.right-shadow.camera.left):0;const radius=Math.max(state&&shadow.radius===state.applied?state.base:shadow.radius,density*.30);if(shadow.radius!==radius){shadow.radius=radius;world.renderer.shadowMap.needsUpdate=true;}if(state&&shadow.blurSamples!==state.blurSamples){shadow.blurSamples=state.blurSamples;world.renderer.shadowMap.needsUpdate=true;}world.draftIndoorShadowLight=null;return;}
+ if(!state)state=world.draftIndoorShadowLight={base:shadow.radius,applied:null,blurSamples:shadow.blurSamples};
  else if(shadow.radius!==state.applied)state.base=shadow.radius;
  const softness=['10','14','15','16'].includes(world.state?.id)?world.draftParkingFinish?.castSoftness?.value??2.9:2.9;
  const density=shadow.mapSize&&shadow.camera?shadow.mapSize.x/(shadow.camera.right-shadow.camera.left):0;
- const radius=density?density*.30*(softness/2.9):world.draftParkingFinish?.castSoftness?.value??3;
+ const radius=density?density*.48*(softness/2.9):world.draftParkingFinish?.castSoftness?.value??3;
  if(shadow.radius!==radius){shadow.radius=radius;world.renderer.shadowMap.needsUpdate=true;}
+ if(shadow.blurSamples!==32){shadow.blurSamples=32;world.renderer.shadowMap.needsUpdate=true;}
  state.applied=radius;
 }
 

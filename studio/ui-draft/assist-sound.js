@@ -1,9 +1,9 @@
 let context,loading,voice,revision=0,plays=0,exitPlays=0,failures=0;
-let indicatorPhase=null,indicatorEdges=0,indicatorMuted=false;const indicatorVoices=new Set(),indicatorHistory=[];
+let indicatorPhase=null,indicatorEdges=0,indicatorActive=false,indicatorBurstEdges=0;const indicatorVoices=new Set(),indicatorHistory=[];
 const buffers=new Map();
 const sources={on:new URL('./sounds/09-on.wav',import.meta.url),off:new URL('./sounds/09-first-note-off.wav',import.meta.url)};
 function audioContext(){const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return null;return context??=new Audio({latencyHint:'interactive'})}
-export function pathSoundStatus(){return {ready:buffers.size===2,plays,exitPlays,failures,state:context?.state||'unavailable',durationMs:buffers.has('on')?Math.round(buffers.get('on').duration*1000):null,exitDurationMs:buffers.has('off')?Math.round(buffers.get('off').duration*1000):null,cue:'09',exitCue:'09-first-note-forward',indicatorMuted,indicatorVoices:indicatorVoices.size,indicatorEdges,indicatorHistory:[...indicatorHistory]}}
+export function pathSoundStatus(){return {ready:buffers.size===2,plays,exitPlays,failures,state:context?.state||'unavailable',durationMs:buffers.has('on')?Math.round(buffers.get('on').duration*1000):null,exitDurationMs:buffers.has('off')?Math.round(buffers.get('off').duration*1000):null,cue:'09',exitCue:'09-first-note-forward',indicatorBurstEdges,indicatorVoices:indicatorVoices.size,indicatorEdges,indicatorHistory:[...indicatorHistory]}}
 export function preparePathSound(){
  if(loading)return loading;
  const audio=audioContext();if(!audio)return Promise.resolve();
@@ -41,13 +41,16 @@ export function stopIndicatorSound(){
  for(const source of indicatorVoices){try{source.stop()}catch{}}
  indicatorVoices.clear();
 }
-export function setIndicatorMuted(value){indicatorMuted=!!value;if(indicatorMuted)stopIndicatorSound();}
+// Stopping playback or losing focus never replenishes an activation's four ticks.
+export function resetIndicatorSound(){stopIndicatorSound();indicatorActive=false;indicatorBurstEdges=0;}
 export function updateIndicatorSound(active,on,{silent=false}={}){
- if(!active||indicatorMuted){if(indicatorPhase!==null||indicatorVoices.size)stopIndicatorSound();return;}
+ if(!active){if(indicatorActive)resetIndicatorSound();return;}
+ if(!indicatorActive){indicatorActive=true;indicatorBurstEdges=0;}
  if(silent){for(const source of indicatorVoices){try{source.stop()}catch{}}indicatorVoices.clear();return;}
  if(indicatorPhase===on)return;
  const initial=indicatorPhase===null;indicatorPhase=on;
  if(initial&&!on)return;
+ if(indicatorBurstEdges>=4)return;
  const audio=audioContext();if(!audio||audio.state!=='running')return;
  const duration=.045,buffer=audio.createBuffer(1,Math.ceil(audio.sampleRate*duration),audio.sampleRate),data=buffer.getChannelData(0);
  for(let i=0;i<data.length;i++){
@@ -58,5 +61,5 @@ export function updateIndicatorSound(active,on,{silent=false}={}){
  const source=audio.createBufferSource(),gain=audio.createGain();source.buffer=buffer;gain.gain.value=.12;
  source.connect(gain);gain.connect(audio.destination);indicatorVoices.add(source);
  source.onended=()=>{source.disconnect();gain.disconnect();indicatorVoices.delete(source)};source.start();
- indicatorEdges++;indicatorHistory.push({on,time:audio.currentTime});if(indicatorHistory.length>16)indicatorHistory.shift();
+ indicatorBurstEdges++;indicatorEdges++;indicatorHistory.push({on,time:audio.currentTime});if(indicatorHistory.length>16)indicatorHistory.shift();
 }
