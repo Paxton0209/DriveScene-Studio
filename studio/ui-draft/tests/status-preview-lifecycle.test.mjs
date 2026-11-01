@@ -65,7 +65,7 @@ const bridgeSource=await readFile(new URL('../engine-bridge.js',import.meta.url)
 const parameterBody=bridgeSource.slice(bridgeSource.indexOf("async param(key,value,{sound=false}={}){"),bridgeSource.indexOf('},async scene(')).replace(/^async param/, 'async function param');
 function parameterHarness(){
  let clones=0,copies=0,renders=0,previews=0,pauses=0;
- const vector={clone(){clones++;return {}},copy(){copies++}},world={state:{id:'10'},car:{position:vector,rotation:vector}};
+ const vector={clone(){clones++;return {}},copy(){copies++}},world={async draftPrepareStartup(){},state:{id:'10'},car:{position:vector,rotation:vector}};
  const param=new Function('world','parking','api','renderOnce','setPlaying',`
  let exporting=false,lastInput=0,idlePaused=false,last=0,accumulator=0,playing=false;
  const isParking=()=>true,current=()=> 'parking',publish=()=>{},schedule=()=>{},waitForRender=async()=>{};

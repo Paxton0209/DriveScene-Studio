@@ -66,11 +66,13 @@ test('Initial Traffic preference is applied before construction and late model c
  const bridgeSource=await readFile(new URL('../engine-bridge.js',import.meta.url),'utf8');
  const method=bridgeSource.match(/world.draftPrepareStartup=async\(\)=>\{([^\n]+)\};/)[1];
  let resolveTraffic,resolveParking;const traffic={ready:new Promise(done=>resolveTraffic=done),audit:()=>({})},parking={ready:new Promise(done=>resolveParking=done)};
- const prepare=new Function('traffic','parking',`return async()=>{${method}}`)(traffic,parking);
+ const prepare=new Function('world','traffic','parking',`return async()=>{${method}}`)({draftTrafficEnabled:true},traffic,parking);
  let complete=false;const pending=prepare().then(()=>complete=true);
  await Promise.resolve();assert.equal(complete,false);resolveTraffic();await Promise.resolve();assert.equal(complete,false);resolveParking();await pending;assert.equal(complete,true);
- const fail=new Function('traffic','parking',`return async()=>{${method}}`)({ready:Promise.resolve(),audit:()=>({modelError:'Traffic unavailable'})},{ready:Promise.resolve()});
+ const fail=new Function('world','traffic','parking',`return async()=>{${method}}`)({draftTrafficEnabled:true},{ready:Promise.resolve(),audit:()=>({modelError:'Traffic unavailable'})},{ready:Promise.resolve()});
  await assert.rejects(fail(),/Traffic unavailable/);
+ const disabled=new Function('world','traffic','parking',`return async()=>{${method}}`)({draftTrafficEnabled:false},{get ready(){throw Error('disabled Traffic loaded')}},{get ready(){throw Error('disabled parking Traffic loaded')}});
+ await disabled();
  const shared=await readFile(new URL('../../engine/app.js',import.meta.url),'utf8'),patched=patchApp(shared);
  assert.ok(patched.includes("enabled:query.get('traffic')!=='0'"));
  assert.ok(patched.indexOf('await world.draftPrepareStartup?.()')<patched.indexOf('requested=state();await world.prepareInitialScene(requested)'));

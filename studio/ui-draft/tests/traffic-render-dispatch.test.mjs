@@ -20,7 +20,7 @@ test('The bridge draws each Traffic change once, including paused parking and pl
  const start=source.indexOf('async param(key,value,{sound=false}={}){')+'async param(key,value,{sound=false}={}){'.length;
  const body=source.slice(start,source.indexOf('},async scene(',start));
  for(const scene of ['parking','outdoor','road','elevated','ramp','junction'])for(const playing of [false,true])for(const enabled of [false,true]){
-  const calls=[],world={state:{id:'02'},suspended:false,draftManaged:true,renderFrame(){calls.push('draw')},audit(){throw Error('input audit')}};
+  const calls=[],world={async draftPrepareStartup(){},state:{id:'02'},suspended:false,draftManaged:true,renderFrame(){calls.push('draw')},audit(){throw Error('input audit')}};
   const draw=()=>world.renderFrame(),api={param(key,value){dispatch(world,{setEnabled(v){calls.push(v)}},{dataset:{}},key,value)}};
   const run=new Function('world','api','current','isParking','renderOnce','seekJunction','publish','schedule',`let exporting=false,playing=${playing},lastInput=0,idlePaused=false,last=0,accumulator=0,junctionPoses=null,loopTime=0;return async function(key,value,{sound=false}={}){${body}}`)(world,api,()=>scene,()=>false,draw,draw,()=>{},()=>{});
   await run('traffic',enabled);

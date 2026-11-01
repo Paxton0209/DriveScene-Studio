@@ -19,8 +19,15 @@ export function startupBundlesPlugin(){return {name:'startup-payloads',setup(bui
 // Start requests during parent HTML parsing. The iframe consumes the promises;
 // direct iframe visits retain their normal fetch and transient-failure retry.
 export function startStartupAssets(scope=window){
- // Fetch every switchable model in parallel with the initial renderer.
- const urls=['../engine/assets/studio-environment.bin.gz?v=1','./traffic-model-y.prepared.bin.gz?v=restore26','./vehicles/x6/model.glb.gz?v=restore26',...['model-3','ix','xc90'].map(model=>`./vehicles/${model}/model.glb.gz?v=restore26`)];
+ const query=new URLSearchParams(scope.location.search),qa=query.has('qa'),value=query.get('qa');
+ const suffix=qa?'-qa'+(['','1'].includes(value)?'':'-'+value):'';
+ let saved={};try{saved=JSON.parse(scope.localStorage.getItem('drivescene-ui-draft-project-v2'+suffix)||'{}')||{}}catch{}
+ const active=['road','elevated','ramp','junction','parking','outdoor'].includes(saved.active)?saved.active:'road';
+ const params=saved.boards?.[active]?.params||{},candidate=saved.shared?.model??params.model;
+ const model=['model-3','x6','ix','xc90'].includes(candidate)?candidate:'model-3';
+ const traffic=saved.shared?.layers?.traffic??params.traffic??false;
+ const urls=['../engine/assets/studio-environment.bin.gz?v=1',`./vehicles/${model}/model.glb.gz?v=restore26`];
+ if(traffic)urls.push('./traffic-model-y.prepared.bin.gz?v=restore26');
  scope.document.documentElement.dataset.startup='loading';
  const requests=scope.__draftStartupAssets=new Map();
  // Executable module preloads take priority over the large assets. An

@@ -53,6 +53,7 @@ export function patchFeatures(source){
 }
 
 export function patchApp(source){
+ source=replace(source,'const run=async()=>{if(document.hidden||vehicleChanging||world.layoutTransition',"const run=async()=>{if(window.parent.document.documentElement.dataset.startup){scheduleVehicleWarmup(500);return;}if(document.hidden||vehicleChanging||world.layoutTransition");
  // The embedded canvas may be narrow on desktop; capacity follows the host viewport.
  source=replace(source,"maxEntries:matchMedia('(max-width:760px)').matches?2:4","maxEntries:4");
  source="import {prepareStartupChoices,startupChoices} from '../ui-draft/startup-readiness.js';\n"+source;
@@ -74,12 +75,12 @@ export function patchApp(source){
   world.draftSceneryRandom.reset(choice.seed);world.draftTrafficRandom.reset(choice.seed+1);
   versionFeatures.set({path:!!values.path,weather:values.weather||'default'},{animate:false,render:false});
  }
- await prepareStartupChoices({world,models:vehicleCatalog.map(model=>model.id),cache:vehicleCache,prepareVehicle:prepareChoice,choices:startupChoices(project.boards),select,state,restore(){
+ await prepareStartupChoices({world,models:[selectedVehicle],cache:vehicleCache,prepareVehicle:prepareChoice,choices:startupChoices(project.boards),select,state,restore(){
   selected=initial;for(const [key,value]of saved)Object.assign(preferences.get(key),value);
   world.draftSceneryRandom.restore(scenery);world.draftTrafficRandom.restore(traffic);
   versionFeatures.set(initialFeatures,{animate:false,render:false});
  }});
- idleWarmIndex=idleWarmModels.length;
+ // Alternative vehicles warm only after the parent reveals the initial frame.
 }
 async function installVehicle(car,full=false,animate=false,retainPrevious=false){`);
  source=replace(source,"if(key==='model'){document.getElementById('vehicle-option-'+value)?.click();return;}","if(key==='model')return vehicleSelector.choose(value);");
@@ -503,6 +504,10 @@ export function isolatedRuntimePlugin(){return {name:'isolated-ui-draft',setup(b
   source=replace(source,'setEnabled(value){const entering=!!value&&!enabled;enabled=!!value;', 'animating:()=>reveal.active,setEnabled(value){const entering=!!value&&!enabled&&!reveal.present;reveal.set(value,{snap:world.draftInitialFrameReady!==true||!!world.initializingScene});enabled=!!value;');
   source=replace(source,'draftCapture:()=>({last,elapsed,slots:', 'draftCapture:()=>({reveal:reveal.capture(),last,elapsed,slots:');
   source=replace(source,'draftRestore(snapshot){last=snapshot.last;', 'draftRestore(snapshot){if(snapshot.reveal)reveal.restore(snapshot.reveal);last=snapshot.last;');
+  source=replace(source,"const ready=load?readyTrafficModel(null,'model-y').then", "let readyPromise;function ensureReady(){return readyPromise??=(load?readyTrafficModel(null,'model-y').then");
+  source=replace(source,"modelError=error.message;console.error(error);}):Promise.resolve();", "modelError=error.message;readyPromise=null;throw error;}):Promise.resolve());}");
+  source=replace(source,'modelsReady=true;for(const slot', 'modelsReady=true;modelError=null;for(const slot');
+  source=replace(source,'group,ready,update,','group,get ready(){return ensureReady()},update,');
  }
  if(name==='traffic-vehicle.js'){
   // Apply after the initial-pose refinement, which anchors to this old branch.

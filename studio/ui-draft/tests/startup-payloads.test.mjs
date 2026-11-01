@@ -65,14 +65,19 @@ test('Selected vehicle preload is consumed once, mismatched models use their own
  }finally{globalThis.fetch=previous;if(previousEarly===undefined)delete globalThis.__draftPreparedVehicle;else globalThis.__draftPreparedVehicle=previousEarly;}
 });
 
-test('Parent preloads the first vehicle despite saved selection, plus environment and Traffic before UI imports',async()=>{
+test('Parent starts only the saved active vehicle, environment and enabled Traffic',async()=>{
  const {startStartupAssets}=await import('../startup-bundles.mjs');
- for(const [search,saved,model] of [['?qa=cold',{active:'parking',shared:{model:'ix'}},'model-3'],['',{active:'outdoor',boards:{outdoor:{params:{model:'xc90'}}}},'model-3'],['?qa=1',{shared:{model:'invalid'}},'model-3'],['?qa=cold',{shared:{model:'x6'}},'model-3']]){
-  const calls=[],keys=[],scope={location:{search},document:{documentElement:{dataset:{}},baseURI:'https://example.test/DriveScene-Studio/studio/ui-draft/'},localStorage:{getItem(key){keys.push(key);return JSON.stringify(saved)}},fetch:async(url,options)=>{assert.equal(options.priority,'low');assert.equal(options.signal,undefined);calls.push(url);return new Response(new Uint8Array([1,2]))}};
-  const requests=startStartupAssets(scope);assert.equal(requests.size,6);await Promise.all(requests.values());
-  assert.equal(new Set(calls).size,6);assert.ok(calls.some(url=>url.includes(model==='x6'?'ego-vehicle-ready.glb.gz':`vehicles/${model}/model.glb.gz`)));
-  assert.ok(calls.some(url=>url.includes('studio-environment')));assert.ok(calls.some(url=>url.includes('traffic-model-y')));
-  assert.deepEqual(keys,[]);assert.equal(scope.document.documentElement.dataset.startup,'loading');
+ const cases=[['?qa=cold',{active:'parking',shared:{model:'ix',layers:{traffic:true}}},'ix',true,'-qa-cold'],['',{active:'outdoor',boards:{outdoor:{params:{model:'xc90'}}}},'xc90',false,''],['?qa=1',{shared:{model:'invalid'}},'model-3',false,'-qa'],['?qa=cold',{shared:{model:'x6'}},'x6',false,'-qa-cold'],['',{active:'parking',boards:{parking:{params:{traffic:true}}},shared:{layers:{traffic:false}}},'model-3',false,'']];
+ for(const [search,saved,model,traffic,suffix] of cases){
+  const calls=[],keys=[],scope={location:{search},document:{documentElement:{dataset:{}},baseURI:'https://example.test/studio/ui-draft/'},localStorage:{getItem(key){keys.push(key);return JSON.stringify(saved)}},fetch:async(url,options)=>{assert.equal(options.priority,'low');calls.push(url);return new Response(new Uint8Array([1,2]))}};
+  const requests=startStartupAssets(scope);await Promise.all(requests.values());
+  assert.equal(requests.size,traffic?3:2);assert.equal(new Set(calls).size,requests.size);
+  assert.ok(calls.some(url=>url.includes(`vehicles/${model}/model.glb.gz`)));assert.ok(calls.some(url=>url.includes('studio-environment')));assert.equal(calls.some(url=>url.includes('traffic-model-y')),traffic);
+  assert.deepEqual(keys,['drivescene-ui-draft-project-v2'+suffix]);
+ }
+ for(const getItem of [()=>'{broken',()=>{throw Error('storage disabled')}]){
+  const scope={location:{search:''},localStorage:{getItem},document:{documentElement:{dataset:{}},baseURI:'https://example.test/studio/ui-draft/'},fetch:async()=>new Response(new Uint8Array([1]))};
+  const requests=startStartupAssets(scope);await Promise.all(requests.values());assert.equal(requests.size,2);assert.ok([...requests.keys()].some(url=>url.includes('vehicles/model-3/')));
  }
 });
 
