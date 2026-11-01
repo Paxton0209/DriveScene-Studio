@@ -54,7 +54,7 @@ await writeFile(new URL('./traffic-model-y.prepared.json.gz',import.meta.url),gz
 // reduces parsing work without collapsing exterior panels.
 await writeFile(new URL('./traffic-model-y.prepared.bin.gz',import.meta.url),gzipSync(encodeTrafficPayload(preparedTraffic),{level:9}));
 const html=await readFile(new URL('../engine/index.html',import.meta.url),'utf8');
-const embedded=html.replace('if(!q.get("model")||q.get("model")==="x6")','if(!globalThis.__fullVehicleRequest&&(!q.get("model")||q.get("model")==="x6"))').replace('async function preloadAsset(url){',`async function preloadAsset(url){try{const requests=window.parent.__draftStartupAssets,key=new URL(url,document.baseURI).href,early=requests?.get(key);if(early){requests.delete(key);return await early;}}catch{} `).replace('globalThis.__studioEnvironmentRequest=preloadAsset(',`const selectedModel=q.get('model')||'x6';if(['model-3','ix','xc90'].includes(selectedModel)){globalThis.__draftPreparedVehicle={id:selectedModel,request:preloadAsset('../ui-draft/vehicles/'+selectedModel+'/model.glb.gz?v=restore26')};globalThis.__draftPreparedVehicle.request.catch(()=>{});}if(selectedModel==='x6'){globalThis.__fullVehicleRequest=preloadAsset('./ego-vehicle-ready.glb.gz?v=17.9');globalThis.__fullVehicleRequest.catch(()=>{});}if(q.get('traffic')==='1'){globalThis.__draftTrafficRequest=preloadAsset('../ui-draft/traffic-model-y.prepared.bin.gz?v=restore26');globalThis.__draftTrafficRequest.catch(()=>{});}globalThis.__studioEnvironmentRequest=preloadAsset(`).replace('<head>','<head><base href="../engine/"><link rel="stylesheet" href="../ui-draft/engine.css?v=startup-20261027">').replaceAll('drivescene-preview-v15','drivescene-ui-draft-preview-v1').replaceAll('"sr-theme"','"sr-ui-draft-theme"').replace('<script src="startup.js?v=20261019-finish-110"></script>','<script type="module" src="../ui-draft/runtime.bundle.js?v=parking-neutral-20261101z10"></script>');
+const embedded=html.replace('if(!q.get("model")||q.get("model")==="x6")','if(!globalThis.__fullVehicleRequest&&(!q.get("model")||q.get("model")==="x6"))').replace('async function preloadAsset(url){',`async function preloadAsset(url){try{const requests=window.parent.__draftStartupAssets,key=new URL(url,document.baseURI).href,early=requests?.get(key);if(early){requests.delete(key);return await early;}}catch{} `).replace('globalThis.__studioEnvironmentRequest=preloadAsset(',`const selectedModel=q.get('model')||'x6';if(['model-3','ix','xc90'].includes(selectedModel)){globalThis.__draftPreparedVehicle={id:selectedModel,request:preloadAsset('../ui-draft/vehicles/'+selectedModel+'/model.glb.gz?v=restore26')};globalThis.__draftPreparedVehicle.request.catch(()=>{});}if(selectedModel==='x6'){globalThis.__fullVehicleRequest=preloadAsset('./ego-vehicle-ready.glb.gz?v=17.9');globalThis.__fullVehicleRequest.catch(()=>{});}if(q.get('traffic')==='1'){globalThis.__draftTrafficRequest=preloadAsset('../ui-draft/traffic-model-y.prepared.bin.gz?v=restore26');globalThis.__draftTrafficRequest.catch(()=>{});}globalThis.__studioEnvironmentRequest=preloadAsset(`).replace('<head>','<head><base href="../engine/"><link rel="stylesheet" href="../ui-draft/engine.css?v=startup-20261027">').replaceAll('drivescene-preview-v15','drivescene-ui-draft-preview-v1').replaceAll('"sr-theme"','"sr-ui-draft-theme"').replace('<script src="startup.js?v=20261019-finish-110"></script>','<script type="module" src="../ui-draft/runtime.bundle.js?v=horizon-startup-20261102"></script>');
 let engineHtml=embedded.replace(/const c=new AbortController\(\),t=setTimeout\(\(\)=>c.abort\(\),30000\);try\{/,'try{').replace('fetch(url,{priority:"high",signal:c.signal})','fetch(url,{priority:"low"})').replace('finally{clearTimeout(t)}','').replaceAll('./ego-vehicle-ready.glb.gz?v=17.9','../ui-draft/vehicles/x6/model.glb.gz?v=restore26').replace(/document\.documentElement\.style\.setProperty\(\"--startup-frame\"[\s\S]*?document\.head\.append\(link\);/,'');
 // Preserve the engine cascade exactly while avoiding a separate network turn
 // for each stylesheet in the first embedded frame. These styles have no URLs.
@@ -70,7 +70,7 @@ parent=parent.replace(/<script id="startup-draft"[^>]*>[\s\S]*?<\/script>/,'<scr
 parent=parent.replace(/<link rel="modulepreload"[^>]+>/g,'').replace(/<link rel="preload" href="icons.json"[^>]+>/g,'').replace(/<script id="startup-assets">[\s\S]*?<\/script>/,'').replace('<title>',`<script id="startup-assets">${startupAssetScript()}</script><title>`).replace(/src="(?:draft|draft.bundle)\.js\?v=[^"]+"/,'src="draft.bundle.js?v=export-clarity-v34-20261029"');
 // Discover and download both executable bundles before the poster/body parse.
 // The embedded document reuses the runtime's module request from this origin.
-parent=parent.replace('<script id="startup-assets">','<link rel="modulepreload" fetchpriority="high" href="runtime.bundle.js?v=parking-neutral-20261101z10"><script id="startup-assets">');
+parent=parent.replace('<script id="startup-assets">','<link rel="modulepreload" fetchpriority="high" href="runtime.bundle.js?v=horizon-startup-20261102"><script id="startup-assets">');
 parent=parent.replace(/<script id="startup-poster">[\s\S]*?<\/script>/,'').replace(/<script id="startup-layout">[\s\S]*?<\/script>/,'');
 // Keep the default first frame inline. Other scenes/themes do not belong in
 // every visitor's critical HTML; preserve their exact JPEG bytes as assets.
@@ -163,7 +163,25 @@ const themeRules=themeCSS.slice(themeCSS.indexOf('@property --theme-reveal-progr
 if(!themeRules.startsWith('@property')||!themeRules.includes('@keyframes theme-reveal'))throw Error('Theme reveal stylesheet missing');
 const trialFile=new URL('./skill.html',import.meta.url),trialHtml=(await readFile(trialFile,'utf8')).replace(/@property --theme-reveal-progress[\s\S]*?(?=:root\{--e1-lifted)/,()=>themeRules).replace(/<script id="saved-frame-profile">[\s\S]*?<\/script>/,()=>`<script id="saved-frame-profile">${frameProfile}</script>`);
 const approvedHtml=trialHtml.replace(/<link rel="modulepreload" fetchpriority="high" href="runtime\.bundle\.js\?v=[^"]+">/,()=>parent.match(/<link rel="modulepreload" fetchpriority="high" href="runtime\.bundle\.js\?v=[^"]+">/)[0]).replace(/<script id="startup-poster">[\s\S]*?<\/script>/,()=>parent.match(/<script id="startup-poster">[\s\S]*?<\/script>/)[0]).replace(/<script id="startup-assets">[\s\S]*?<\/script>/,()=>'<script id="startup-assets">'+startupAssetScript()+'</script>').replace(/<script id="startup-draft" type="module">[\s\S]*?<\/script>/,()=>'<script id="startup-draft" type="module">'+trial.outputFiles[0].text.replace(/<\/script/gi,'<\\/script')+'</script>');
-await writeFile(trialFile,approvedHtml);
+// The approved shell must arrive with the document. External styles delayed
+// module execution and font discovery by another network round trip.
+let shippedHtml=approvedHtml;
+for(const name of ['guizang-trial.css','shell-v5.css']){
+ const css=await readFile(new URL('./'+name,import.meta.url),'utf8');
+ const tag=`<style data-shell-css="${name}">${css}</style>`;
+ const existing=new RegExp('<style data-shell-css="'+name.replaceAll('.','\\.')+'">[\\s\\S]*?<\\/style>');
+ const external=new RegExp('<link[^>]*href="\\./'+name.replaceAll('.','\\.')+'[^\"]*"[^>]*>');
+ shippedHtml=existing.test(shippedHtml)?shippedHtml.replace(existing,()=>tag):shippedHtml.replace(external,()=>tag);
+}
+for(const name of ['guizang-layout.js','shell-v5.js']){
+ const source=(await readFile(new URL('./'+name,import.meta.url),'utf8')).replace("await fetch('./icons.json').then(response=>response.json())",await readFile(iconFile,'utf8')).replace(/<\/script/gi,'<\\/script');
+ const tag=`<script type="module" data-shell-module="${name}">${source}</script>`;
+ const existing=new RegExp('<script type="module" data-shell-module="'+name.replaceAll('.','\\.')+'">[\\s\\S]*?<\\/script>');
+ const external=new RegExp('<script type="module" src="\\./'+name.replaceAll('.','\\.')+'[^\"]*"><\\/script>');
+ shippedHtml=existing.test(shippedHtml)?shippedHtml.replace(existing,()=>tag):shippedHtml.replace(external,()=>tag);
+}
+if(!shippedHtml.includes('data-startup-font'))shippedHtml=shippedHtml.replace('<head>','<head><link data-startup-font rel="preload" href="./guizang-trial/InterVariable.woff2" as="font" type="font/woff2" crossorigin>');
+await writeFile(trialFile,shippedHtml);
 // Publish the reviewed shell at the existing public entry point as well.
-await writeFile(parentFile,approvedHtml);
+await writeFile(parentFile,shippedHtml);
 console.log('Approved shell rebuilt and published to the default entry point.');

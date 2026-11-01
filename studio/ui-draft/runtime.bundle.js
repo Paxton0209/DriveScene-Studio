@@ -4529,7 +4529,7 @@ ambientGroundPosition=(modelMatrix*vec4(transformed,1.)).xyz;`),p.fragmentShader
 `+p.fragmentShader,p.fragmentShader=p.fragmentShader.replace("#include <opaque_fragment>",`vec3 dryLight=outgoingLight;float groundLuma=dot(dryLight,vec3(.2126,.7152,.0722));dryLight=mix(dryLight,vec3(groundLuma),environmentTone);outgoingLight=mix(dryLight,outgoingLight,waterMix);
 #include <opaque_fragment>`)},n5(this.mat.water,this);let d=this.mat.water.onBeforeCompile;this.mat.water.onBeforeCompile=p=>{d.call(this.mat.water,p),p.fragmentShader=p.fragmentShader.replace("proximity*valid*reflectionStrength","proximity*valid*reflectionStrength*(1.-waterMix)")},L7(this);for(let p of["road","ground","pavement","parkingFloor"])n5(this.mat[p],this),this.mat[p].customProgramCacheKey=()=>p+"-localized-reflection-r15";W7(this,l),O7(this);for(let p of Object.values(this.mat)){let b=p.onBeforeCompile;p.onBeforeCompile=y=>{b.call(p,y),y.uniforms.darkAerialPerspective=this.darkAerialPerspective,y.fragmentShader=`uniform float darkAerialPerspective;
 `+y.fragmentShader,y.fragmentShader=y.fragmentShader.replace("#include <fog_fragment>",`#ifdef USE_FOG
-    float t=clamp((vFogDepth-125.)/430.,0.,1.);
+    float t=clamp((vFogDepth-220.)/335.,0.,1.);
     // In dark scenes a shared distance curve joins sky and ground gradually.
 
     float aerial=t*t*t*(t*(t*6.-15.)+10.);

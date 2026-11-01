@@ -27,7 +27,9 @@ export function refineWorld(source){
  source=replace(source,'motion.elapsed/1000/MOTION_TIME_SCALE/(approach&&forward?.969:1)','motion.elapsed/1000/(approach&&forward?.969:MOTION_TIME_SCALE)');
  // One distance curve and the live sky color keep every intermediate theme
  // frame joined. A fixed night-color preblend produced a dark horizon stripe.
- source=replace(source,'${lightQuality.aerialStart.toFixed(1)})/${lightQuality.aerialSpan.toFixed(1)}','125.)/430.');
+ // Retain the fully obscured endpoint and the smooth quintic curve,
+ // while postponing the blend into a narrower distant band.
+ source=replace(source,'${lightQuality.aerialStart.toFixed(1)})/${lightQuality.aerialSpan.toFixed(1)}','220.)/335.');
  source=replace(source,'    if(darkAerialPerspective>.5)t=clamp((vFogDepth-65.)/235.,0.,1.);','');
  source=replace(source,'gl_FragColor.rgb=mix(gl_FragColor.rgb,fogColor,fogFactor);','gl_FragColor.rgb=mix(gl_FragColor.rgb,linearToOutputTexel(vec4(fogColor,1.)).rgb,fogFactor);');
  source=replace(source,'float horizonDistance=length(vGroundWorld.xz-cameraPosition.xz);float horizonAerial=smoothstep(70.,280.,horizonDistance)*darkAerialPerspective;outgoingLight=mix(outgoingLight,sharedHorizon,horizonAerial);','');

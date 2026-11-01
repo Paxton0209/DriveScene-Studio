@@ -8,8 +8,10 @@ import {createControlPaint} from '../control-paint.js';
 test('Public entry serves the approved shell and parking status without review parameters',async()=>{
  const [entry,review]=await Promise.all(['index.html','skill.html'].map(name=>readFile(new URL('../'+name,import.meta.url),'utf8')));
  assert.equal(entry,review);
- assert.match(entry,/src="\.\/guizang-layout\.js\?v=/);
- assert.match(entry,/href="\.\/shell-v5\.css\?v=/);
+ assert.match(entry,/data-shell-module="guizang-layout\.js"/);
+ assert.match(entry,/data-shell-css="shell-v5\.css"/);
+ assert.match(entry,/<link data-startup-font[^>]+as="font"[^>]+crossorigin>/);
+ assert.doesNotMatch(entry,/<(?:script|link)[^>]+(?:src|href)="\.\/(?:guizang-layout\.js|shell-v5\.(?:js|css)|guizang-trial\.css)/);
 });
 
 test('Packed Parking normals preserve every GPU Float32 bit in the approved source',async()=>{

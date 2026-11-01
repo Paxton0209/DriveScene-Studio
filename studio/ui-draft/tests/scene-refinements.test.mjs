@@ -59,7 +59,7 @@ test('Rain removes only flat-ground puddle islands while preserving roof wetting
 test('Final isolated runtime preserves the reference distant horizon without adding ramp scenery',async()=>{
  let load;isolatedRuntimePlugin().setup({onLoad(_options,handler){load=handler}});
  const {contents}=await load({path:new URL('../../engine/world.js',import.meta.url).pathname});
- assert.match(contents,/vFogDepth-125\.\)\/430\./);
+ assert.match(contents,/vFogDepth-220\.\)\/335\./);
  assert.match(contents,/float aerial=t\*t\*t\*\(t\*\(t\*6\.-15\.\)\+10\.\)/);
  assert.doesNotMatch(contents,/pow\(1\.-t,2\.\)/);
  assert.doesNotMatch(contents,/this\.ramp\(id,w\);yield\* this\.environmentSteps/);
