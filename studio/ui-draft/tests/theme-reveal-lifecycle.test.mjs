@@ -5,8 +5,8 @@ const source=await readFile(new URL('../draft.js',import.meta.url),'utf8');
 const block=source.slice(source.indexOf('let themeTransition=null'),source.indexOf("$('theme').addEventListener"));
 const deferred=()=>{let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no});return {promise,resolve,reject}};
 const flush=async()=>{for(let i=0;i<12;i++)await Promise.resolve()};
-function harness({playing=true,reduce=false,unavailable=false,failStart=false}={}){
- const transitions=[],events=[],styles={},classes=new Set();let held=false;
+function harness({playing=false,scene='road',reduce=false,unavailable=false,failStart=false,failCommit=false}={}){
+ const transitions=[],timers=[],events=[],styles={},classes=new Set();let held=false;
  const root={dataset:{theme:'light'},style:{setProperty(k,v){styles[k]=v}},classList:{add(v){classes.add(v)},remove(v){classes.delete(v)}}};
  const document={documentElement:root,body:{dataset:{}},startViewTransition:unavailable?undefined:update=>{
   if(failStart)throw Error('Snapshot unavailable');
@@ -14,22 +14,45 @@ function harness({playing=true,reduce=false,unavailable=false,failStart=false}={
   transitions.push({...transition,finish:finished.resolve});
   Promise.resolve().then(update).then(ready.resolve,ready.reject);return transition;
  }};
- const bridge=()=>({beginTheme(){held=true;events.push('hold')},async theme(theme,{animate=false}={}){assert.equal(held,false);events.push([theme,animate])},endTheme(){held=false;events.push('release')}});
- const controller=new Function('document','frame','bridge','localStorage','$','syncFinish','renderTheme','reducedMotion','innerWidth','innerHeight',`
+ const bridge=()=>({get(){return {playing}},beginTheme(){held=true;events.push('hold')},async theme(theme,{animate=false}={}){assert.equal(held,false);events.push([theme,animate]);if(failCommit)throw Error('Theme unavailable')},endTheme(){held=false;events.push('release')}});
+ const controller=new Function('document','frame','bridge','localStorage','$','syncFinish','renderTheme','reducedMotion','innerWidth','innerHeight','project','setTimeout',`
  let ready=true,exporting=false,previewBusy=false,sceneUpdating=false,vehicleUpdating=false;const themeKey='test';
  ${block}
  return {setTheme,get busy(){return !!themeTransition}};
- `)(document,{contentDocument:{documentElement:root}},bridge,{setItem(){}},()=>({getBoundingClientRect:()=>({left:1220,top:8,width:28,height:28})}),()=>{},()=>{},()=>reduce,1266,1000);
- return {controller,document,styles,classes,transitions,events,get held(){return held},get playing(){return playing}};
+ `)(document,{contentDocument:{documentElement:root}},bridge,{setItem(){}},()=>({getBoundingClientRect:()=>({left:1220,top:8,width:28,height:28})}),()=>{},()=>{},()=>reduce,1266,1000,{active:scene},(resolve,ms)=>timers.push({resolve,ms}));
+ return {controller,document,styles,classes,transitions,timers,events,get held(){return held},get playing(){return playing}};
 }
-test('Theme reveal keeps live scene running while preserving playing and paused intent',async()=>{
+test('Stationary scenes retain the circular reveal and playback intent',async()=>{
  for(const playing of [false,true]){
-  const h=harness({playing}),done=h.controller.setTheme('dark');await flush();
+  const h=harness({playing,scene:'parking'}),done=h.controller.setTheme('dark');await flush();
   assert.equal(h.document.documentElement.dataset.theme,'dark');assert.equal(h.held,false);assert.equal(h.playing,playing);assert.equal(h.controller.busy,true);
   assert.ok(parseFloat(h.styles['--theme-reveal-radius'])>Math.hypot(1234,978)+179);
   h.transitions[0].finish();await done;assert.equal(h.held,false);assert.equal(h.playing,playing);assert.equal(h.controller.busy,false);assert.equal(h.classes.size,0);
   assert.deepEqual(h.events,[['dark',false]]);
  }
+});
+test('Playing driving scenes blend live frames without creating an outgoing snapshot',async()=>{
+ for(const scene of ['road','elevated','ramp','junction']){
+  const h=harness({playing:true,scene}),done=h.controller.setTheme('dark');await flush();
+  assert.equal(h.document.documentElement.dataset.theme,'dark');assert.equal(h.transitions.length,0);
+  assert.deepEqual(h.events,[['dark',true]]);assert.equal(h.held,false);assert.equal(h.playing,true);
+  assert.equal(h.controller.busy,true);assert.equal(h.timers[0].ms,400);
+  h.timers[0].resolve();await done;assert.equal(h.controller.busy,false);
+  assert.equal(JSON.parse(h.document.body.dataset.themeMotion).method,'live-appearance');
+ }
+});
+test('Rapid requests during live driving finish the active blend before returning to light',async()=>{
+ const h=harness({playing:true}),done=h.controller.setTheme('dark');await flush();
+ await h.controller.setTheme('light');assert.deepEqual(h.events,[['dark',true]]);
+ h.timers[0].resolve();await flush();assert.deepEqual(h.events,[['dark',true],['light',true]]);
+ h.timers[1].resolve();await done;assert.equal(h.document.documentElement.dataset.theme,'light');
+ assert.equal(h.controller.busy,false);assert.equal(h.transitions.length,0);
+});
+test('Reduced motion bypasses the driving blend and a failed commit unlocks controls',async()=>{
+ const reduced=harness({playing:true,reduce:true});await reduced.controller.setTheme('dark');
+ assert.deepEqual(reduced.events,[['dark',false]]);assert.equal(reduced.timers.length,0);
+ const failed=harness({playing:true,failCommit:true});await assert.rejects(failed.controller.setTheme('dark'),/Theme unavailable/);
+ assert.equal(failed.controller.busy,false);assert.equal(failed.held,false);
 });
 test('Rapid theme requests serialize complete snapshots and resolve to latest intent',async()=>{
  const h=harness(),done=h.controller.setTheme('dark');await flush();await h.controller.setTheme('light');assert.equal(h.transitions.length,1);

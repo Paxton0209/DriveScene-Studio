@@ -136,6 +136,16 @@ async function setTheme(theme){
  const commit=async(value,animate=false)=>{syncFinish(value,{render:false});if(ready)await bridge().theme(value,{animate});document.documentElement.dataset.theme=value;try{localStorage.setItem(themeKey,value)}catch{}renderTheme()};
  while(document.documentElement.dataset.theme!==requestedTheme){
   const target=requestedTheme;
+  // An outgoing root snapshot freezes the road underneath the reveal even
+  // while its simulation advances. Blend the live raster during driving;
+  // retain the spatial reveal when the scene is stationary.
+  if(ready&&['road','elevated','ramp','junction'].includes(project.active)&&bridge().get({audit:false}).playing&&!reducedMotion()){
+   const audit={target,started:performance.now(),method:'live-appearance',duration:400};
+   const pending=commit(target,true).then(()=>{audit.animationStarted=performance.now();return new Promise(resolve=>setTimeout(resolve,400))});
+   themeTransition={finished:pending};
+   try{await pending}finally{themeTransition=null;audit.finished=performance.now();document.body.dataset.themeMotion=JSON.stringify(audit)}
+   continue;
+  }
   if(!document.startViewTransition||reducedMotion()){const pending=commit(target);themeTransition={finished:pending};try{await pending}finally{themeTransition=null}continue}
   const rect=$('theme').getBoundingClientRect(),x=rect.left+rect.width/2,y=rect.top+rect.height/2,radius=Math.hypot(Math.max(x,innerWidth-x),Math.max(y,innerHeight-y))+180;
   const root=document.documentElement;
