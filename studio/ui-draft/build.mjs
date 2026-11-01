@@ -156,7 +156,12 @@ window.draftSelectionMotion=morphSegment;
  return {contents,loader:'js',resolveDir:root+'../'};
  });}}]});
 const trial=await build({absWorkingDir:root,entryPoints:['./draft.js'],loader:{'.html':'text'},bundle:true,minify:true,format:'esm',write:false,target:['chrome110','safari17'],plugins:[{name:'trial-shell',setup(b){b.onLoad({filter:/\/draft\.js$/},async({path})=>({contents:(await readFile(path,'utf8')).replace("'./motion-runtime.js'","'./trial-motion-runtime.js'").replace("await fetch('./icons.json').then(response=>response.json())",await readFile(iconFile,'utf8')),loader:'js',resolveDir:root}));}}]});
-const trialFile=new URL('./skill.html',import.meta.url),trialHtml=(await readFile(trialFile,'utf8')).replace(/<script id="saved-frame-profile">[\s\S]*?<\/script>/,()=>`<script id="saved-frame-profile">${frameProfile}</script>`);
+// Preserve the approved shell geometry while sharing its theme transition
+// rules with the source stylesheet on every build.
+const themeCSS=await readFile(new URL('./draft.css',import.meta.url),'utf8');
+const themeRules=themeCSS.slice(themeCSS.indexOf('@property --theme-reveal-progress'),themeCSS.indexOf(':root{--e1-lifted'));
+if(!themeRules.startsWith('@property')||!themeRules.includes('@keyframes theme-reveal'))throw Error('Theme reveal stylesheet missing');
+const trialFile=new URL('./skill.html',import.meta.url),trialHtml=(await readFile(trialFile,'utf8')).replace(/@property --theme-reveal-progress[\s\S]*?(?=:root\{--e1-lifted)/,()=>themeRules).replace(/<script id="saved-frame-profile">[\s\S]*?<\/script>/,()=>`<script id="saved-frame-profile">${frameProfile}</script>`);
 const approvedHtml=trialHtml.replace(/<link rel="modulepreload" fetchpriority="high" href="runtime\.bundle\.js\?v=[^"]+">/,()=>parent.match(/<link rel="modulepreload" fetchpriority="high" href="runtime\.bundle\.js\?v=[^"]+">/)[0]).replace(/<script id="startup-assets">[\s\S]*?<\/script>/,()=>'<script id="startup-assets">'+startupAssetScript()+'</script>').replace(/<script id="startup-draft" type="module">[\s\S]*?<\/script>/,()=>'<script id="startup-draft" type="module">'+trial.outputFiles[0].text.replace(/<\/script/gi,'<\\/script')+'</script>');
 await writeFile(trialFile,approvedHtml);
 // Publish the reviewed shell at the existing public entry point as well.

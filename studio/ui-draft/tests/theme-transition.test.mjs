@@ -11,24 +11,29 @@ test('Theme commits while view transitions have suspended iframe animation callb
  await commit('dark');await commit('light');assert.equal(renders,2);
 });
 
-test('Stationary canvas and controls share a circular reveal; driving uses a live blend',async()=>{
+test('The icon-origin reveal excludes only the outgoing still of a playing driving scene',async()=>{
  const source=await readFile(new URL('../draft.js',import.meta.url),'utf8');
  const theme=source.slice(source.indexOf('async function setTheme('),source.indexOf("$('theme').addEventListener"));
- assert.match(theme,/document.startViewTransition\(\(\)=>commit\(target\)\)/);
+ assert.match(theme,/document.startViewTransition\(\(\)=>commit\(target,liveScene\)\)/);
  const css=await readFile(new URL('../draft.css',import.meta.url),'utf8');
- assert.doesNotMatch(css,/view-transition-(?:name:live-scene|old\(live-scene\)|new\(live-scene\)|group\(live-scene\))/);
- assert.match(theme,/commit\(target,true\)/);
+ assert.match(css,/\.theme-live-scene #engine\{view-transition-name:live-scene\}/);
+ assert.match(css,/::view-transition-old\(live-scene\)\{display:none\}/);
+ assert.match(css,/::view-transition-new\(live-scene\)\{animation:none;mix-blend-mode:normal;opacity:1\}/);
  assert.doesNotMatch(theme,/beginTheme|endTheme/);
 });
 
-test('Both shipped pages keep the canvas in the root mask and commit its endpoint once',async()=>{
+test('Both shipped pages retain the radial reveal and the separate live driving capture',async()=>{
+ const css=await readFile(new URL('../draft.css',import.meta.url),'utf8');
+ const rules=css.slice(css.indexOf('@property --theme-reveal-progress'),css.indexOf(':root{--e1-lifted'));
  for(const page of ['index.html','skill.html']){
   const html=await readFile(new URL('../'+page,import.meta.url),'utf8');
-  assert.doesNotMatch(html,/#engine\{view-transition-name:live-scene\}/,page);
+  assert.equal(html.slice(html.indexOf('@property --theme-reveal-progress'),html.indexOf(':root{--e1-lifted')),rules,page+' uses current source theme rules');
+  assert.match(html,/#engine\{view-transition-name:live-scene\}/,page);
   const callback=html.match(/document\.startViewTransition\(\(\)=>(\w+)\((\w+)([^)]*)\)\)/);
   assert.ok(callback,page+' includes the actual theme transition callback');
-  assert.equal(callback[3],'',page+' has no independent animated scene commit');
+  assert.match(callback[3],/^,\w+$/,page+' selects a live commit only during driving playback');
   assert.match(html,/soft-radial-unified/,page);
+  assert.match(html,/soft-radial-live/,page);
  }
 });
 

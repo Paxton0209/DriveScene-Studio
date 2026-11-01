@@ -31,27 +31,27 @@ test('Stationary scenes retain the circular reveal and playback intent',async()=
   assert.deepEqual(h.events,[['dark',false]]);
  }
 });
-test('Playing driving scenes blend live frames without creating an outgoing snapshot',async()=>{
+test('Playing driving scenes retain the shell reveal and blend the live scene without holding playback',async()=>{
  for(const scene of ['road','elevated','ramp','junction']){
   const h=harness({playing:true,scene}),done=h.controller.setTheme('dark');await flush();
-  assert.equal(h.document.documentElement.dataset.theme,'dark');assert.equal(h.transitions.length,0);
+  assert.equal(h.document.documentElement.dataset.theme,'dark');assert.equal(h.transitions.length,1);
   assert.deepEqual(h.events,[['dark',true]]);assert.equal(h.held,false);assert.equal(h.playing,true);
-  assert.equal(h.controller.busy,true);assert.equal(h.timers[0].ms,400);
-  h.timers[0].resolve();await done;assert.equal(h.controller.busy,false);
-  assert.equal(JSON.parse(h.document.body.dataset.themeMotion).method,'live-appearance');
+  assert.equal(h.controller.busy,true);assert.ok(h.classes.has('theme-live-scene'));
+  h.transitions[0].finish();await done;assert.equal(h.controller.busy,false);assert.equal(h.classes.size,0);
+  assert.equal(JSON.parse(h.document.body.dataset.themeMotion).method,'soft-radial-live');
  }
 });
 test('Rapid requests during live driving finish the active blend before returning to light',async()=>{
  const h=harness({playing:true}),done=h.controller.setTheme('dark');await flush();
  await h.controller.setTheme('light');assert.deepEqual(h.events,[['dark',true]]);
- h.timers[0].resolve();await flush();assert.deepEqual(h.events,[['dark',true],['light',true]]);
- h.timers[1].resolve();await done;assert.equal(h.document.documentElement.dataset.theme,'light');
- assert.equal(h.controller.busy,false);assert.equal(h.transitions.length,0);
+ h.transitions[0].finish();await flush();assert.deepEqual(h.events,[['dark',true],['light',true]]);
+ h.transitions[1].finish();await done;assert.equal(h.document.documentElement.dataset.theme,'light');
+ assert.equal(h.controller.busy,false);assert.equal(h.transitions.length,2);assert.equal(h.classes.size,0);
 });
 test('Reduced motion bypasses the driving blend and a failed commit unlocks controls',async()=>{
  const reduced=harness({playing:true,reduce:true});await reduced.controller.setTheme('dark');
  assert.deepEqual(reduced.events,[['dark',false]]);assert.equal(reduced.timers.length,0);
- const failed=harness({playing:true,failCommit:true});await assert.rejects(failed.controller.setTheme('dark'),/Theme unavailable/);
+ const failed=harness({playing:true,failCommit:true,unavailable:true});await assert.rejects(failed.controller.setTheme('dark'),/Theme unavailable/);
  assert.equal(failed.controller.busy,false);assert.equal(failed.held,false);
 });
 test('Rapid theme requests serialize complete snapshots and resolve to latest intent',async()=>{
