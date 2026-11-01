@@ -28,3 +28,8 @@ export function createProject(saved={}){
  project.active=activeBefore;
  setProjectVehicle(project,saved.shared?.model??saved.boards?.[active]?.params?.model);setProjectWeather(project,saved.shared?.weather??saved.boards?.[active]?.params?.weather??'default');return project;
 }
+// A document entry opens Driving; saved settings still normalize against the
+// previous scene so older projects retain their selected vehicle and weather.
+export function createEntryProject(saved={}){
+ const project=createProject(saved);project.active='road';return project;
+}

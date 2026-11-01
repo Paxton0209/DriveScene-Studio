@@ -1,6 +1,25 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createArtboard,createProject,setProjectWeather,setProjectVehicle} from '../artboards.js';
+import {createArtboard,createProject,createEntryProject,sceneTypes,setProjectWeather,setProjectVehicle} from '../artboards.js';
+
+test('Every document entry opens Road while preserving saved preferences and other scene settings',()=>{
+ for(const {id:active} of sceneTypes){
+  const saved={active,shared:{model:'ix',weather:'rain',playing:false,drivingCamera:'high',layers:{traffic:true,buildings:false}},boards:{road:{params:{lanes:2}},parking:{params:{camera:'bev'}},outdoor:{params:{camera:'raised'}},ramp:{params:{layout:'07'}}}},before=JSON.stringify(saved);
+  const project=createEntryProject(saved);
+  assert.equal(project.active,'road');assert.equal(project.boards.road.params.layout,'02');
+  assert.equal(project.shared.model,'ix');assert.equal(project.shared.weather,'rain');assert.equal(project.shared.playing,false);
+  assert.equal(project.boards.road.params.camera,'high');assert.equal(project.boards.road.params.lanes,2);
+  assert.equal(project.boards.road.params.traffic,true);assert.equal(project.boards.road.params.buildings,false);
+  assert.equal(project.boards.parking.params.camera,'bev');assert.equal(project.boards.outdoor.params.camera,'raised');assert.equal(project.boards.ramp.params.layout,'07');
+  assert.equal(JSON.stringify(saved),before);
+ }
+ assert.equal(createEntryProject().active,'road');
+});
+
+test('Road entry retains legacy vehicle and weather migration from the previous scene',()=>{
+ const project=createEntryProject({active:'outdoor',boards:{outdoor:{params:{model:'xc90',weather:'snow'}},road:{params:{model:'x6',weather:'rain'}}}});
+ assert.equal(project.active,'road');assert.equal(project.boards.road.params.model,'xc90');assert.equal(project.boards.road.params.weather,'snow');
+});
 
 test('Parking camera choices start with an actual selected option',()=>{
  for(const type of ['parking','outdoor']){

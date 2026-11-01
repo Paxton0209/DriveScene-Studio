@@ -72,9 +72,10 @@ test('Selected vehicle preload is consumed once, mismatched models use their own
  }finally{globalThis.fetch=previous;if(previousEarly===undefined)delete globalThis.__draftPreparedVehicle;else globalThis.__draftPreparedVehicle=previousEarly;}
 });
 
-test('Parent starts only the saved active vehicle, environment and enabled Traffic',async()=>{
+test('Parent preloads the saved vehicle and Road entry Traffic regardless of the last scene',async()=>{
  const {startStartupAssets}=await import('../startup-bundles.mjs');
  const cases=[['?qa=cold',{active:'parking',shared:{model:'ix',layers:{traffic:true}}},'ix',true,'-qa-cold'],['',{active:'outdoor',boards:{outdoor:{params:{model:'xc90'}}}},'xc90',false,''],['?qa=1',{shared:{model:'invalid'}},'model-3',false,'-qa'],['?qa=cold',{shared:{model:'x6'}},'x6',false,'-qa-cold'],['',{active:'parking',boards:{parking:{params:{traffic:true}}},shared:{layers:{traffic:false}}},'model-3',false,'']];
+ cases.push(['',{active:'outdoor',boards:{outdoor:{params:{traffic:false}},road:{params:{traffic:true}}}},'model-3',true,''],['',{active:'parking',boards:{parking:{params:{traffic:true}},road:{params:{traffic:false}}}},'model-3',false,'']);
  for(const [search,saved,model,traffic,suffix] of cases){
   const calls=[],keys=[],scope={location:{search},document:{documentElement:{dataset:{}},baseURI:'https://example.test/studio/ui-draft/'},localStorage:{getItem(key){keys.push(key);return JSON.stringify(saved)}},fetch:async(url,options)=>{assert.equal(options.priority,'low');calls.push(url);return new Response(new Uint8Array([1,2]))}};
   const requests=startStartupAssets(scope);await Promise.all(requests.values());

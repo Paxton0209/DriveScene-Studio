@@ -1,12 +1,39 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
 import {showStartupPoster,layoutStartupPoster,rememberReloadPoster} from '../startup-poster.mjs';
 function scope(search,values){const root={dataset:{},style:{setProperty(k,v){root[k]=v}}};return {document:{documentElement:root},location:{search},localStorage:{getItem:k=>values[k]??null}}}
-test('Initial preview follows the same QA-specific scene/theme storage as the live page',()=>{
+test('Published entry scripts use Road even with a matching cached Parking frame',async()=>{
+ const previews=JSON.parse(await readFile(new URL('../startup-previews.json',import.meta.url),'utf8'));
+ for(const file of ['index.html','skill.html']){
+  const html=await readFile(new URL('../'+file,import.meta.url),'utf8'),script=html.match(/<script id="startup-poster">([\s\S]*?)<\/script>/)[1];
+  for(const search of ['', '?qa=theme-radial'])for(const active of ['parking','outdoor'])for(const theme of ['light','dark']){
+   const suffix=search?'-qa-theme-radial':'',project=JSON.stringify({active});
+   const s=scope(search,{['drivescene-ui-draft-project-v2'+suffix]:project,['sr-ui-draft-theme'+suffix]:theme});
+   s.performance={getEntriesByType:()=>[{type:'reload'}]};
+   s.sessionStorage={getItem:key=>key.startsWith('drivescene-reload-frame-')?JSON.stringify({project,theme,data:'wrong-scene-cache'}):'ready'};
+   new Function('window',script)(s);
+   assert.equal(s.document.documentElement.dataset.startupPreview,'prepared');
+   const image=s.document.documentElement['--startup-poster'];
+   if(theme==='light')assert.equal(image,`url("${previews['road-light']}")`);
+   else assert.match(image,/^url\("\.\/startup-previews\/road-dark\.jpg\?v=/);
+  }
+ }
+});
+test('Initial preview opens Road and follows the same QA-specific theme storage as the live page',()=>{
  const s=scope('?qa=review',{'drivescene-ui-draft-project-v2-qa-review':'{"active":"elevated"}','sr-ui-draft-theme-qa-review':'dark','sr-ui-draft-theme':'light'});
- showStartupPoster({'elevated-dark':'data:image/jpeg;base64,a'},s);assert.equal(s.document.documentElement.dataset.theme,'dark');assert.equal(s.document.documentElement['--startup-poster'],'url("data:image/jpeg;base64,a")');
+ showStartupPoster({'elevated-dark':'wrong-scene','road-dark':'data:image/jpeg;base64,a'},s);assert.equal(s.document.documentElement.dataset.theme,'dark');assert.equal(s.document.documentElement['--startup-poster'],'url("data:image/jpeg;base64,a")');
  const empty=scope('?qa=1',{});showStartupPoster({'road-light':'fallback'},empty);assert.equal(empty.document.documentElement['--startup-poster'],'url("fallback")');
  const old=scope('',{'drivescene-ui-draft-project-v2':'{"active":"obsolete"}','sr-ui-draft-theme':'dark'});showStartupPoster({'road-dark':'fallback'},old);assert.equal(old.document.documentElement['--startup-poster'],'url("fallback")');
+});
+test('A returning entry never flashes a cached Parking or other non-Road frame',()=>{
+ for(const active of ['elevated','ramp','junction','parking','outdoor'])for(const theme of ['light','dark']){
+  const project=JSON.stringify({active}),s=scope('',{'drivescene-ui-draft-project-v2':project,'sr-ui-draft-theme':theme});
+  s.performance={getEntriesByType:()=>[{type:'reload'}]};
+  s.sessionStorage={getItem:key=>key.startsWith('drivescene-reload-frame-')?JSON.stringify({project,theme,data:'wrong-scene-cache'}):'ready'};
+  showStartupPoster({['road-'+theme]:'road-preview',[active+'-'+theme]:'wrong-scene-preview'},s);
+  assert.equal(s.document.documentElement['--startup-poster'],'url("road-preview")');assert.equal(s.document.documentElement.dataset.startupPreview,'prepared');
+ }
 });
 test('Initial and ready artboards retain identical 16:9 pixel-aligned bounds across viewport sizes',()=>{
  for(const [vw,w,h] of [[1400,924,900],[800,744,400],[500,444,300],[500,444,150]]){const style={},doc={getElementById:id=>id==='stage'?{getBoundingClientRect:()=>({width:w,height:h})}:{style}};layoutStartupPoster(doc,vw);const first={...style};layoutStartupPoster(doc,vw);assert.deepEqual(style,first);assert.equal(parseFloat(style.width)/parseFloat(style.height),16/9);assert.ok(parseFloat(style.width)<=w);assert.ok(parseFloat(style.height)<=h);}

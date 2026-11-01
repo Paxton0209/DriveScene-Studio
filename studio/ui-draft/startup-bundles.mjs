@@ -25,7 +25,8 @@ export function startStartupAssets(scope=window){
  const active=['road','elevated','ramp','junction','parking','outdoor'].includes(saved.active)?saved.active:'road';
  const params=saved.boards?.[active]?.params||{},candidate=saved.shared?.model??params.model;
  const model=['model-3','x6','ix','xc90'].includes(candidate)?candidate:'model-3';
- const traffic=saved.shared?.layers?.traffic??params.traffic??false;
+ // The entry always opens Road, even when the last saved scene was Parking.
+ const traffic=saved.shared?.layers?.traffic??saved.boards?.road?.params?.traffic??false;
  const urls=['../engine/assets/studio-environment.bin.gz?v=1',`./vehicles/${model}/model.glb.gz?v=restore26`];
  if(traffic)urls.push('./traffic-model-y.prepared.bin.gz?v=restore26');
  scope.document.documentElement.dataset.startup='loading';

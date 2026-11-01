@@ -2,8 +2,8 @@
 export function showStartupPoster(previews,scope=window){
  const root=scope.document.documentElement,q=new URLSearchParams(scope.location.search);
  const value=q.get('qa'),suffix=q.has('qa')?'-qa'+(['','1'].includes(value)?'':'-'+value):'';
- let active='road',theme='light',project='{}',settings={};
- try{project=scope.localStorage.getItem('drivescene-ui-draft-project-v2'+suffix)||'{}';settings=JSON.parse(project);active=settings.active||active}catch{}
+ let theme='light',project='{}',settings={};
+ try{project=scope.localStorage.getItem('drivescene-ui-draft-project-v2'+suffix)||'{}';settings=JSON.parse(project)}catch{}
  try{theme=scope.localStorage.getItem('sr-ui-draft-theme'+suffix)||theme}catch{}
  theme=theme==='dark'?'dark':'light';root.dataset.theme=theme;
  // Reloads reuse the session's ready path. A new document still waits for its
@@ -13,11 +13,11 @@ export function showStartupPoster(previews,scope=window){
  try{returning=returning||scope.sessionStorage?.getItem(sessionKey)==='ready'}catch{}
  if(returning)root.dataset.startup='warm';
  scope.__draftStartupSessionKey=sessionKey;
- let image=previews[active+'-'+theme]||previews['road-'+theme];
+ let image=previews['road-'+theme];
  root.dataset.startupPreview='prepared';
  try{
   const clear=JSON.parse(scope.sessionStorage?.getItem('drivescene-reload-frame-v1'+suffix)||'null');
-  if(returning&&clear?.project===project&&clear.theme===theme){image=clear.data;root.dataset.startupPreview='clear';}
+  if(returning&&(settings.active||'road')==='road'&&clear?.project===project&&clear.theme===theme){image=clear.data;root.dataset.startupPreview='clear';}
  }catch{}
  // Start decoding in the head, before the background first participates in
  // layout. Otherwise Safari can paint an empty artboard for one frame.

@@ -8,7 +8,7 @@ import {createControlPaint} from './control-paint.js?v=interaction-20261027';
 import {indoorShadowValues} from './indoor-shadow-settings.js';
 import {vehicleShadowPreset} from './vehicle-shadow-settings.js';
 import {indoorFinishValues} from './indoor-finish-settings.js';
-import {createProject,sceneTypes,setProjectWeather,setProjectVehicle,setProjectOption} from './artboards.js?v=traffic33-20261025';
+import {createEntryProject,sceneTypes,setProjectWeather,setProjectVehicle,setProjectOption} from './artboards.js?v=traffic33-20261025';
 import {revealScene} from './scene-reveal.js?v=interaction-20261027';
 import {mountFormatSelect} from './format-select.js?v=parking-export-20261027';
 import {syncExportFormat} from './export-format.js';
@@ -23,7 +23,7 @@ const selectedExportSize=(format=$('format').value)=>exportSize(format,stillWidt
 if(qa){try{document.documentElement.dataset.theme=localStorage.getItem(themeKey)||'light'}catch{}}
 let saved={};try{saved=JSON.parse(localStorage.getItem(storageKey)||'{}')}catch{}
 const controlPaint=createControlPaint();
-const project=createProject(saved);for(const id of ['parking','outdoor']){project.boards[id].params.path=false;}const icons=await fetch('./icons.json').then(response=>response.json());
+const project=createEntryProject(saved);for(const id of ['parking','outdoor']){project.boards[id].params.path=false;}const icons=await fetch('./icons.json').then(response=>response.json());
 let ready=false,status={playing:false},duration=10,videoExtension='mp4',videoAvailable=true,videoReady=false,scrollTimer=0,resizeFrame=0,exporting=false,previewBusy=false,sceneUpdating=false,vehicleUpdating=false,tooltipTimer=0,tooltipLast=0,tooltipAnchor=null,sceneRequest=0;
 const api=()=>frame.contentWindow.layoutEngine,bridge=()=>api().draft,board=()=>project.boards[project.active],params=()=>board().params;
 const vehicles=[['model-3','Tesla Model 3'],['x6','BMW X6'],['ix','BMW iX'],['xc90','Volvo XC90']],thumb=id=>vehicleThumbnails[id];

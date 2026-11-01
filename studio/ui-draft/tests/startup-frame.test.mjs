@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {layoutStartupPoster} from '../startup-poster.mjs';
 import {patchApp} from '../runtime-patches.mjs';
+import {createEntryProject} from '../artboards.js';
 const source = await readFile(new URL('../draft.js', import.meta.url), 'utf8');
 
 test('Initial layout is synchronous; later resize frames preserve the same rectangle', () => {
@@ -125,11 +126,12 @@ test('Transport loading cache follows the active scene before readiness',()=>{
  for(const active of ['road','parking','outdoor','road']){project.active=active;render();assert.equal(transport.hidden,false);}
 });
 
- test('Reload preserves saved parking camera choices before the first inspector and engine frame', () => {
-  const block=source.slice(source.indexOf('const project=createProject(saved);'),source.indexOf('const icons=await'));
+ test('Entry initializes Road before the first frame while retaining saved parking camera choices', () => {
+  const block=source.slice(source.indexOf('const project=createEntryProject(saved);'),source.indexOf('const icons=await'));
   for(const camera of ['default','raised','bev']){
-    const saved={boards:{parking:{params:{camera,path:true}},outdoor:{params:{camera,path:true}}}};
-    const project=new Function('createProject','saved',`${block};return project;`)(value=>structuredClone(value),saved);
+    const saved={active:'parking',boards:{parking:{params:{camera,path:true}},outdoor:{params:{camera,path:true}}}};
+    const project=new Function('createEntryProject','saved',`${block};return project;`)(createEntryProject,saved);
+    assert.equal(project.active,'road');
     for(const id of ['parking','outdoor']){
       assert.equal(project.boards[id].params.camera,camera);
       assert.equal(project.boards[id].params.path,false);
