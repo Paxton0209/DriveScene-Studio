@@ -21,7 +21,7 @@ test('Desktop narrow embedded preview retains all four prepared models on repeat
  assert.equal(cache.stats().estimatedBytes,80*1024*1024);
 });
 
-test('All viewports retain four startup choices; cache eviction still respects its memory cap',async()=>{
+test('All viewports can retain four selected models; cache eviction still respects its memory cap',async()=>{
  assert.equal(await capacity(390,640),4);
  for(const [maxEntries,bytes] of [[2,20*1024*1024],[4,60*1024*1024]]){
   const disposed=[];
@@ -31,4 +31,14 @@ test('All viewports retain four startup choices; cache eviction still respects i
   assert.deepEqual(cache.stats().models,['active','newer']);
   assert.deepEqual(disposed,['older']);assert.ok(cache.stats().estimatedBytes<=cache.stats().maxBytes);
  }
+});
+
+test('Opening the selected vehicle does not schedule unused models over continuous driving',async()=>{
+ const source=patchApp(await readFile(new URL('../../engine/app.js',import.meta.url),'utf8'));
+ const completion=source.slice(source.indexOf(" window.dispatchEvent(new Event('studio:ready'));"),source.indexOf('\nfunction failedVehicle'));
+ const calls=[];
+ new Function('window','location','Event','query','prepareLaneGeometry','world','scheduleVehicleWarmup','rememberPreview',completion.slice(0,completion.lastIndexOf('}')))(
+  {dispatchEvent(){calls.push('ready');},parent:{postMessage(){}}},{origin:'http://localhost'},class Event{},new URLSearchParams('review=ui-draft'),()=>calls.push('lanes'),{},()=>calls.push('unused models'),()=>calls.push('preview'));
+ assert.deepEqual(calls,['ready','lanes','preview']);
+ assert.ok(source.includes('await prepareChoice(car);mark(\'prepare\')'),'actual model selection still prepares its complete vehicle');
 });

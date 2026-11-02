@@ -54,7 +54,9 @@ export function patchFeatures(source){
 
 export function patchApp(source){
  source=replace(source,'preparePathSound();',`const warmPathSound=()=>{if(window.parent.document.documentElement.dataset.startup){setTimeout(warmPathSound,1000);return;}void preparePathSound();};setTimeout(warmPathSound,1500);`);
- source=replace(source,'const run=async()=>{if(document.hidden||vehicleChanging||world.layoutTransition',"const run=async()=>{if(window.parent.document.documentElement.dataset.startup){scheduleVehicleWarmup(500);return;}if(document.hidden||vehicleChanging||world.layoutTransition");
+ // A live driving frame is never idle enough to parse/upload three unused
+ // models. Keep selection preparation and its cache; remove the opening sweep.
+ source=replace(source,'scheduleVehicleWarmup(800);rememberPreview();','rememberPreview();');
  // The embedded canvas may be narrow on desktop; capacity follows the host viewport.
  source=replace(source,"maxEntries:matchMedia('(max-width:760px)').matches?2:4","maxEntries:4");
  source="import {prepareStartupChoices,startupChoices} from '../ui-draft/startup-readiness.js';\n"+source;
@@ -81,7 +83,6 @@ export function patchApp(source){
   world.draftSceneryRandom.restore(scenery);world.draftTrafficRandom.restore(traffic);
   versionFeatures.set(initialFeatures,{animate:false,render:false});
  }});
- // Alternative vehicles warm only after the parent reveals the initial frame.
 }
 async function installVehicle(car,full=false,animate=false,retainPrevious=false){`);
  source=replace(source,"if(key==='model'){document.getElementById('vehicle-option-'+value)?.click();return;}","if(key==='model')return vehicleSelector.choose(value);");

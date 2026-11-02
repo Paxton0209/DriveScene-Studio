@@ -188,7 +188,7 @@ body[data-ready=true] #canvas-playback #scene-transport:disabled{opacity:1}
  :root #artboard,:root #artboard .artboard-clip,:root #artboard #engine,:root #artboard #frame-cover{border-radius:var(--r-ctl)}
  :root #artboard .artboard-clip{box-shadow:0 0 0 1px var(--c-line)}
  :root #canvas-playback{top:calc(100% + 12px)}
- :root #canvas-playback #scene-transport{height:44px;width:100%;min-width:0;max-width:none;flex:1 1 auto;font-size:13px}
+ :root #artboard #canvas-playback #scene-transport{height:44px;width:100%;min-width:0;max-width:none;flex:1 1 auto;font-size:13px}
  :root #canvas-playback #indicator-mute{height:44px;width:44px}
  :root #library{grid-column:1;grid-row:1;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);align-items:start;gap:12px;min-height:0;padding:0;background:transparent;border:0;box-shadow:none;overflow:visible}
  :root #library #scene-nav{display:none}
