@@ -16,6 +16,6 @@ test('Draft world preserves the approved rendering source without the rejected s
 
 test('One assist demo switch replaces the independent path layer in every scene',async()=>{
  const source=await readFile(new URL('../draft.js',import.meta.url),'utf8');
- assert.doesNotMatch(source,/\['path','Assist path'\]/);assert.ok(source.includes("transport.textContent='Assist demo'"));
+ assert.doesNotMatch(source,/\['path','Assist path'\]/);assert.ok(source.includes("transport.textContent='Assist'"));
  assert.ok(source.includes("transport.setAttribute('role','switch')"));assert.ok(source.includes('await setAssistDemo(bridge()'));
 });

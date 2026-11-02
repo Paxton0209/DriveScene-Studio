@@ -23,12 +23,13 @@ test('Parking hover requests repaint only for changed coverage and clears select
  const hover=bay=>{const p=new THREE.Vector3(bay.x,.03,bay.z).project(world.camera);return motion.hover(p.x,p.y);};
  const values=()=>world.parkingBays.map(b=>b.tile.material.uniforms.hover.value);
  assert.equal(motion.hover(null,null),false);
- assert.equal(hover(world.parkingBays[1]),true);assert.equal(values().filter(Boolean).length,1);
+ assert.equal(hover(world.parkingBays[1]),false,'inactive assistance does not highlight a bay');
+ motion.sync({assist:true});assert.equal(hover(world.parkingBays[1]),true);assert.equal(values().filter(Boolean).length,1);
  assert.equal(hover(world.parkingBays[1]),false,'moving inside the same bay needs no repaint');
  assert.equal(hover(world.parkingBays[2]),true);assert.equal(values()[1],0);assert.equal(values()[2],1);
  assert.equal(motion.hover(null,null),true);assert.ok(values().every(v=>v===0));
  assert.equal(motion.hover(null,null),false,'repeated leave stays idle');
- motion.sync({traffic:true});assert.equal(hover(world.parkingBays[3]),false,'occupied bay has no hover');
+ motion.sync({traffic:true,assist:true});assert.equal(hover(world.parkingBays[3]),false,'occupied bay has no hover');
  assert.equal(hover(world.parkingBays[1]),true);assert.equal(pick(world.parkingBays[1]),true);
  assert.equal(hover(world.parkingBays[1]),true,'selection clears the previous hover');assert.ok(values().every(v=>v===0));
  assert.equal(hover(world.parkingBays[1]),false);assert.equal(motion.start(),true);
@@ -253,4 +254,27 @@ for(const scene of ['10','17'])for(const hz of [30,60,120])test(`Camera return a
  assert.ok(maxRate<10,`angular speed ${maxRate}`);assert.ok(returnTail<.15,`return must settle softly: ${returnTail}`);
  tick(30);const car=world.car.position.clone().project(world.camera),nose=world.car.position.clone().add(new THREE.Vector3(-Math.sin(world.car.rotation.y),0,-Math.cos(world.car.rotation.y))).project(world.camera);
  assert.ok(nose.y>car.y);assert.ok(Math.abs(nose.x-car.x)<1e-5,'completed BEV remains nose-up');
+});
+
+for(const scene of ['10','17'])test(`Replay reset starts a fresh parking motion in ${scene}`,()=>{
+ const {world,motion,tick}=fixture();world.state.id=scene;motion.sync({assist:true});assert.equal(motion.selectDefault(),true);assert.equal(motion.start(),true);
+ tick(30);assert.equal(motion.get().complete,true);motion.reset({replay:true});motion.sync({assist:true});assert.equal(motion.selectDefault(),true);assert.equal(motion.start(),true);tick(.2);assert.equal(motion.get().active,true);assert.ok(motion.get().elapsed>0);
+});
+
+test('Selected target stays invisible until parking assistance is enabled',()=>{
+ const {world,motion,pick}=fixture();assert.equal(pick(world.parkingBays[1]),true);motion.sync({assist:false});
+ const target=world.draftParkingGroup.getObjectByName('Parking target space');assert.equal(target.visible,false);
+ motion.sync({assist:true});assert.equal(target.visible,true);motion.sync({assist:false});assert.equal(target.visible,false);
+});
+
+test('Replay becomes available only after parking completion feedback finishes',()=>{
+ const {motion,tick}=fixture();motion.selectDefault();motion.start();while(!motion.get().complete)tick(1/30);
+ assert.equal(motion.get().replayReady,false);tick(1.7);assert.equal(motion.get().replayReady,false);tick(.15);assert.equal(motion.get().replayReady,true);
+});
+
+test('Prepared replay resumes from the same camera and vehicle pose',()=>{
+ const {world,motion,tick}=fixture();motion.sync({assist:true});motion.selectDefault();motion.start();tick(30);
+ assert.equal(motion.get().complete,true);motion.reset({replay:true});motion.sync({assist:true});assert.equal(motion.start(),true);motion.pause();
+ const position=world.car.position.clone(),camera=world.camera.position.clone(),orientation=world.camera.quaternion.clone();
+ assert.equal(motion.start(),true);assert.ok(world.car.position.distanceTo(position)<1e-9);assert.ok(world.camera.position.distanceTo(camera)<1e-9);assert.ok(world.camera.quaternion.angleTo(orientation)<1e-7);
 });

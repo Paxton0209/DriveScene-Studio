@@ -1,17 +1,12 @@
-// The single demo intent owns both route guidance and vehicle playback.
+// Driving assistance changes the overlay; parking assistance starts the maneuver.
 export async function setAssistDemo(bridge,enabled){
- const state=()=>bridge.get({audit:false});
- if(!enabled){bridge.setPlaying(false);await bridge.param('path',false,{sound:true});return false;}
- if(state().playing)return true;
- const scene=state().scene;
- try{
-  if(['parking','outdoor'].includes(scene))await bridge.parkingPlay();
-  else{
-   if(state().junction?.complete)bridge.replay();
-   await bridge.param('path',true,{sound:true});
-   if(state().scene!==scene)return false;
-   bridge.setPlaying(true);
-  }
-  return !!state().playing;
- }catch(error){bridge.setPlaying(false);if(state().scene===scene)await bridge.param('path',false,{sound:false});throw error;}
+ const state=()=>bridge.get({audit:false}),scene=state().scene;
+ if(!!state().features.path===!!enabled)return !!enabled;
+ if(['parking','outdoor'].includes(scene)){
+  if(!enabled){bridge.setPlaying(false);await bridge.param('path',false,{sound:true});return false;}
+  try{await bridge.parkingPlay();return state().scene===scene&&!!state().features.path;}
+  catch(error){bridge.setPlaying(false);if(state().scene===scene)await bridge.param('path',false,{sound:false});throw error;}
+ }
+ await bridge.param('path',!!enabled,{sound:true});
+ return state().scene===scene&&!!state().features.path;
 }

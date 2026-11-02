@@ -10,8 +10,9 @@ function harness(){
  const nodes=new Map(),unlocks=[],prepared=[],reveals=[],commits=[],navigation=[];
  const $=id=>{if(!nodes.has(id)){const node={hidden:false,disabled:false,open:false,querySelector(){return null}};Object.defineProperty(node,'inert',{set(value){if(id==='inspector-scroll'&&!value)unlocks.push(id)}});nodes.set(id,node);}return nodes.get(id)};
  const project={active:'road',shared:{},boards:Object.fromEntries(['road','parking','outdoor','junction'].map(type=>[type,{seed:1,params:{model:'model-3'}}]))};
- const bridge=()=>({suspendIndicator(){},scene(type){const task=deferred();prepared.push({type,...task});return task.promise},get(){return {}},finishScene(){},replay(){}});
+ const bridge=()=>({suspendIndicator(){},scene(type){const task=deferred();prepared.push({type,...task});return task.promise},get(){return {}},finishScene(){},setPlaying(){},replay(){}});
  const create=new Function('$','project','bridge','api','holdFrame','revealScene','document','navigation',`
+ const canvasTransport=$('canvas-transport');
  const controlPaint=async()=>true;
  let ready=true,pendingScene=null,exporting=false,previewBusy=false,vehicleUpdating=false,sceneUpdating=false,sceneRequest=0,sceneSelection=Promise.resolve(),sceneReveal=null,themeTransition=null,status={},videoAvailable=true,videoReady=false;
  const syncExportFormat=()=> 'png',selectedExportSize=()=>({width:3840,height:2160}),sizeLabel=()=> '3840 × 2160';

@@ -10,9 +10,9 @@ function statusHarness(){
  const assist=source.slice(source.indexOf('let assistRenderKey='),source.indexOf('\nfunction renderVehicles('));
  const transport=source.slice(source.indexOf('let transportRenderKey='),source.indexOf("\nwindow.addEventListener('message'"));
  const controller=new Function('$','syncCameraLock','syncJunctionPathLock',`
- let status={},ready=true,exporting=false,previewBusy=false;const project={active:'outdoor'},document={body:{dataset:{ready:'true'}}};
+ let status={},ready=true,exporting=false,previewBusy=false,demoUpdating=false,sceneUpdating=false,vehicleUpdating=false,themeTransition=null;const project={active:'outdoor'},document={body:{dataset:{ready:'true'}}};
  ${assist}\n${transport}
- return {render(value,force=false){status=value;renderAssist(force);renderTransport()}};
+ return {render(value,force=false){status={features:{path:true},...value};renderAssist(force);renderTransport()},scene(type){project.active=type}};
  `)($,()=>cameraSyncs++,()=>{});
  return {controller,$,get writes(){return writes},get cameraSyncs(){return cameraSyncs}};
 }
@@ -27,8 +27,8 @@ test('Continuous parking camera and elapsed updates do not rewrite unchanged con
 test('Pause, camera lock, completion and inspector replacement still update controls',()=>{
  const h=statusHarness(),parking={target:{x:1,z:2},elapsed:2,phase:'reverse',view:'bev',cameraLocked:true};
  h.controller.render({playing:true,parking});h.controller.render({playing:false,parking:{...parking,cameraLocked:false}});
- assert.equal(h.$('scene-transport').textContent,'Assist demo');assert.equal(h.$('scene-transport').attributes['aria-checked'],'false');assert.equal(h.$('scene-transport').hidden,false);assert.equal(h.$('assist').hidden,true);assert.equal(h.cameraSyncs,2);
- h.controller.render({playing:false,parking:{...parking,complete:true}});assert.equal(h.$('scene-transport').textContent,'Assist demo');assert.equal(h.$('scene-transport').dataset.tip,'Replay assisted-driving demo');
+ assert.equal(h.$('scene-transport').textContent,'Assist');assert.equal(h.$('scene-transport').attributes['aria-checked'],'true');assert.equal(h.$('scene-transport').hidden,false);assert.equal(h.$('assist').hidden,true);assert.equal(h.cameraSyncs,2);
+ h.controller.render({playing:false,parking:{...parking,complete:true}});assert.equal(h.$('scene-transport').textContent,'Assist');assert.equal(h.$('scene-transport').dataset.tip,'Turn off assistance');
  const before=h.cameraSyncs;h.controller.render({playing:false,parking:{...parking,complete:true}},true);assert.equal(h.cameraSyncs,before+1);
 });
 test('Parking feedback keeps the paused state and current segment distance visible',()=>{
@@ -97,4 +97,23 @@ test('Parking camera uses one dedicated update; weather and traffic do not snaps
  const h=parameterHarness();await h.param('camera','raised');assert.deepEqual(h.counts,{clones:0,copies:0,renders:1,previews:1,pauses:0});
  await h.param('weather','rain');await h.param('traffic',true);assert.equal(h.counts.clones,0);assert.equal(h.counts.copies,0);
  await h.param('model','x6');assert.equal(h.counts.clones,2);assert.equal(h.counts.copies,2);assert.equal(h.counts.pauses,1);
+});
+
+test('Playback control only appears for completed scenes',()=>{
+ const h=statusHarness();h.controller.scene('road');h.controller.render({playing:true,features:{path:false}});
+ assert.equal(h.$('scene-transport').attributes['aria-checked'],'false');assert.equal(h.$('canvas-transport').dataset.visible,'false');
+ h.controller.scene('junction');h.controller.render({playing:true,features:{path:true},junction:{complete:false}});assert.equal(h.$('canvas-transport').dataset.visible,'false');
+ h.controller.render({playing:false,features:{path:true},junction:{complete:true}});assert.equal(h.$('canvas-transport').dataset.visible,'true');assert.equal(h.$('canvas-transport').attributes['aria-label'],'Replay scene');
+});
+
+test('Parking feedback hides when assistance is turned off',()=>{
+ const h=statusHarness(),parking={target:{x:1,z:2},elapsed:2,paused:true};
+ h.controller.render({features:{path:true},parking});assert.equal(h.$('parking-status').hidden,false);
+ h.controller.render({features:{path:false},parking});assert.equal(h.$('parking-status').hidden,true);
+});
+
+test('Junction completion disables Assist until replay begins',()=>{
+ const h=statusHarness();h.controller.scene('junction');h.controller.render({features:{path:true},junction:{complete:true}});
+ assert.equal(h.$('scene-transport').disabled,true);assert.equal(h.$('scene-transport').dataset.finished,'true');
+ h.controller.render({features:{path:true},junction:{complete:false},playing:true});assert.equal(h.$('scene-transport').disabled,false);
 });

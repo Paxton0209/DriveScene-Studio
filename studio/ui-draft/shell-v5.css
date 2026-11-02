@@ -260,13 +260,42 @@ body[data-ready=true] #canvas-playback #scene-transport:disabled{opacity:1}
 :root #artboard .artboard-clip{border-radius:inherit;isolation:isolate;box-shadow:none}
 :root #artboard #engine,:root #artboard #frame-cover{border-radius:0}
 /* One inset stroke follows the host clip; inner raster surfaces stay rectangular. */
-:root #artboard .artboard-clip::after{content:'';position:absolute;inset:0;z-index:10;box-sizing:border-box;border:1px solid var(--c-line);border-radius:inherit;pointer-events:none}
+:root #artboard::after{content:'';position:absolute;inset:0;z-index:10;box-sizing:border-box;border:1px solid var(--c-line);border-radius:inherit;pointer-events:none}
 :root #inspector-scroll>#feedback{flex:none;margin:8px 16px 0}
 
-/* One task-level switch couples vehicle playback and route guidance. */
-:root #canvas-playback #scene-transport[role=switch]{position:relative;inset:auto;width:auto;min-width:140px;max-width:none;flex:0 0 auto;padding:0 12px;gap:8px;border:0;background:transparent;box-shadow:none}
-:root #scene-transport[role=switch]::before{display:block;width:28px;height:16px;border-radius:999px;background:var(--c-t3);clip-path:none;transition:background-color .16s}
-:root #scene-transport[role=switch]::after{content:'';position:absolute;left:14px;top:50%;width:12px;height:12px;border-radius:50%;background:#fff;transform:translateY(-50%);transition:transform .16s}
-:root #scene-transport[role=switch][aria-checked=true]::before{background:#1689f8}
-:root #scene-transport[role=switch][aria-checked=true]::after{transform:translate(12px,-50%)}
-@media(prefers-reduced-motion:reduce){:root #scene-transport[role=switch]::before,:root #scene-transport[role=switch]::after{transition:none}}
+/* Steering-wheel demo states. */
+:root #canvas-playback #scene-transport[role=switch]{position:relative;inset:auto;width:auto;min-width:0;max-width:none;flex:0 0 auto;background:var(--c-raised);box-shadow:var(--sh-raised)}
+:root #scene-transport[role=switch]::before{width:18px;height:18px;border-radius:50%;background-color:var(--c-t3);background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22white%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M12%203a9%209%200%201%201%200%2018%209%209%200%200%201%200-18Zm0%201.8a7.2%207.2%200%201%200%200%2014.4%207.2%207.2%200%200%200%200-14.4Z%22%2F%3E%3Cpath%20d%3D%22M4.9%2010.9h14.2v1.8c-3.6.2-6.15%202.5-6.15%206.6h-1.9c0-4.1-2.55-6.4-6.15-6.6Z%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");background-size:contain;clip-path:none;transition:background-color .16s}
+:root #canvas-playback #scene-transport[role=switch][aria-checked=true]{background:var(--c-raised);color:var(--c-t1);box-shadow:var(--sh-raised)}
+:root #scene-transport[role=switch][aria-checked=true]::before{background-color:var(--c-toggle-on)}
+@media(prefers-reduced-motion:reduce){:root #scene-transport[role=switch]::before{transition:none}}
+
+/* Playback changes time independently from assistance in driving scenes. */
+:root #artboard #canvas-transport{position:absolute;left:12px;bottom:12px;z-index:12;width:32px;height:32px;border-radius:var(--r-ctl);background:var(--c-raised);box-shadow:var(--sh-raised);color:var(--c-t1);opacity:0;pointer-events:none;transition:opacity .12s}
+@media(hover:none){:root #artboard #canvas-transport{width:44px;height:44px}}
+@media(prefers-reduced-motion:reduce){:root #artboard #canvas-transport{transition:none}}
+
+/* Keep the canvas mask and its outline on the same rounded boundary. */
+:root #artboard{border-radius:var(--r-panel)}
+:root #artboard .artboard-clip{border-radius:var(--r-panel);clip-path:none}
+:root #artboard::after{border-radius:var(--r-panel)}
+:root #scene-transport[role=switch]::before{background-color:#898989}
+:root[data-theme=dark] #scene-transport[role=switch]::before{background-color:#999999}
+:root #scene-transport[role=switch][aria-checked=true]::before{background-color:var(--c-toggle-on)}
+
+
+/* Align the parking status and playback control to the same canvas inset. */
+:root #parking-status{padding-left:12px}
+
+:root #canvas-transport::before{content:'';width:18px;height:18px;clip-path:none;background:currentColor;mask:url("./replay.svg") center/contain no-repeat}
+
+:root #artboard #canvas-transport{background:color-mix(in srgb,var(--c-raised) 78%,transparent);box-shadow:0 0 0 .5px var(--c-line);color:var(--c-t2);opacity:0;pointer-events:none;transition:opacity 200ms linear}
+:root #artboard #canvas-transport[data-visible=true]{opacity:1;pointer-events:auto}
+:root #artboard #canvas-transport[data-visible=false]{opacity:0;pointer-events:none}
+.replay-veil{position:absolute;inset:0;z-index:10;background:var(--canvas);opacity:1;pointer-events:none}
+@media(prefers-reduced-motion:reduce){:root #artboard #canvas-transport{transition:none}}
+
+:root #canvas-playback #scene-transport[data-finished=true]{opacity:.45}
+:root #scene-transport[data-finished=true]::before{background-color:var(--c-t3)}
+body[data-ready=true] #canvas-playback #scene-transport[data-finished=true]:disabled{opacity:.45}
+:root #scene-transport[role=switch][data-finished=true]::before{background-color:var(--c-t3)}

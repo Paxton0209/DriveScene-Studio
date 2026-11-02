@@ -50,7 +50,7 @@ test('Junction replay reuses the prepared route after an appearance update',asyn
  const source=await readFile(new URL('../engine-bridge.js',import.meta.url),'utf8');
  const body=source.match(/ replay\(\)\{([^\n]+)\},/)[1];
  let elapsed=3.5;const preparedRoute={duration:3500};let sampledRoute=null;
- const replay=new Function('route','world','current','isParking','traffic','parking','resetIndicatorSound','settle','seek','restartJunctionPath','publish','schedule',`let junctionPoses=route,loopTime=3.5,audioHeld=false;const seekJunction=()=>seek(junctionPoses,loopTime);return function(){${body}}`)(
+ const replay=new Function('route','world','current','isParking','traffic','parking','resetIndicatorSound','settle','seek','restartJunctionPath','publish','schedule',`let junctionPoses=route,loopTime=3.5,audioHeld=false;const renderOnce=()=>{};const seekJunction=()=>seek(junctionPoses,loopTime);return function(){${body}}`)(
   preparedRoute,{state:{id:'08'},suspended:false,draftTrafficEnabled:true},()=> 'junction',()=>false,
   {setEnabled(){}},{},()=>{},()=>{},(route,time)=>{sampledRoute=route;elapsed=time},()=>{},()=>{},()=>{}
  );

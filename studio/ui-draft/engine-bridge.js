@@ -85,10 +85,10 @@ export function installDraftBridge({world,features,drive,traffic,api,current,upd
   junctionPoses.motion.sample(Math.min(loopTime*1000,junctionPoses.motion.duration));
   // Ego stop does not end the cross-traffic simulation.
  }
- function step(seconds){if(!world.state||!world.root||world.initializingScene)return;world.draftTime+=seconds*1000;loopTime+=seconds;drive.advance(seconds);if(isParking(world.state.id)){parking.step(seconds);const parked=parking.get();if(!parked.active)playing=false;if(parked.complete)features.set({path:false},{animate:false,render:false});world.renderFrame();}else if(current()==='junction'){if(junctionPoses&&loopTime*1000>=junctionPoses.motion.duration){playing=false;features.set({path:false},{animate:false,render:false});}seekJunction();}else if(!world.cameraMotion&&!world.layoutMotion&&!world.environmentMotion&&!world.structureMotion)world.renderFrame()}
+ function step(seconds){if(!world.state||!world.root||world.initializingScene)return;world.draftTime+=seconds*1000;loopTime+=seconds;drive.advance(seconds);if(isParking(world.state.id)){parking.step(seconds);const parked=parking.get();if(!parked.active)playing=false;world.renderFrame();}else if(current()==='junction'){if(junctionPoses&&loopTime*1000>=junctionPoses.motion.duration)playing=false;seekJunction();}else if(!world.cameraMotion&&!world.layoutMotion&&!world.environmentMotion&&!world.structureMotion)world.renderFrame()}
  const visualMotion=()=>traffic.animating?.()||!!world.layoutMotion||world.draftIndicatorActive||parking.animating()||appearance.active()||world.draftWeatherActive||features.animating()||world.activationSweep?.active();
  function schedule(){if(scenePreparing||frame||!playing&&!visualMotion()||document.hidden||exporting||themeHeld)return;frame=requestAnimationFrame(tick)}
- let lastPublish=0;
+ let lastPublish=0,lastReplayReady=false;
  function tick(now){
   frame=0;if(scenePreparing||!playing&&!visualMotion()||document.hidden||exporting||themeHeld)return;
   if(!world.state||!world.root||world.initializingScene){last=0;schedule();return}
@@ -102,7 +102,8 @@ export function installDraftBridge({world,features,drive,traffic,api,current,upd
   const wasPlaying=playing;
   if(next.seconds>0){if(playing)step(next.seconds);else{world.draftTime+=next.seconds*1000;if(!laneMotion)renderOnce()}}
   if(laneMotion&&!laneMotion.paused)laneMotion.tick(now);
-  if(wasPlaying!==playing||now-lastPublish>200||!playing&&!visualMotion()){lastPublish=now;publish()}
+  const replayReady=!!parking.get().replayReady;
+  if(wasPlaying!==playing||replayReady!==lastReplayReady||now-lastPublish>200||!playing&&!visualMotion()){lastPublish=now;lastReplayReady=replayReady;publish()}
   schedule();
  }
  function capture(){const objects=[];world.scene.traverse(object=>objects.push({object,position:object.position.clone(),rotation:object.rotation.clone(),scale:object.scale.clone(),visible:object.visible,growthBaseY:object.userData.growthBaseY,growthHeight:object.userData.growthHeight}));return {objects,parking:parking.capture(),wheelDistance:world.draftWheelDistance,drive:drive.draftCapture(),traffic:traffic?.draftCapture(),time:world.draftTime,loopTime,speed:world.draftSpeed,sceneryRandom:world.draftSceneryRandom.state(),trafficRandom:world.draftTrafficRandom.state(),width:world.width,height:world.height,pose:world.captureCamera()}}
@@ -130,13 +131,13 @@ export function installDraftBridge({world,features,drive,traffic,api,current,upd
   }finally{restore(saved);exporting=false;playing=wasPlaying;lastInput=performance.now();sync();renderOnce();schedule()}
  }
  const bridge={get,parkingCamera(values,{render=true}={}){const settings=parking.configureCamera(values);if(render)renderOnce();publish();schedule();return settings;},roadShadow(value,{render=true}={}){const stored=world.draftRoadShadowStrength??={ego:1,traffic:1};const setting=Number.isFinite(value)?{ego:value,traffic:value}:value||{};for(const key of ['ego','traffic'])if(Number.isFinite(setting[key]))stored[key]=Math.max(0,Math.min(key==='ego'?4:2,setting[key]));if(render)renderOnce();return {...stored};},parkingFinish(values={},{render=true}={}){const finish=world.draftParkingFinish??={bay:{value:1},column:{value:1}};const repaint=['traffic','trafficGray'].some(key=>Number.isFinite(values[key])&&values[key]!==finish[key]?.value);for(const key of ['bay','column','traffic','trafficGray','blue','ground','shadow',...Object.keys(indoorShadowLimits)])if(Number.isFinite(values[key])){const [min,max]=indoorShadowLimits[key]??[0,['blue','trafficGray'].includes(key)?1:2];(finish[key]??={value:1}).value=Math.max(min,Math.min(max,values[key]));}if(repaint){world.carReflectionKey=null;world.groundReflectionKey=null;}if(render)renderOnce();return Object.fromEntries(Object.entries(finish).map(([key,u])=>[key,u.value]));},suspendIndicator(){audioHeld=true;stopIndicatorSound()},audit:()=>({...world.audit(),indoorLighting:{reflectionRaster:world.carMirror?{width:world.carMirror.getRenderTarget().width,height:world.carMirror.getRenderTarget().height}:null,contactProfile:1,settings:Object.fromEntries(Object.entries(world.draftParkingFinish||{}).map(([k,u])=>[k,u.value])),receiver:world.parkingShadow?{opacity:world.parkingShadow.material.opacity,visible:world.parkingShadow.visible,position:world.parkingShadow.position.toArray(),order:world.parkingShadow.renderOrder}:null,light:{position:world.sun.position.toArray(),target:world.sun.target.position.toArray(),radius:world.sun.shadow.radius,intensity:world.sun.shadow.intensity},contacts:world.draftParkingGroup?.children.filter(o=>o.userData.indoorContact).map(o=>({ego:o.userData.egoContact,visible:o.visible,ambientScale:o.children[0].scale.toArray(),strength:o.children[0].material.uniforms.shadowStrength.value,coverage:o.children[0].material.uniforms.coverage.value}))},occluders:world.draftOccluders||0,parkingCamera:world.captureCamera().position.toArray(),parkingBays:(world.parkingBays||[]).map(b=>{const p=new THREE.Vector3(b.x,.03,b.z).project(world.camera);return {x:b.x,z:b.z,width:b.width,depth:b.depth,screen:[(p.x+1)/2,(1-p.y)/2]}})}),resources(){const info=world.renderer.info;return {geometries:info.memory.geometries,textures:info.memory.textures,programs:info.programs?.length??0,...(new URLSearchParams(window.parent.location.search).has('qa')?{programKeys:info.programs?.map(p=>p.cacheKey)}:{}),drawCalls:info.render.calls,triangles:info.render.triangles,heapBytes:performance.memory?.usedJSHeapSize??null}},setPlaying,toggle(){if(current()==='junction')bridge.junctionPlay();else setPlaying(!playing)},async param(key,value,{sound=false}={}){
-  if(exporting)return;if(current()==='junction'&&key==='path'&&get({audit:false}).junction?.complete)return;if(key==='camera'&&isParking(world.state?.id)){if(parking.get().active)return;lastInput=performance.now();idlePaused=false;last=0;accumulator=0;parking.previewCamera(value);renderOnce();publish();schedule();return;}if(key==='path'&&value&&isParking(world.state?.id)&&!parking.get().target)return;const parkedPose=key==='model'&&isParking(world.state?.id)&&parking.get().elapsed>0?{position:world.car.position.clone(),rotation:world.car.rotation.clone()}:null;if(parkedPose)setPlaying(false);
+  if(exporting)return;if(key==='camera'&&isParking(world.state?.id)){if(parking.get().active)return;lastInput=performance.now();idlePaused=false;last=0;accumulator=0;parking.previewCamera(value);renderOnce();publish();schedule();return;}const parkedPose=key==='model'&&isParking(world.state?.id)&&parking.get().elapsed>0?{position:world.car.position.clone(),rotation:world.car.rotation.clone()}:null;if(parkedPose)setPlaying(false);
   const previousTraffic=world.draftTrafficEnabled;if(key==='traffic')world.draftTrafficEnabled=!!value;if(current()==='junction'&&key==='layout'){playing=false;loopTime=0;junctionPoses=null}
   const held=world.suspended;world.suspended=false;try{if(key==='traffic'&&value)try{await world.draftPrepareStartup();if(isParking(world.state?.id)){await world.draftPrepareAppearance?.();parking.revealTraffic?.();}}catch(error){world.draftTrafficEnabled=previousTraffic;traffic.setEnabled(previousTraffic);renderOnce();publish();throw error;}if(key==='layout'&&current()==='ramp')await api.prepareDraftLayout(value);else await api.param(key,value,{sound,animate:true});}finally{world.suspended=held;}
   if(!['path','weather','traffic','autoplay'].includes(key))await waitForRender();
   if(key==='model'&&api.get().vehicle!==value)throw Error('Could not switch vehicle. Please try again.');
   if(parkedPose){world.car.position.copy(parkedPose.position);world.car.rotation.copy(parkedPose.rotation);}
-  if(key==='weather')world.draftWeatherActive=true;if(key==='path'&&isParking(world.state?.id)){if(!value)setPlaying(false);else if(sound)setPlaying(true);}
+  if(key==='weather')world.draftWeatherActive=true;if(key==='path'&&isParking(world.state?.id)){if(!value)setPlaying(false);}
   if(current()==='junction'){seekJunction();if(key==='layout')restartJunctionPath();}else if(!playing||key==='traffic')renderOnce();
   publish();schedule();
  },async scene(key,seed,values){scenePreparing=true;cancelAnimationFrame(frame);frame=0;audioHeld=true;resetIndicatorSound();try{appearance.finish();parking.reset();settle();drive.reset();playing=false;world.draftSceneryRandom.reset(seed);junctionPoses=null;loopTime=0;world.draftTrafficEnabled=!!values?.traffic;world.suspended=true;if(world.draftTrafficEnabled)await world.draftPrepareStartup(key);if(values)await api.prepareDraftScene(key,values);else api.scene(key);world.suspended=false;await waitForRender();if(key==='junction'){seekJunction();restartJunctionPath();}sync();schedule()}finally{world.suspended=false;audioHeld=false;scenePreparing=false;schedule()}},
@@ -147,16 +148,20 @@ export function installDraftBridge({world,features,drive,traffic,api,current,upd
  prepareParkingAssets(){return parking.ready},
  themeStatus(){return {blending:appearance.active(),renderedFrames,held:themeHeld}},
  prepareExit(){setPlaying(false);parking.prepareExit();renderOnce();publish();schedule()},chooseExit(direction){parking.chooseExit(direction);renderOnce();publish();schedule()},
- replay(){audioHeld=true;resetIndicatorSound();try{settle();if(isParking(world.state?.id)){parking.reset();renderOnce();publish();return;}traffic.setEnabled(false);traffic.setEnabled(!!world.draftTrafficEnabled);loopTime=0;const held=world.suspended;world.suspended=false;seekJunction();restartJunctionPath();world.suspended=held;publish();schedule()}finally{audioHeld=false}},
+ replay(){audioHeld=true;resetIndicatorSound();try{settle();if(isParking(world.state?.id)){parking.reset({replay:true});renderOnce();publish();return;}traffic.setEnabled(false);traffic.setEnabled(!!world.draftTrafficEnabled);loopTime=0;const held=world.suspended;world.suspended=false;seekJunction();restartJunctionPath();renderOnce();world.suspended=held;publish();schedule()}finally{audioHeld=false}},
  async parkingPlay(){
   if(exporting||world.initializingScene)return;
-  if(playing){setPlaying(false);return;}
-  if(parking.get().complete)bridge.replay();
-  parking.sync({traffic:world.draftTrafficEnabled??false,assist:features.get().path});
-  if(!parking.selectDefault())throw Error('No reachable empty space. Turn off Traffic and try again.');
-  await bridge.param('path',true,{sound:true});
+  if(playing){setPlaying(false);await bridge.param('path',false,{sound:true});return;}
+  try{
+   if(parking.get().complete)bridge.replay();
+   parking.sync({traffic:world.draftTrafficEnabled??false,assist:features.get().path});
+   if(!parking.selectDefault())throw Error('No reachable empty space. Turn off Traffic and try again.');
+   if(!features.get().path)await bridge.param('path',true,{sound:true});
+   parking.sync({traffic:world.draftTrafficEnabled??false,assist:true});setPlaying(true);
+  }catch(error){setPlaying(false);if(features.get().path)await bridge.param('path',false,{sound:false});throw error;}
  },
  junctionPlay(){if(playing){setPlaying(false);return}if(junctionPoses&&loopTime*1000>=junctionPoses.motion.duration)bridge.replay();setPlaying(true)},
+ renderReplayFrame(){renderOnce();publish()},
  completeStartup(){sync();renderOnce();world.draftInitialFrameReady=true;document.getElementById('preview').setAttribute('aria-busy','false');schedule();publish()},
  export:exportScene,async videoFormat(){return (await import('./video.js')).videoType()},cancelExport(){cancelled=true},resize(width){if(exporting)return;const raster=previewPixels(width,devicePixelRatio,window.parent.visualViewport?.scale??1,globalThis.__draftPreviewLimit);if(world.width===raster.width&&world.height===raster.height)return;world.setResolution(raster.width,raster.height);renderOnce();publish()},
  capture,restore,canvas:world.renderer.domElement,restart(){if(!origin)return false;const held=world.suspended;world.suspended=false;restore(origin);world.renderFrame();world.suspended=held;publish();return true},advance(seconds){const held=world.suspended;world.suspended=false;step(seconds);world.suspended=held;publish()},

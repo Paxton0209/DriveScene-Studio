@@ -48,7 +48,7 @@ test('All scenes share a visible transport while readiness disables playback', (
   const block = source.slice(source.indexOf('let transportRenderKey='), source.indexOf("\nwindow.addEventListener('message'"));
   for (const active of ['road', 'parking', 'outdoor']) {
     const transport = {dataset:{},setAttribute() {}},document={body:{dataset:{}}};
-    const render=new Function('$', 'project','document', `let status={playing:false};const syncJunctionPathLock=()=>{};${block};return renderTransport;`)(() => transport, {active},document);
+    const render=new Function('$', 'project','document', `let status={playing:false},exporting=false,previewBusy=false,demoUpdating=false,sceneUpdating=false,vehicleUpdating=false,themeTransition=null;const syncJunctionPathLock=()=>{};${block};return renderTransport;`)(() => transport, {active},document);
     render();assert.equal(transport.hidden,false);assert.equal(transport.disabled,true);assert.equal(transport.textContent,'Loading…');
     document.body.dataset.ready='true';render();assert.equal(transport.hidden,false);assert.notEqual(transport.textContent,'Loading…');
   }
@@ -95,7 +95,7 @@ test('Startup synchronizes a suspended Road while preserving Pause and hidden/th
   new Function('world','drive','document','current','publish','renderOnce','schedule',`let playing=${playing},themeHeld=${themeHeld},last=1,accumulator=1;function sync(){${syncBody}};${startupBody}`)(world,drive,{hidden,getElementById:()=>({setAttribute(){}})},()=> 'road',()=>{},()=>{},()=>{});
   assert.equal(drive.playing,playing&&!themeHeld);assert.equal(world.suspended,hidden||themeHeld);assert.equal(drive.playing&&!world.suspended,expected);
  }
- assert.ok(source.includes("query.set('paused','1')"));assert.ok(source.includes('project.shared.playing=false'));
+ assert.ok(source.includes("query.set('paused','1')"));assert.ok(source.includes('project.shared.playing=true'));
  assert.doesNotMatch(source,/createProject\(saved\);setProjectVehicle\(project,'model-3'\)/);
 });
 
@@ -103,7 +103,7 @@ test('Startup synchronizes a suspended Road while preserving Pause and hidden/th
 test('Startup waits for the Traffic suspension scope before publishing a running scene',async()=>{
  const startup=source.slice(source.indexOf('ready=true;await bridge().param'),source.indexOf('status=bridge().get({audit:false});renderVehicles();'));
  let release;const pending=new Promise(done=>release=done),world={suspended:true};let complete=false;
- const bridge={async param(){const held=world.suspended;world.suspended=false;await pending;world.suspended=held},indicatorMuted(){},completeStartup(){world.suspended=false;complete=true}};
+ const bridge={async param(){const held=world.suspended;world.suspended=false;await pending;world.suspended=held},indicatorMuted(){},setPlaying(){},completeStartup(){world.suspended=false;complete=true}};
  const run=new Function('bridge','state','$','syncFinish','layoutBoard',`return (async()=>{let ready=false,indicatorMuted=false;const project={shared:{},active:'road'};${startup}})()`);
  const finishing=run(()=>bridge,{traffic:true},()=>({}),()=>{},()=>{});
  await Promise.resolve();assert.equal(complete,false);
@@ -126,7 +126,7 @@ test('Embedded startup passes the selected query without borrowing the parent UR
 test('Transport loading cache follows the active scene before readiness',()=>{
  const block=source.slice(source.indexOf('let transportRenderKey='),source.indexOf("\nwindow.addEventListener('message'"));
  const transport={dataset:{},setAttribute(){}},project={active:'road'},document={body:{dataset:{}}};
- const render=new Function('$','project','document',`let status={playing:false};const syncJunctionPathLock=()=>{};${block};return renderTransport;`)(()=>transport,project,document);
+ const render=new Function('$','project','document',`let status={playing:false},exporting=false,previewBusy=false,demoUpdating=false,sceneUpdating=false,vehicleUpdating=false,themeTransition=null;const syncJunctionPathLock=()=>{};${block};return renderTransport;`)(()=>transport,project,document);
  for(const active of ['road','parking','outdoor','road']){project.active=active;render();assert.equal(transport.hidden,false);}
 });
 
@@ -134,11 +134,19 @@ test('Transport loading cache follows the active scene before readiness',()=>{
   const block=source.slice(source.indexOf('const project=createEntryProject(saved);'),source.indexOf('const icons=await'));
   for(const camera of ['default','raised','bev']){
     const saved={active:'parking',boards:{parking:{params:{camera,path:true}},outdoor:{params:{camera,path:true}}}};
-    const project=new Function('createEntryProject','saved',`${block};return project;`)(createEntryProject,saved);
+    const project=new Function('createEntryProject','saved','reducedMotion',`${block};return project;`)(createEntryProject,saved,()=>true);
     assert.equal(project.active,'road');
     for(const id of ['parking','outdoor']){
       assert.equal(project.boards[id].params.camera,camera);
       assert.equal(project.boards[id].params.path,false);
     }
   }
+});
+
+test('Driving autoplay starts on entry independently from Assist',()=>{
+ const block=source.slice(source.indexOf('const project=createEntryProject(saved);'),source.indexOf('const icons=await'));
+ for(const reduced of [false,true])for(const playback of [undefined,false,true]){
+  const saved={shared:{playback,layers:{path:true}}},project=new Function('createEntryProject','saved','reducedMotion',`${block};return project;`)(createEntryProject,saved,()=>reduced);
+  assert.equal(project.shared.playing,true);assert.equal(project.boards.road.params.path,false);
+ }
 });

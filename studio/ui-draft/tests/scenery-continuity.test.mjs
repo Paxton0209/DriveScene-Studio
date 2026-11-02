@@ -86,3 +86,27 @@ test('Parking and junction rebind never clone driving scenery into the distance'
   assert.equal(drive.audit().clonedObjects,0);assert.equal(drive.audit().distance,0);
  }
 });
+
+test('Recycled buildings and trees fade in without changing shared materials',async()=>{
+ const world={draftManaged:true};use(world,scenery(4),4);
+ const shared=new THREE.MeshBasicMaterial();shared.onBeforeCompile=()=>{};shared.customProgramCacheKey=()=> 'scenery-test';
+ for(const building of world.root.children.filter(o=>o.userData.buildingOwned))building.material=shared;
+ for(const tree of world.vegetation.children)tree.add(new THREE.Mesh(new THREE.BoxGeometry(),shared));
+ const drive=(await driver())(world,{random:()=>.5});
+ let buildingFade=false,treeFade=false;
+ for(let i=0;i<500&&!(buildingFade&&treeFade);i++){
+  drive.advance(.1);
+  world.root.traverse(object=>{
+   if(!object.isMesh||object.material===shared)return;
+   if(object.material.transparent&&object.material.opacity>0&&object.material.opacity<1){
+    assert.equal(object.material.onBeforeCompile,shared.onBeforeCompile);assert.equal(object.material.customProgramCacheKey(),shared.customProgramCacheKey());
+    if(object.userData.buildingOwned)buildingFade=true;
+    if(object.parent?.parent===world.vegetation)treeFade=true;
+   }
+  });
+  assert.equal(shared.opacity,1);
+ }
+ assert.ok(buildingFade,'buildings should fade after recycling');
+ assert.ok(treeFade,'trees should fade after recycling');
+ drive.reset();assert.equal(shared.opacity,1);
+});

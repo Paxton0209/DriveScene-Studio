@@ -4,7 +4,7 @@ import {encodeTrafficPayload} from './traffic-payload.js';
 import {showStartupPoster,layoutStartupPoster} from './startup-poster.mjs';
 import {startupBundlesPlugin,startupAssetScript,packedNormalsModule} from './startup-bundles.mjs';
 import {clippingPrecompilePlugin} from './clipping-precompile.mjs';
-import {build} from 'esbuild';
+import {build,transform} from 'esbuild';
 import {access,mkdir,readFile,writeFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import {gunzipSync,gzipSync} from 'node:zlib';
@@ -177,7 +177,8 @@ let shippedHtml=approvedHtml;
 shippedHtml=shippedHtml.replace(/<meta name="viewport"[^>]*>/,'<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">');
 shippedHtml=shippedHtml.replace(/<script id="startup-layout">[\s\S]*?<\/script>/,()=>parent.match(/<script id="startup-layout">[\s\S]*?<\/script>/)[0]);
 for(const name of ['guizang-trial.css','shell-v5.css']){
- const css=await readFile(new URL('./'+name,import.meta.url),'utf8');
+ const sourceCss=await readFile(new URL('./'+name,import.meta.url),'utf8');
+ const {code:css}=await transform(sourceCss,{loader:'css',minifyWhitespace:true});
  const tag=`<style data-shell-css="${name}">${css}</style>`;
  const existing=new RegExp('<style data-shell-css="'+name.replaceAll('.','\\.')+'">[\\s\\S]*?<\\/style>');
  const external=new RegExp('<link[^>]*href="\\./'+name.replaceAll('.','\\.')+'[^\"]*"[^>]*>');

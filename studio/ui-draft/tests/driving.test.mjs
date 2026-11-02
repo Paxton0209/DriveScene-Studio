@@ -71,7 +71,7 @@ test('Only explicit Assist intent can request sound; restoration is silent by de
  assert.match(draft,/await setAssistDemo\(bridge\(\)/);
   assert.match(bridge,/await bridge\.param\('path',true,\{sound:true\}\)/);
  assert.equal((draft.match(/sound:true/g)||[]).length,0);
- assert.equal((bridge.match(/sound:true/g)||[]).length,1);
+ assert.equal((bridge.match(/sound:true/g)||[]).length,2);
  assert.match(draft,/ready=true;await bridge\(\).param\('traffic',state.traffic\)/);
 });
 
