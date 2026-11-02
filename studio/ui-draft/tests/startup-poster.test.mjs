@@ -38,6 +38,21 @@ test('A returning entry never flashes a cached Parking or other non-Road frame',
 test('Initial and ready artboards retain identical 16:9 pixel-aligned bounds across viewport sizes',()=>{
  for(const [vw,w,h] of [[1400,924,900],[800,744,400],[500,444,300],[500,444,150]]){const style={},doc={getElementById:id=>id==='stage'?{getBoundingClientRect:()=>({width:w,height:h})}:{style}};layoutStartupPoster(doc,vw);const first={...style};layoutStartupPoster(doc,vw);assert.deepEqual(style,first);assert.equal(parseFloat(style.width)/parseFloat(style.height),16/9);assert.ok(parseFloat(style.width)<=w);assert.ok(parseFloat(style.height)<=h);}
 });
+test('Phone canvas fills the available width and reserves a visible playback target in portrait and landscape',()=>{
+ for(const [vw,vh,w,h] of [[320,568,288,226],[390,844,358,265],[430,932,398,288],[844,390,460,270]]){
+  const style={},doc={documentElement:{clientHeight:vh},getElementById:id=>id==='stage'?{getBoundingClientRect:()=>({width:w,height:h})}:{style}};
+  layoutStartupPoster(doc,vw);
+  const width=parseFloat(style.width),height=parseFloat(style.height),top=parseFloat(style.top);
+  assert.equal(width/height,16/9);
+  assert.ok(width>=Math.min(w,(h-64)*16/9)-16,'Use the available canvas area');
+  assert.ok(top>=0&&top+height+8+44<=h,'Playback stays inside the stage');
+ }
+});
+test('Desktop canvas geometry remains identical to the released shell',()=>{
+ const style={},doc={documentElement:{clientHeight:900},getElementById:id=>id==='stage'?{getBoundingClientRect:()=>({width:924,height:900})}:{style}};
+ layoutStartupPoster(doc,1400);
+ assert.deepEqual(style,{width:'832px',height:'468px',left:'46px',top:'212px'});
+});
 
 test('Legacy blurred caches cannot replace the clear prepared first frame',()=>{
  const s=scope('',{'drivescene-startup-preview-v2':'{"road-light":{"project":"{}","data":"legacy-blurred"}}'});

@@ -6,12 +6,99 @@ const inspector=byId('inspector'),scroll=byId('inspector-scroll'),exportSection=
 // Export stays visible on short windows: pin it below the scrolling inspector.
 if(inspector&&exportSection&&exportSection.parentElement===scroll)inspector.append(exportSection);
 
+// A compact scene menu uses the same surface and touch targets as vehicles.
+// Proxy the original scene buttons so loading locks and saved state stay shared.
+const nav=byId('scene-nav'),library=byId('library');
+const mobileQuery=matchMedia('(max-width:639px), (max-width:959px) and (max-height:500px)');
+if(nav&&library){
+ const picker=document.createElement('button');
+ picker.type='button';picker.id='mobile-scene';
+ picker.setAttribute('aria-haspopup','menu');picker.setAttribute('aria-expanded','false');picker.setAttribute('aria-controls','mobile-scene-menu');
+ library.prepend(picker);
+ let menu=null;
+ const close=(returnFocus=false)=>{
+  if(!menu)return;
+  picker.setAttribute('aria-expanded','false');
+  menu.remove();menu=null;
+  if(returnFocus)picker.focus();
+ };
+ const syncPicker=()=>{
+  const sources=[...nav.querySelectorAll('[data-scene]')];
+  if(!sources.length)return;
+  const current=sources.find(source=>source.getAttribute('aria-current')==='page')||sources[0];
+  picker.textContent=current.textContent.trim();picker.setAttribute('aria-label','Scene: '+picker.textContent);
+  picker.disabled=nav.inert||sources.every(source=>source.disabled);
+  if(picker.disabled)close();
+ };
+ const open=edge=>{
+  if(picker.disabled||!mobileQuery.matches)return;
+  if(menu)return;
+  const rect=picker.getBoundingClientRect(),width=Math.min(260,innerWidth-32),top=rect.bottom+8;
+  menu=document.createElement('div');menu.id='mobile-scene-menu';menu.className='shell-vehicle-menu shell-scene-menu';menu.setAttribute('role','menu');menu.setAttribute('aria-label','Scene');
+  Object.assign(menu.style,{left:Math.max(16,Math.min(rect.left,innerWidth-width-16))+'px',top:top+'px',width:width+'px',maxHeight:Math.max(48,innerHeight-top-16)+'px'});
+  let group=menu;const items=[];
+  for(const source of nav.children){
+   if(source.classList.contains('nav-title')){
+    group=document.createElement('div');group.setAttribute('role','group');group.setAttribute('aria-label',source.textContent.trim());
+    const heading=document.createElement('div');heading.className='shell-menu-heading';heading.setAttribute('aria-hidden','true');heading.textContent=source.textContent.trim();group.append(heading);menu.append(group);
+   }
+   if(!source.matches('[data-scene]'))continue;
+   const item=document.createElement('button'),on=source.getAttribute('aria-current')==='page';
+   item.type='button';item.setAttribute('role','menuitemradio');item.setAttribute('aria-checked',String(on));item.tabIndex=-1;item.disabled=source.disabled;
+   const label=document.createElement('span');label.textContent=source.textContent.trim();item.append(label);
+   item.addEventListener('click',()=>{close(true);if(!on)source.click();syncPicker();});
+   group.append(item);items.push(item);
+  }
+  menu.addEventListener('keydown',event=>{
+   if(event.key==='Escape'){event.preventDefault();close(true);return;}
+   if(event.key==='Tab'){close(true);return;}
+   const live=items.filter(item=>!item.disabled),index=live.indexOf(document.activeElement);
+   if(!['ArrowDown','ArrowUp','Home','End'].includes(event.key))return;
+   event.preventDefault();
+   const next=event.key==='Home'?0:event.key==='End'?live.length-1:(index+(event.key==='ArrowDown'?1:-1)+live.length)%live.length;
+   live[next]?.focus();
+  });
+  library.append(menu);picker.setAttribute('aria-expanded','true');
+  const live=items.filter(item=>!item.disabled),start=edge==='last'?live.length-1:Math.max(0,live.findIndex(item=>item.getAttribute('aria-checked')==='true'));
+  live[start]?.focus();
+ };
+ picker.addEventListener('click',()=>menu?close():open());
+ picker.addEventListener('keydown',event=>{if(event.key==='ArrowDown'||event.key==='ArrowUp'){event.preventDefault();open(event.key==='ArrowUp'?'last':undefined);}});
+ document.addEventListener('pointerdown',event=>{if(menu&&!menu.contains(event.target)&&!picker.contains(event.target))close();},true);
+ addEventListener('resize',()=>close());
+ new MutationObserver(syncPicker).observe(nav,{subtree:true,childList:true,attributes:true,attributeFilter:['aria-current','disabled','inert']});
+ const compactLayout=()=>{
+  if(inspector&&scroll&&exportSection){
+   // One scroll surface keeps every parameter and export reachable on a phone.
+   (mobileQuery.matches?scroll:inspector).append(exportSection);
+  }
+  requestAnimationFrame(()=>dispatchEvent(new Event('resize')));
+ };
+ mobileQuery.addEventListener('change',compactLayout);
+ compactLayout();syncPicker();
+}
+
+if(inspector&&scroll){
+ const syncScrollEdges=()=>{
+  const mobile=mobileQuery.matches;
+  inspector.toggleAttribute('data-fade-top',mobile&&scroll.scrollTop>1);
+  inspector.toggleAttribute('data-fade-bottom',mobile&&scroll.scrollHeight-scroll.clientHeight-scroll.scrollTop>1);
+ };
+ scroll.addEventListener('scroll',syncScrollEdges,{passive:true});
+ const resizeEdges=new ResizeObserver(syncScrollEdges);
+ resizeEdges.observe(scroll);
+ for(const child of scroll.children)resizeEdges.observe(child);
+ mobileQuery.addEventListener('change',syncScrollEdges);
+ syncScrollEdges();
+}
+
 const panel=byId('vehicle-panel'),strip=byId('vehicle-strip');
 if(panel&&strip){
  const options=()=>[...strip.querySelectorAll('[data-vehicle]')];
  const selected=()=>options().find(b=>b.getAttribute('aria-checked')==='true')||options()[0];
  const thumb=button=>button?.querySelector('img')?.getAttribute('src')||'';
  const chevron='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 6.5 3-3 3 3M5 9.5l3 3 3-3"/></svg>';
+ const mobileChevron='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 6.5 3 3 3-3"/></svg>';
  const card=document.createElement('button');
  card.type='button';card.className='shell-vehicle-card';
  card.setAttribute('aria-haspopup','menu');card.setAttribute('aria-expanded','false');
@@ -20,22 +107,28 @@ if(panel&&strip){
  const render=()=>{
   const current=selected();if(!current)return;
   const name=current.getAttribute('aria-label')||'';
-  const key=name+'|'+thumb(current)+'|'+current.disabled;
+  const key=name+'|'+thumb(current)+'|'+current.disabled+'|'+mobileQuery.matches;
   if(card.dataset.key===key)return;
   card.dataset.key=key;
   card.setAttribute('aria-label','Vehicle: '+name);
   card.disabled=current.disabled;
-  card.innerHTML=`<span class="thumb"><img src="${thumb(current)}" alt=""></span><span class="text"><span class="caption">Vehicle</span><span class="name">${name}</span></span>${chevron}`;
+  card.innerHTML=`<span class="thumb"><img src="${thumb(current)}" alt=""></span><span class="text"><span class="caption">Vehicle</span><span class="name">${name}</span></span>${mobileQuery.matches?mobileChevron:chevron}`;
  };
  const close=(returnFocus=false)=>{
-  if(!menu)return;menu.remove();menu=null;card.setAttribute('aria-expanded','false');
+  if(!menu)return;card.setAttribute('aria-expanded','false');
+  menu.remove();menu=null;
   if(returnFocus)card.focus();
  };
- const open=(focusIndex)=>{
-  if(menu||card.disabled)return;
+ const open=focusIndex=>{
+  if(card.disabled)return;
+  if(menu)return;
   const rect=card.getBoundingClientRect();
   menu=document.createElement('div');menu.className='shell-vehicle-menu';menu.setAttribute('role','menu');menu.setAttribute('aria-label','Vehicle');
-  menu.style.left=rect.left+'px';menu.style.width=rect.width+'px';menu.style.bottom=(innerHeight-rect.top+8)+'px';
+  const menuWidth=mobileQuery.matches?Math.min(300,innerWidth-32):rect.width;
+  menu.style.left=(mobileQuery.matches?Math.min(rect.left,innerWidth-menuWidth-16):rect.left)+'px';menu.style.width=menuWidth+'px';
+  // On phones the compact picker sits above the canvas; open below it.
+  if(mobileQuery.matches)menu.style.top=(rect.bottom+8)+'px';
+  else menu.style.bottom=(innerHeight-rect.top+8)+'px';
   const items=options().map(source=>{
    const item=document.createElement('button');item.type='button';item.setAttribute('role','menuitemradio');
    const on=source.getAttribute('aria-checked')==='true';item.setAttribute('aria-checked',String(on));item.tabIndex=-1;
@@ -63,5 +156,6 @@ if(panel&&strip){
  document.addEventListener('pointerdown',event=>{if(menu&&!menu.contains(event.target)&&event.target!==card&&!card.contains(event.target))close();},true);
  addEventListener('resize',()=>close());
  new MutationObserver(render).observe(strip,{subtree:true,childList:true,attributes:true,attributeFilter:['aria-checked','disabled','src']});
+ mobileQuery.addEventListener('change',render);
  render();
 }

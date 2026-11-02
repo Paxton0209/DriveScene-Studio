@@ -25,6 +25,12 @@ export function showStartupPoster(previews,scope=window){
  root.style.setProperty('--startup-poster',`url("${image}")`);
 }
 export function layoutStartupPoster(doc=document,viewportWidth=innerWidth){
+ const phone=viewportWidth<640||(viewportWidth<960&&doc.documentElement?.clientHeight<500);
+ if(phone){
+  const bounds=doc.getElementById('stage').getBoundingClientRect(),width=Math.max(16,Math.floor(Math.min(bounds.width,Math.max(9,bounds.height-64)*16/9)/16)*16),height=width*9/16;
+  Object.assign(doc.getElementById('artboard').style,{width:width+'px',height:height+'px',left:Math.round((bounds.width-width)/2)+'px',top:Math.round(Math.max(0,(bounds.height-height-64)/2))+'px'});
+  return;
+ }
  const bounds=doc.getElementById('stage').getBoundingClientRect(),mobile=viewportWidth<640,compact=bounds.height<200,pad=mobile?24:80,availableWidth=Math.max(16,bounds.width-pad),availableHeight=Math.max(9,bounds.height-(compact?48:mobile?104:88)),width=Math.max(16,Math.floor(Math.min(availableWidth,availableHeight*16/9)/16)*16),height=width*9/16;
  Object.assign(doc.getElementById('artboard').style,{width:width+'px',height:height+'px',left:Math.round((bounds.width-width)/2)+'px',top:Math.round((compact?18:mobile?26:40)+(availableHeight-height)/2)+'px'});
 }
