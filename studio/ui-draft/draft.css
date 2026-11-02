@@ -9,7 +9,8 @@
 @property --theme-reveal-progress{syntax:"<length>";inherits:false;initial-value:0px}
 ::view-transition-group(root),::view-transition-old(root),::view-transition-new(root){animation:none;mix-blend-mode:normal}::view-transition{pointer-events:none}.theme-changing,.theme-changing *{transition:none!important}
 /* The shell keeps its icon-origin reveal; moving scenes stay live above it. */
-.theme-live-scene #engine{view-transition-name:live-scene}
+.theme-scene-frame{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none;z-index:4}
+.theme-live-scene .artboard-clip{view-transition-name:live-scene}
 .theme-live-scene::view-transition-group(live-scene){animation:none;z-index:3}
 .theme-live-scene::view-transition-image-pair(live-scene){isolation:auto}
 .theme-live-scene::view-transition-old(live-scene){display:none}

@@ -5,8 +5,8 @@ const source=await readFile(new URL('../draft.js',import.meta.url),'utf8');
 const block=source.slice(source.indexOf('let themeTransition=null'),source.indexOf("$('theme').addEventListener"));
 const deferred=()=>{let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no});return {promise,resolve,reject}};
 const flush=async()=>{for(let i=0;i<12;i++)await Promise.resolve()};
-function harness({playing=false,scene='road',reduce=false,unavailable=false,failStart=false,failCommit=false}={}){
- const transitions=[],timers=[],events=[],styles={},classes=new Set();let held=false;
+function harness({playing=false,scene='road',reduce=false,unavailable=false,failStart=false,failCommit=false,captureReady=null}={}){
+ const transitions=[],timers=[],events=[],rasters=[],styles={},classes=new Set();let held=false;
  const root={dataset:{theme:'light'},style:{setProperty(k,v){styles[k]=v}},classList:{add(v){classes.add(v)},remove(v){classes.delete(v)}}};
  const document={documentElement:root,body:{dataset:{}},startViewTransition:unavailable?undefined:update=>{
   if(failStart)throw Error('Snapshot unavailable');
@@ -15,12 +15,13 @@ function harness({playing=false,scene='road',reduce=false,unavailable=false,fail
   Promise.resolve().then(update).then(ready.resolve,ready.reject);return transition;
  }};
  const bridge=()=>({get(){return {playing}},beginTheme(){held=true;events.push('hold')},async theme(theme,{animate=false}={}){assert.equal(held,false);events.push([theme,animate]);if(failCommit)throw Error('Theme unavailable')},endTheme(){held=false;events.push('release')}});
- const controller=new Function('document','frame','bridge','localStorage','$','syncFinish','renderTheme','reducedMotion','innerWidth','innerHeight','project','setTimeout',`
+ const protectThemeFrame=async()=>{if(captureReady)await captureReady;const raster={updates:0,releases:0,async update(){this.updates++},release(){this.releases++}};rasters.push(raster);return raster};
+ const controller=new Function('document','frame','bridge','localStorage','$','syncFinish','renderTheme','reducedMotion','innerWidth','innerHeight','project','setTimeout','protectThemeFrame',`
  let ready=true,exporting=false,previewBusy=false,sceneUpdating=false,vehicleUpdating=false;const themeKey='test';
  ${block}
  return {setTheme,get busy(){return !!themeTransition}};
- `)(document,{contentDocument:{documentElement:root}},bridge,{setItem(){}},()=>({getBoundingClientRect:()=>({left:1220,top:8,width:28,height:28})}),()=>{},()=>{},()=>reduce,1266,1000,{active:scene},(resolve,ms)=>timers.push({resolve,ms}));
- return {controller,document,styles,classes,transitions,timers,events,get held(){return held},get playing(){return playing}};
+ `)(document,{contentDocument:{documentElement:root},closest(){return {}}},bridge,{setItem(){}},()=>({getBoundingClientRect:()=>({left:1220,top:8,width:28,height:28})}),()=>{},()=>{},()=>reduce,1266,1000,{active:scene},(resolve,ms)=>timers.push({resolve,ms}),protectThemeFrame);
+ return {controller,document,styles,classes,transitions,timers,events,rasters,get held(){return held},get playing(){return playing}};
 }
 test('Stationary scenes retain the circular reveal and playback intent',async()=>{
  for(const playing of [false,true]){
@@ -29,6 +30,7 @@ test('Stationary scenes retain the circular reveal and playback intent',async()=
   assert.ok(parseFloat(h.styles['--theme-reveal-radius'])>Math.hypot(1234,978)+179);
   h.transitions[0].finish();await done;assert.equal(h.held,false);assert.equal(h.playing,playing);assert.equal(h.controller.busy,false);assert.equal(h.classes.size,0);
   assert.deepEqual(h.events,[['dark',false]]);
+  assert.equal(h.rasters[0].updates,1);assert.ok(h.rasters[0].releases>0);
  }
 });
 test('Playing driving scenes retain the shell reveal and blend the live scene without holding playback',async()=>{
@@ -37,6 +39,7 @@ test('Playing driving scenes retain the shell reveal and blend the live scene wi
   assert.equal(h.document.documentElement.dataset.theme,'dark');assert.equal(h.transitions.length,1);
   assert.deepEqual(h.events,[['dark',true]]);assert.equal(h.held,false);assert.equal(h.playing,true);
   assert.equal(h.controller.busy,true);assert.ok(h.classes.has('theme-live-scene'));
+  assert.equal(h.rasters[0].updates,1);assert.equal(h.rasters[0].releases,1);
   h.transitions[0].finish();await done;assert.equal(h.controller.busy,false);assert.equal(h.classes.size,0);
   assert.equal(JSON.parse(h.document.body.dataset.themeMotion).method,'soft-radial-live');
  }
@@ -58,6 +61,13 @@ test('Rapid theme requests serialize complete snapshots and resolve to latest in
  const h=harness(),done=h.controller.setTheme('dark');await flush();await h.controller.setTheme('light');assert.equal(h.transitions.length,1);
  h.transitions[0].finish();await flush();assert.equal(h.transitions.length,2);assert.equal(h.document.documentElement.dataset.theme,'light');assert.equal(h.held,false);
  h.transitions[1].finish();await done;assert.equal(h.held,false);assert.deepEqual(h.events,[['dark',false],['light',false]]);
+});
+test('Requests during initial raster decoding cannot start overlapping captures',async()=>{
+ const capture=deferred(),h=harness({captureReady:capture.promise}),done=h.controller.setTheme('dark');
+ assert.equal(h.controller.busy,true);await h.controller.setTheme('light');assert.equal(h.transitions.length,0);
+ capture.resolve();await flush();assert.equal(h.transitions.length,1);h.transitions[0].finish();await flush();
+ assert.equal(h.transitions.length,2);h.transitions[1].finish();await done;
+ assert.equal(h.document.documentElement.dataset.theme,'light');assert.equal(h.controller.busy,false);assert.equal(h.classes.size,0);
 });
 test('Unavailable snapshots and reduced motion commit without a held animation',async()=>{
  for(const options of [{reduce:true},{unavailable:true}]){

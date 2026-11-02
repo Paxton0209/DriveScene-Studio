@@ -10,6 +10,7 @@ import {vehicleShadowPreset} from './vehicle-shadow-settings.js';
 import {indoorFinishValues} from './indoor-finish-settings.js';
 import {createEntryProject,sceneTypes,setProjectWeather,setProjectVehicle,setProjectOption} from './artboards.js?v=traffic33-20261025';
 import {revealScene} from './scene-reveal.js?v=interaction-20261027';
+import {protectThemeFrame} from './theme-frame.js';
 import {mountFormatSelect} from './format-select.js?v=parking-export-20261027';
 import {syncExportFormat} from './export-format.js';
 import {exportSize,sizeLabel} from './export-size.js';
@@ -141,15 +142,21 @@ async function setTheme(theme){
   const rect=$('theme').getBoundingClientRect(),x=rect.left+rect.width/2,y=rect.top+rect.height/2,radius=Math.hypot(Math.max(x,innerWidth-x),Math.max(y,innerHeight-y))+180;
   const root=document.documentElement;
   root.style.setProperty('--theme-reveal-x',`${x}px`);root.style.setProperty('--theme-reveal-y',`${y}px`);root.style.setProperty('--theme-reveal-radius',`${radius}px`);
-  root.classList.add('theme-changing');if(liveScene)root.classList.add('theme-live-scene');frame.contentDocument?.documentElement.classList.add('theme-changing');
   const started=performance.now(),audit={target,started,method:liveScene?'soft-radial-live':'soft-radial-unified',duration:400,feather:160,blur:0};
-  // Keep the button-origin reveal for the shell. A named live scene excludes
-  // its outgoing still from that snapshot, so driving keeps advancing visibly.
+  let raster=null,transition=null,unlock;
+  // Reserve the transaction before image decoding, including rapid taps.
+  themeTransition={finished:new Promise(resolve=>{unlock=resolve})};
   try{
-   const transition=document.startViewTransition(()=>commit(target,liveScene));themeTransition=transition;
-   await transition.ready;audit.animationStarted=performance.now();await transition.finished;
+   if(ready)raster=await protectThemeFrame({canvas:bridge().canvas,renderer:frame,host:frame.closest('.artboard-clip')});
+   root.classList.add('theme-changing');if(liveScene)root.classList.add('theme-live-scene');frame.contentDocument?.documentElement.classList.add('theme-changing');
+   transition=document.startViewTransition(async()=>{await commit(target,liveScene);await raster?.update()});
+   await transition.ready;audit.animationStarted=performance.now();
+   // The named container is live after capture. Restore its renderer while
+   // the root reveal continues; stationary scenes keep the decoded end frame.
+   if(liveScene)raster?.release();
+   await transition.finished;
   }catch(error){audit.error=error.message;if(root.dataset.theme!==target)await commit(target,false)}
-  finally{if(themeTransition)await themeTransition.finished.catch(()=>{});root.classList.remove('theme-changing');root.classList.remove('theme-live-scene');frame.contentDocument?.documentElement.classList.remove('theme-changing');themeTransition=null;audit.finished=performance.now();document.body.dataset.themeMotion=JSON.stringify(audit)}
+  finally{if(transition)await transition.finished.catch(()=>{});raster?.release();root.classList.remove('theme-changing');root.classList.remove('theme-live-scene');frame.contentDocument?.documentElement.classList.remove('theme-changing');themeTransition=null;unlock();audit.finished=performance.now();document.body.dataset.themeMotion=JSON.stringify(audit)}
  }
 }
 $('theme').addEventListener('click',()=>{void setTheme(requestedTheme==='dark'?'light':'dark').then(refreshExportPreview).catch(error=>feedback(error.message))});
