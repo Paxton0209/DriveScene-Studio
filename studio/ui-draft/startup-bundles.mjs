@@ -1,6 +1,6 @@
 import {readFile} from 'node:fs/promises';
 import {gzipSync} from 'node:zlib';
-import {dirname} from 'node:path';
+import {createHash} from 'node:crypto';
 
 // Preserve the exact Float32BufferAttribute values without parsing a large
 // JavaScript number array on every cold start.
@@ -13,7 +13,11 @@ export function packedNormalsModule(data){
 }
 export function startupBundlesPlugin(){return {name:'startup-payloads',setup(builder){
  builder.onResolve({filter:/^\.\/video\.js$/},()=>({path:'./video.bundle.js?v=interaction-20261027',external:true}));
- builder.onLoad({filter:/\/parking-material-normals\.json$/},async({path})=>({contents:packedNormalsModule(JSON.parse(await readFile(path,'utf8'))),loader:'js',resolveDir:dirname(path)}));
+ builder.onResolve({filter:/parking-material-normals\.json$/},async()=>{
+  const data=JSON.parse(await readFile(new URL('./saved-preview/parking-material-normals.json',import.meta.url),'utf8'));
+  const hash=createHash('sha256').update(packedNormalsModule(data)).digest('hex').slice(0,12);
+  return {path:'./parking-normals.bundle.js?v='+hash,external:true};
+ });
 }};}
 
 // Start requests during parent HTML parsing. The iframe consumes the promises;
@@ -27,7 +31,7 @@ export function startStartupAssets(scope=window){
  const model=['model-3','x6','ix','xc90'].includes(candidate)?candidate:'model-3';
  // The entry always opens Road, even when the last saved scene was Parking.
  const traffic=saved.shared?.layers?.traffic??saved.boards?.road?.params?.traffic??false;
- const urls=['../engine/assets/studio-environment.bin.gz?v=1',`./vehicles/${model}/model.glb.gz?v=restore26`];
+ const urls=['../engine/assets/studio-environment.bin.gz?v=1',`./vehicles/${model}/model.glb.gz?v=restore26`,`./vehicles/${model}/framing-hull.json?v=cold-20261102`];
  if(traffic)urls.push('./traffic-model-y.prepared.bin.gz?v=restore26');
  scope.document.documentElement.dataset.startup='loading';
  const requests=scope.__draftStartupAssets=new Map();

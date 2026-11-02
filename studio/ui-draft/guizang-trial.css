@@ -4,6 +4,7 @@
  * Spacing: 4, 8, 12, 16, 24. Controls: 32 high, segment radii 8/6 with inset 2.
  */
 @font-face{font-family:Inter;src:url('./guizang-trial/InterVariable.woff2') format('woff2');font-weight:100 900;font-style:normal;font-display:swap}
+@font-face{font-family:Inter;src:url('./guizang-trial/InterLatin.woff2') format('woff2');font-weight:100 900;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2190-2193,U+2212,U+2215,U+FEFF,U+FFFD}
 :root{
  font-family:Inter,'PingFang SC',sans-serif;font-size:13px;line-height:1.53846154;font-weight:400;letter-spacing:normal;
  --panel:#f8f8f7;--canvas:#efefed;--track:#ebebe9;--raised:#fdfdfc;

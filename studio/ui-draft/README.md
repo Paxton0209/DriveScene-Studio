@@ -12,6 +12,14 @@ Install dependencies with `npm ci --prefix studio` and `npm ci --prefix studio/u
 
 `saved-preview/` contains the fixed Parking settings, local material-normal data, build-time transformations and cached frame adapter. `manifest.json` records profile hashes and the original review-runtime hash for equivalence checking. The frame adapter loads before the deferred UI module and runs inside the existing draw loop; no temporary HTTP injection is required.
 
+## Cold-start delivery
+
+The default Road runtime excludes Parking-only material normals and all-model framing tables. Parking awaits `parking-normals.bundle.js` before displaying its prepared traffic vehicles; the module preserves the approved Float32 bits. Each vehicle loads its own exact `vehicles/<id>/framing-hull.json` alongside its GLB, consuming the parent's early request when available. A failed framing request falls back to full-mesh projection and can retry. GLBs, traffic geometry, materials and render quality are unchanged.
+
+The shell preloads `guizang-trial/InterLatin.woff2`; the full original Inter font remains available for other scripts. Regenerate the subset with `python prepare-startup-font.py` in an environment containing `fonttools[woff]`. The script retains variation axes, features and metrics. For an opt-in report of the final saved runtime's dependency contributions, set `DRIVESCENE_BUNDLE_REPORT` to an absolute JSON output path when building.
+
+The 2026-11-02 controlled comparison used fresh resource URL prefixes, a 390×738 Chrome viewport, 4× CPU throttling, 10 Mbps download and 80 ms latency, with three samples per condition. Median startup-visible time fell from 3.87 s to 3.17 s with Traffic off, and from 5.80 s to 5.00 s with Traffic on. Sampled transfer bytes fell by 0.96 MB in either case. These are local-server delivery measurements, not real iPhone/Safari or GitHub CDN timings; renderer-driver caches were not controlled. The improvement primarily reduces downloading and module preparation, and does not establish a frame-rate improvement. First Parking use now fetches its normal-data module on demand.
+
 ## Saved behavior
 
 The fixed Parking profile is white19/body104/cool21/roof130/side53/glass104/wheels100/matte88/shadow56. Parking tuning sliders are removed. The foreground-left edge-clipped parked car is omitted in Indoor and Outdoor; the remaining five retain their previous positions. Default, Raised and BEV camera choices remain. Parking maneuver controls stay hidden and inactive, matching the saved review state.

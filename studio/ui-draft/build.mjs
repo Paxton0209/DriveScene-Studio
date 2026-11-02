@@ -2,7 +2,7 @@ import {prepareDisplayVehicles} from './prepare-display-assets.mjs';
 import {createHash} from 'node:crypto';
 import {encodeTrafficPayload} from './traffic-payload.js';
 import {showStartupPoster,layoutStartupPoster} from './startup-poster.mjs';
-import {startupBundlesPlugin,startupAssetScript} from './startup-bundles.mjs';
+import {startupBundlesPlugin,startupAssetScript,packedNormalsModule} from './startup-bundles.mjs';
 import {clippingPrecompilePlugin} from './clipping-precompile.mjs';
 import {build} from 'esbuild';
 import {access,mkdir,readFile,writeFile} from 'node:fs/promises';
@@ -16,6 +16,7 @@ import {prepareVehicleMaterials} from '../engine/vehicle-library/three/vehicle-m
 import {isolatedRuntimePlugin} from './runtime-patches.mjs';
 import {consolidateTrafficRear,refineTrafficBody,compactTrafficAttributes} from './traffic-surface.js';
 const root=fileURLToPath(new URL('.',import.meta.url));
+await writeFile(new URL('./parking-normals.bundle.js',import.meta.url),packedNormalsModule(JSON.parse(await readFile(new URL('./saved-preview/parking-material-normals.json',import.meta.url),'utf8'))));
 // Reuse framing.js's existing exact hull-index path. Generate after the same
 // geometry preparation as load-prepared.js; never build hulls on a visible frame.
 await prepareDisplayVehicles();
@@ -46,6 +47,8 @@ for(const [id,length] of [['ix',4.95],['xc90',4.95],['model-3',4.72]]){
  });frameHulls[id]=meshes;
 }
 await writeFile(new URL('./vehicles/framing-hulls.json',import.meta.url),JSON.stringify(frameHulls));
+frameHulls.x6=(await import('../engine/vehicle-frame-hull.js')).default;
+for(const [id,hulls]of Object.entries(frameHulls))await writeFile(new URL(`./vehicles/${id}/framing-hull.json`,import.meta.url),JSON.stringify(hulls));
 // Static geometry preparation belongs to the build, not the first visible frame.
 const traffic=JSON.parse(gunzipSync(await readFile(new URL('../engine/assets/traffic-model-y.json.gz',import.meta.url))));
 const preparedTraffic=compactTrafficAttributes(refineTrafficBody(consolidateTrafficRear(traffic)));
@@ -186,7 +189,7 @@ for(const name of ['guizang-layout.js','shell-v5.js']){
  const external=new RegExp('<script type="module" src="\\./'+name.replaceAll('.','\\.')+'[^\"]*"><\\/script>');
  shippedHtml=existing.test(shippedHtml)?shippedHtml.replace(existing,()=>tag):shippedHtml.replace(external,()=>tag);
 }
-if(!shippedHtml.includes('data-startup-font'))shippedHtml=shippedHtml.replace('<head>','<head><link data-startup-font rel="preload" href="./guizang-trial/InterVariable.woff2" as="font" type="font/woff2" crossorigin>');
+shippedHtml=shippedHtml.replace(/<link data-startup-font[^>]*>/g,'').replace('<head>','<head><link data-startup-font rel="preload" href="./guizang-trial/InterLatin.woff2" as="font" type="font/woff2" crossorigin>');
 await writeFile(trialFile,shippedHtml);
 // Publish the reviewed shell at the existing public entry point as well.
 await writeFile(parentFile,shippedHtml);

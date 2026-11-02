@@ -7,6 +7,7 @@ import {updateParkingOcclusion} from './parking-occlusion.js';
 import {parkingVehicle} from './parking-kinematics.js';
 import {parkingPose,parkingTiming,parkingSegment,parkingPlan,exitPose,localBay,worldPose,reverseReplan} from './parking-motion.js';
 import {createTrafficVehicle,readyTrafficModel,setTrafficAppearance} from '../engine/traffic-model.js';
+import {prepareParkingMaterialStructure} from './saved-preview/parking-material-structure.mjs';
 
 const clamp=THREE.MathUtils.clamp, smooth=t=>{t=clamp(t,0,1);return t*t*(3-2*t)};
 // One slow breath confirms arrival before the complete bay fades away.
@@ -73,7 +74,7 @@ export function createParkingMotion(world){
  let root,group,target=null,highlight,paths=[],stops=[],cars=[],occupied=[],active=false,elapsed=0,done=false,origin=null,modelReady=false,trafficVisible=false,cameraTween=null,ownedOffset=null,mode='in',exitChoice=0,exited=false,assistOn=false,lastPath='',routeYaw=0,cameraHeading=0,view='default',cameraState=null,cameraGoal=null,lastCameraTime=0,cameraVelocity={position:new THREE.Vector3(),aim:new THREE.Vector3(),anchor:0},replan=null,paused=false,resumeView='raised',badges=[],selectedAt=0,completionAt=null;
  let riseStart=.4,riseDuration=1,manualView=null,playbackReturn=null;
  const cameraOffset=kind=>kind==='bev'?bev:kind==='raised'?raised:new THREE.Vector3(0,11,22);
- let readyPromise,modelError=null;function ensureReady(){return readyPromise??=readyTrafficModel(null,'model-y').then(()=>{modelReady=true;modelError=null;if(world.state&&!world.initializingScene)world.renderFrame()}).catch(error=>{readyPromise=null;modelError=error.message;throw error})}
+ let readyPromise,modelError=null;function ensureReady(){return readyPromise??=Promise.all([readyTrafficModel(null,'model-y'),prepareParkingMaterialStructure()]).then(()=>{modelReady=true;modelError=null;if(world.state&&!world.initializingScene)world.renderFrame()}).catch(error=>{readyPromise=null;modelError=error.message;throw error})}
  const now=()=>world.draftTime??0;
  const own=mesh=>{mesh.userData.draftOwned=true;group.add(mesh);return mesh;};
  function currentCamera(){return {...captureParkingView(world.camera,world.car,world.cameraAim),anchor:world.framing?.targetCenter??.5};}

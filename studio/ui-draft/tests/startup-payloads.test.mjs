@@ -29,7 +29,9 @@ test('Runtime excludes the encoder and resolves the complete encoder only throug
  const runtime=await readFile(new URL('../runtime.bundle.js',import.meta.url),'utf8');
  const video=await readFile(new URL('../video.bundle.js',import.meta.url),'utf8');
  assert.match(runtime,/import\("\.\/video\.bundle\.js\?v=interaction-20261027"\)/);
- assert.ok(Buffer.byteLength(runtime)<2400000);
+ assert.ok(Buffer.byteLength(runtime)<1250000);
+ assert.ok(gzipSync(runtime).byteLength<500000);
+ assert.match(runtime,/import\("\.\/parking-normals\.bundle\.js\?v=[a-f0-9]+"\)/);
  assert.ok(Buffer.byteLength(video)>200000);
  assert.match(video,/export\{/);
  const {videoType}=await import('../video.bundle.js');
@@ -81,13 +83,14 @@ test('Parent preloads the saved vehicle and Road entry Traffic regardless of the
  for(const [search,saved,model,traffic,suffix] of cases){
   const calls=[],keys=[],scope={location:{search},document:{documentElement:{dataset:{}},baseURI:'https://example.test/studio/ui-draft/'},localStorage:{getItem(key){keys.push(key);return JSON.stringify(saved)}},fetch:async(url,options)=>{assert.equal(options.priority,'low');calls.push(url);return new Response(new Uint8Array([1,2]))}};
   const requests=startStartupAssets(scope);await Promise.all(requests.values());
-  assert.equal(requests.size,traffic?3:2);assert.equal(new Set(calls).size,requests.size);
+  assert.equal(requests.size,traffic?4:3);assert.equal(new Set(calls).size,requests.size);
+  assert.deepEqual(calls.filter(url=>url.includes('framing-hull.json')),[`https://example.test/studio/ui-draft/vehicles/${model}/framing-hull.json?v=cold-20261102`]);
   assert.ok(calls.some(url=>url.includes(`vehicles/${model}/model.glb.gz`)));assert.ok(calls.some(url=>url.includes('studio-environment')));assert.equal(calls.some(url=>url.includes('traffic-model-y')),traffic);
   assert.deepEqual(keys,['drivescene-ui-draft-project-v2'+suffix]);
  }
  for(const getItem of [()=>'{broken',()=>{throw Error('storage disabled')}]){
   const scope={location:{search:''},localStorage:{getItem},document:{documentElement:{dataset:{}},baseURI:'https://example.test/studio/ui-draft/'},fetch:async()=>new Response(new Uint8Array([1]))};
-  const requests=startStartupAssets(scope);await Promise.all(requests.values());assert.equal(requests.size,2);assert.ok([...requests.keys()].some(url=>url.includes('vehicles/model-3/')));
+  const requests=startStartupAssets(scope);await Promise.all(requests.values());assert.equal(requests.size,3);assert.ok([...requests.keys()].some(url=>url.includes('vehicles/model-3/')));
  }
 });
 

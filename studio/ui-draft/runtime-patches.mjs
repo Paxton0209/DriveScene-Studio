@@ -166,13 +166,14 @@ export function patchVehicleMaterials(source){
 
 export function patchLoadPrepared(source){
  source=replace(source,'../prepared/${id}/model.glb.gz','../../../ui-draft/vehicles/${id}/model.glb.gz?v=restore26');
- source="import {takePrefetched} from '../../asset-request.js';\nimport frameHulls from '../../../ui-draft/vehicles/framing-hulls.json';\n"+source;
+ source="import {takePrefetched} from '../../asset-request.js';\nimport {loadFramingHull} from '../../../ui-draft/framing-data.js';\n"+source;
+ source=replace(source,'const response=await fetch(url,{signal});','const hullRequest=loadFramingHull(id);const response=await fetch(url,{signal});');
  source=replace(source,'const response=await fetch(url,{signal});if(!response.ok)throw Error(`Vehicle download failed (${response.status})`);\n let bytes=await response.arrayBuffer();',`const early=globalThis.__draftPreparedVehicle;
  const scope=early?.id===id?{request:early.request}:{};if(early?.id===id)delete globalThis.__draftPreparedVehicle;
  if(!scope.request){try{const requests=window.parent.__draftStartupAssets,key=new URL(url,document.baseURI).href;scope.request=requests?.get(key);requests?.delete(key);}catch{}}
  let bytes=await takePrefetched('request',async()=>{const response=await fetch(url,{signal});if(!response.ok)throw Error(\`Vehicle download failed (\${response.status})\`);return response.arrayBuffer();},scope);`);
  return replace(source,'const surfaces=prepareVehicleMaterials(model,id,spec.length);',`const surfaces=await prepareVehicleMaterials(model,id,spec.length);
- const hulls=frameHulls[id],meshes=[];model.traverse(mesh=>{if(mesh.isMesh)meshes.push(mesh);});
+ const hulls=await hullRequest,meshes=[];model.traverse(mesh=>{if(mesh.isMesh)meshes.push(mesh);});
  if(hulls?.length===meshes.length&&meshes.every((mesh,index)=>mesh.name===hulls[index].name&&mesh.geometry.attributes.position.count===hulls[index].count)){
   meshes.forEach((mesh,index)=>{const indices=hulls[index].indices;if(indices?.length)mesh.geometry.userData.frameIndices=indices;});
  }`);
@@ -263,7 +264,12 @@ export function isolatedRuntimePlugin(){return {name:'isolated-ui-draft',setup(b
   source=replace(source,'{width,height}=exportSize;','{width,height}=world;');
  }
  if(name==='app.js')source=patchApp(source).replaceAll('./vehicle-library/prepared/${id}/model.glb.gz','../ui-draft/vehicles/${id}/model.glb.gz?v=restore26');
- if(name==='vehicle.js')source=source.replaceAll('./ego-vehicle-ready.glb.gz?v=17.9','../ui-draft/vehicles/x6/model.glb.gz?v=restore26');
+ if(name==='vehicle.js'){
+  source=source.replaceAll('./ego-vehicle-ready.glb.gz?v=17.9','../ui-draft/vehicles/x6/model.glb.gz?v=restore26');
+  source=replace(source,"import frameHulls from './vehicle-frame-hull.js';","import {loadFramingHull} from '../ui-draft/framing-data.js';");
+  source=replace(source,'export async function createVehicle({startup=false}={}){',"export async function createVehicle({startup=false}={}){\n const hullRequest=startup?Promise.resolve(null):loadFramingHull('x6');");
+  source=replace(source,'let frameIndex=0;','const frameHulls=await hullRequest||[];let frameIndex=0;');
+ }
  // The parent owns the visible vehicle selector; do not build a second hidden picker.
  if(name==='vehicle-selector.js')source="import {createVehicleSelection} from '../ui-draft/vehicle-selection.js';\n"+replace(source," const element=(tag,className,text)=>"," if(new URLSearchParams(location.search).get('review')==='ui-draft')return createVehicleSelection({selected,onChange,ids:vehicleCatalog.map(model=>model.id)});\n const element=(tag,className,text)=>");
  if(name==='vehicle-library/three/vehicle-materials.js')source=patchVehicleMaterials(source);

@@ -36,7 +36,7 @@ export function installDraftBridge({world,features,drive,traffic,api,current,upd
   // The sampled junction camera does not own world.cameraMotion.
   world.draftJunctionPlaying=()=>playing&&!themeHeld&&current()==='junction';
  const parking=createParkingMotion(world),junctionFeedback=createJunctionFeedback(world);const appearance=createAppearanceBlend(),draw=world.renderFrame;let renderedFrames=0;world.draftThemeTone={value:(world.state?.mode||query.get('mode'))==='dark'?1:0};
- world.draftPrepareStartup=async()=>{if(!world.draftTrafficEnabled)return;await Promise.all([traffic.ready,parking.ready]);const error=traffic.audit().modelError;if(error)throw Error(error)};
+ world.draftPrepareStartup=async(scene=current())=>{if(!world.draftTrafficEnabled)return;await (['parking','outdoor'].includes(scene)?parking.ready:traffic.ready);const error=traffic.audit().modelError;if(error)throw Error(error)};
  // Capture the layer entry and retraction variants in the same renderer batch.
  // This runs only while the initial renderer is hidden; restore all UI choices.
  world.draftRecordStartupVariants=record=>{
@@ -139,7 +139,7 @@ export function installDraftBridge({world,features,drive,traffic,api,current,upd
   if(key==='weather')world.draftWeatherActive=true;if(key==='path'&&isParking(world.state?.id)){if(!value)setPlaying(false);else if(sound)setPlaying(true);}
   if(current()==='junction'){seekJunction();if(key==='layout')restartJunctionPath();}else if(!playing||key==='traffic')renderOnce();
   publish();schedule();
- },async scene(key,seed,values){audioHeld=true;resetIndicatorSound();try{appearance.finish();parking.reset();settle();drive.reset();playing=false;world.draftSceneryRandom.reset(seed);junctionPoses=null;loopTime=0;world.draftTrafficEnabled=!!values?.traffic;world.suspended=true;if(world.draftTrafficEnabled)await world.draftPrepareStartup();if(values)await api.prepareDraftScene(key,values);else api.scene(key);world.suspended=false;await waitForRender();if(key==='junction'){seekJunction();restartJunctionPath();}sync();schedule()}finally{world.suspended=false;audioHeld=false}},
+ },async scene(key,seed,values){audioHeld=true;resetIndicatorSound();try{appearance.finish();parking.reset();settle();drive.reset();playing=false;world.draftSceneryRandom.reset(seed);junctionPoses=null;loopTime=0;world.draftTrafficEnabled=!!values?.traffic;world.suspended=true;if(world.draftTrafficEnabled)await world.draftPrepareStartup(key);if(values)await api.prepareDraftScene(key,values);else api.scene(key);world.suspended=false;await waitForRender();if(key==='junction'){seekJunction();restartJunctionPath();}sync();schedule()}finally{world.suspended=false;audioHeld=false}},
  finishScene({playing:requested}={}){settle();parking.finishPreview?.();if(current()==='junction')seekJunction();setPlaying(!isParking(world.state?.id)&&(typeof requested==='boolean'?requested:['road','elevated','ramp'].includes(current())&&!matchMedia('(prefers-reduced-motion: reduce)').matches));renderOnce()},
  beginTheme(){themeHeld=true;cancelAnimationFrame(frame);frame=0;sync()},
  endTheme(){themeHeld=false;last=0;sync();schedule()},
