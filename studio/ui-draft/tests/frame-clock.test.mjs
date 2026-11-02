@@ -31,3 +31,12 @@ test('Junction and parking begin paused and the Junction step renders through it
  assert.match(source,/seekJunction\(\);\}else if\(!world.cameraMotion/);
  assert.doesNotMatch(source,/while\(accumulator>=1\/30\)/);
 });
+
+test('A 60Hz display with small timing jitter updates every frame without quantized motion',()=>{
+ let accumulator=0,total=0,previous=0;
+ for(let frame=1;frame<=120;frame++){
+  const now=frame/60+(frame%2?.001:-.001);accumulator+=now-previous;previous=now;
+  const next=frameStep(accumulator);assert.ok(next.seconds>0);assert.ok(Math.abs(next.seconds-accumulator)<1e-9);total+=next.seconds;accumulator=next.remaining;
+ }
+ assert.ok(Math.abs(total-previous)<1e-9);
+});

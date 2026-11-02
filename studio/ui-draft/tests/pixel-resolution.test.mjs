@@ -9,15 +9,15 @@ test('Interactive raster respects display density and a finite GPU budget',()=>{
  assert.deepEqual(previewPixels(320,1),{width:320,height:180,pixelRatio:1});
  assert.deepEqual(previewPixels(720,2),{width:1440,height:810,pixelRatio:2});
  for(const width of [320,720,1120,1680,4000])for(const ratio of [1,2]){
-  const pixels=previewPixels(width,ratio);assert.ok(pixels.width<=1440);assert.equal(pixels.width/pixels.height,16/9);
+  const pixels=previewPixels(width,ratio);assert.ok(pixels.width<=2560);assert.equal(pixels.width/pixels.height,16/9);
  }
- assert.equal(previewPixels(928,2,4).width,1440);
+ assert.equal(previewPixels(928,2,4).width,2560);
  assert.equal(previewPixels(928,2,1,960).width,960);
 });
 test('Software rendering gets a smaller preview budget; driver lookup failure keeps the default',()=>{
  for(const name of ['SwiftShader Device','llvmpipe','Software Rasterizer'])assert.equal(previewPixelLimit({getContext:()=>({getExtension:()=>({UNMASKED_RENDERER_WEBGL:1}),getParameter:()=>name})}),960);
- assert.equal(previewPixelLimit({getContext:()=>({getExtension:()=>null})}),1440);
- assert.equal(previewPixelLimit({getContext(){throw Error('context lost')}}),1440);
+ assert.equal(previewPixelLimit({getContext:()=>({getExtension:()=>null})}),2560);
+ assert.equal(previewPixelLimit({getContext(){throw Error('context lost')}}),2560);
 });
 test('Draft raster patch removes the legacy 1440 ceiling without editing shared source',async()=>{
  const source=await readFile(new URL('../../engine/app.js',import.meta.url),'utf8'),patched=patchApp(source);

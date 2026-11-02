@@ -110,3 +110,11 @@ test('Recycled buildings and trees fade in without changing shared materials',as
  assert.ok(treeFade,'trees should fade after recycling');
  drive.reset();assert.equal(shared.opacity,1);
 });
+
+test('Scenery recycling reuses warmed fade materials across multiple loops',async()=>{
+ const world={draftManaged:true};use(world,scenery(4),4);const material=new THREE.MeshBasicMaterial();let allocations=0;const clone=material.clone.bind(material);material.clone=()=>{allocations++;return clone()};
+ for(const building of world.root.children.filter(o=>o.userData.buildingOwned))building.material=material;
+ const drive=(await driver())(world,{random:()=>.5});for(let i=0;i<400;i++)drive.advance(.1);const warmed=allocations;
+ for(let i=0;i<800;i++)drive.advance(.1);assert.ok(warmed>0);assert.equal(allocations,warmed,'no material allocation or shader disposal on later scenery loops');
+ drive.reset();assert.equal(material.opacity,1);
+});
