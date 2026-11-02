@@ -136,20 +136,11 @@ async function setTheme(theme){
  const commit=async(value,animate=false)=>{syncFinish(value,{render:false});if(ready)await bridge().theme(value,{animate});document.documentElement.dataset.theme=value;try{localStorage.setItem(themeKey,value)}catch{}renderTheme()};
  while(document.documentElement.dataset.theme!==requestedTheme){
   const target=requestedTheme;
-  const liveScene=ready&&['road','elevated','ramp','junction'].includes(project.active)&&bridge().get({audit:false}).playing;
-  if(!document.startViewTransition||reducedMotion()){const pending=commit(target);themeTransition={finished:pending};try{await pending}finally{themeTransition=null}continue}
-  const rect=$('theme').getBoundingClientRect(),x=rect.left+rect.width/2,y=rect.top+rect.height/2,radius=Math.hypot(Math.max(x,innerWidth-x),Math.max(y,innerHeight-y))+180;
-  const root=document.documentElement;
-  root.style.setProperty('--theme-reveal-x',`${x}px`);root.style.setProperty('--theme-reveal-y',`${y}px`);root.style.setProperty('--theme-reveal-radius',`${radius}px`);
-  root.classList.add('theme-changing');if(liveScene)root.classList.add('theme-live-scene');frame.contentDocument?.documentElement.classList.add('theme-changing');
-  const started=performance.now(),audit={target,started,method:liveScene?'soft-radial-live':'soft-radial-unified',duration:400,feather:160,blur:0};
-  // Keep the button-origin reveal for the shell. A named live scene excludes
-  // its outgoing still from that snapshot, so driving keeps advancing visibly.
-  try{
-   const transition=document.startViewTransition(()=>commit(target,liveScene));themeTransition=transition;
-   await transition.ready;audit.animationStarted=performance.now();await transition.finished;
-  }catch(error){audit.error=error.message;if(root.dataset.theme!==target)await commit(target,false)}
-  finally{if(themeTransition)await themeTransition.finished.catch(()=>{});root.classList.remove('theme-changing');root.classList.remove('theme-live-scene');frame.contentDocument?.documentElement.classList.remove('theme-changing');themeTransition=null;audit.finished=performance.now();document.body.dataset.themeMotion=JSON.stringify(audit)}
+  // Blend the live renderer and shell colours without capturing a full-page still.
+  const started=performance.now(),audit={target,started,method:'live-colors',duration:400};
+  const pending=commit(target,!reducedMotion());themeTransition={finished:pending};
+  try{await pending}catch(error){audit.error=error.message;throw error}
+  finally{themeTransition=null;audit.finished=performance.now();document.body.dataset.themeMotion=JSON.stringify(audit)}
  }
 }
 $('theme').addEventListener('click',()=>{void setTheme(requestedTheme==='dark'?'light':'dark').then(refreshExportPreview).catch(error=>feedback(error.message))});

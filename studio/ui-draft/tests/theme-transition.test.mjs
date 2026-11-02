@@ -11,29 +11,15 @@ test('Theme commits while view transitions have suspended iframe animation callb
  await commit('dark');await commit('light');assert.equal(renders,2);
 });
 
-test('The icon-origin reveal excludes only the outgoing still of a playing driving scene',async()=>{
+test('Theme updates use the live renderer without full-page snapshots or remounting',async()=>{
  const source=await readFile(new URL('../draft.js',import.meta.url),'utf8');
  const theme=source.slice(source.indexOf('async function setTheme('),source.indexOf("$('theme').addEventListener"));
- assert.match(theme,/document.startViewTransition\(\(\)=>commit\(target,liveScene\)\)/);
- const css=await readFile(new URL('../draft.css',import.meta.url),'utf8');
- assert.match(css,/\.theme-live-scene #engine\{view-transition-name:live-scene\}/);
- assert.match(css,/::view-transition-old\(live-scene\)\{display:none\}/);
- assert.match(css,/::view-transition-new\(live-scene\)\{animation:none;mix-blend-mode:normal;opacity:1\}/);
- assert.doesNotMatch(theme,/beginTheme|endTheme/);
-});
-
-test('Both shipped pages retain the radial reveal and the separate live driving capture',async()=>{
- const css=await readFile(new URL('../draft.css',import.meta.url),'utf8');
- const rules=css.slice(css.indexOf('@property --theme-reveal-progress'),css.indexOf(':root{--e1-lifted'));
+ assert.match(theme,/commit\(target,!reducedMotion\(\)\)/);
+ assert.doesNotMatch(theme,/startViewTransition|srcdoc|replaceChildren|innerHTML|location\.reload/);
  for(const page of ['index.html','skill.html']){
   const html=await readFile(new URL('../'+page,import.meta.url),'utf8');
-  assert.equal(html.slice(html.indexOf('@property --theme-reveal-progress'),html.indexOf(':root{--e1-lifted')),rules,page+' uses current source theme rules');
-  assert.match(html,/#engine\{view-transition-name:live-scene\}/,page);
-  const callback=html.match(/document\.startViewTransition\(\(\)=>(\w+)\((\w+)([^)]*)\)\)/);
-  assert.ok(callback,page+' includes the actual theme transition callback');
-  assert.match(callback[3],/^,\w+$/,page+' selects a live commit only during driving playback');
-  assert.match(html,/soft-radial-unified/,page);
-  assert.match(html,/soft-radial-live/,page);
+  assert.match(html,/live-colors/,page+' ships the live renderer transition');
+  assert.doesNotMatch(html,/document\.startViewTransition/,page+' does not take a full-page snapshot');
  }
 });
 

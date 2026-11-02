@@ -75,7 +75,7 @@ export function patchApp(source){
   world.draftSceneryRandom.reset(choice.seed);world.draftTrafficRandom.reset(choice.seed+1);
   versionFeatures.set({path:!!values.path,weather:values.weather||'default'},{animate:false,render:false});
  }
- await prepareStartupChoices({world,models:[selectedVehicle],cache:vehicleCache,prepareVehicle:prepareChoice,choices:startupChoices(project.boards),select,state,restore(){
+ await prepareStartupChoices({world,models:[selectedVehicle],cache:vehicleCache,prepareVehicle:prepareChoice,choices:startupChoices(project.boards,project.active),select,state,restore(){
   selected=initial;for(const [key,value]of saved)Object.assign(preferences.get(key),value);
   world.draftSceneryRandom.restore(scenery);world.draftTrafficRandom.restore(traffic);
   versionFeatures.set(initialFeatures,{animate:false,render:false});

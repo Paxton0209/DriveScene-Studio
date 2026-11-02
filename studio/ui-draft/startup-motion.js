@@ -13,8 +13,8 @@ export function readyFade(time){
  // or animation clock at readiness. The same fade ends at 1.8 seconds.
  if(time<=LINEAR_END)return {duration:1800-time,at:elapsed=>Math.min(1,start.opacity+RATE*Math.max(0,elapsed))};
  // A delayed load never restarts the fade or rushes a large remaining range.
- // A Hermite tail starts at the exact current velocity and only decelerates.
- const distance=1-start.opacity,duration=Math.min(1000,2*distance/start.velocity),b=start.velocity*duration;
+ // Preserve the current opacity and velocity; finish the tiny remainder promptly.
+ const distance=1-start.opacity,duration=Math.min(240,2*distance/start.velocity),b=start.velocity*duration;
  return {duration,at(elapsed){const u=Math.max(0,Math.min(1,elapsed/duration));return start.opacity+b*u+(3*distance-2*b)*u*u+(b-2*distance)*u*u*u}};
 }
 function pendingFrames(end,total){

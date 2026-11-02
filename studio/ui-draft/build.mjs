@@ -123,8 +123,12 @@ function draftMotion(source){
   .replace("grid().style.opacity='0';grid().style.transform='translateY(-6px)';","grid().style.opacity='0';grid().style.transform='translateY(-6px)';popup.style.opacity='0';popup.style.transform='scale(.96)';");
 }
 await build({absWorkingDir:root,entryPoints:['../ui-motion.js'],bundle:true,minify:true,format:'esm',outfile:'motion-runtime.js',plugins:[{name:'draft-motion-dimensions',setup(builder){builder.onLoad({filter:/\/ui-motion\.js$/},async args=>({contents:draftMotion(await readFile(args.path,'utf8')),loader:'js',resolveDir:root+'../'}))}}]});
-await build({absWorkingDir:root,entryPoints:['./draft.js'],loader:{'.html':'text'},bundle:true,minify:true,format:'esm',outfile:'draft.bundle.js',target:['chrome110','safari17'],plugins:[{name:'inline-icons',setup(b){b.onLoad({filter:/\/draft\.js$/},async({path})=>({contents:(await readFile(path,'utf8')).replace("await fetch('./icons.json').then(response=>response.json())",await readFile(iconFile,'utf8')),loader:'js',resolveDir:root}));}}]});
 await build({absWorkingDir:root,entryPoints:['../engine/app.js'],bundle:true,minify:true,format:'esm',outfile:'runtime.bundle.js',plugins:[startupBundlesPlugin(),clippingPrecompilePlugin(),isolatedRuntimePlugin()],target:['chrome110','safari17']});
+const runtimeVersion=createHash('sha256').update(await readFile(new URL('./runtime.bundle.js',import.meta.url))).digest('hex').slice(0,12);
+engineHtml=engineHtml.replaceAll('horizon-startup-20261102',runtimeVersion);
+parent=parent.replaceAll('horizon-startup-20261102',runtimeVersion);
+await writeFile(new URL('./engine.html',import.meta.url),engineHtml);
+await build({absWorkingDir:root,entryPoints:['./draft.js'],loader:{'.html':'text'},bundle:true,minify:true,format:'esm',outfile:'draft.bundle.js',target:['chrome110','safari17'],plugins:[{name:'inline-icons',setup(b){b.onLoad({filter:/\/draft\.js$/},async({path})=>({contents:(await readFile(path,'utf8')).replace("await fetch('./icons.json').then(response=>response.json())",await readFile(iconFile,'utf8')),loader:'js',resolveDir:root}));}}]});
 console.log('UI draft runtime built; shared engine files are read-only inputs.');
 
 // Reproduce the saved preview, including its fixed material and frame profile.

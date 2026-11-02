@@ -45,3 +45,11 @@ test('Both theme variants are drawn in every prepared geometry before completion
  assert.equal(draws.filter(mode=>mode==='light').length,15);
  assert.equal(mode,'light');assert.equal(f.options.world.draftStartupReadiness.ready,true);
 });
+
+test('Interactive startup prepares only the selected scene and its current parameters',async()=>{
+ const project=createProject();project.active='parking';project.boards.parking.params.traffic=true;
+ const choices=startupChoices(project.boards,project.active);
+ assert.equal(choices.length,1);assert.equal(choices[0].key,'parking');assert.equal(choices[0].params.traffic,true);
+ const f=fixture();f.options.choices=choices;f.options.models=['model-3'];await prepareStartupChoices(f.options);
+ assert.equal(f.options.world.draftStartupReadiness.scenes.length,1);assert.equal(f.options.world.draftStartupReadiness.appearances,1);
+});

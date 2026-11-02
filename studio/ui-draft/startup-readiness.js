@@ -1,7 +1,8 @@
-// The opening covers the actual first-use work of every visible choice.
+// The opening prepares the selected scene; alternatives prepare on selection.
 // Preparation stays in the hidden renderer; only the restored initial scene
 // may be handed to the parent opacity surface.
-export function startupChoices(boards){
+export function startupChoices(boards,active){
+ if(active&&boards[active]){const board=boards[active];return [{key:board.type,seed:board.seed,params:{...board.params}}];}
  const choices=[];
  for(const board of Object.values(boards)){
   const variants=board.type==='road'?[2,4,6].map(lanes=>({...board.params,lanes})):board.type==='ramp'?['06','07'].map(layout=>({...board.params,layout})):board.type==='junction'?['05','08'].map(layout=>({...board.params,layout})):[{...board.params}];
