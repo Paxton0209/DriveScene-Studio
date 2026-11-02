@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import {createParkingMotion} from '../scene-experience.js';
 import {parkingPose,parkingTiming} from '../parking-motion.js';
+import {parkingFrame} from '../parking-camera.js';
 function fixture(){
  const camera=new THREE.PerspectiveCamera(40,16/9,.1,1000);camera.position.set(0,22,14);camera.lookAt(0,.85,0);camera.updateMatrixWorld(true);
  const world={state:{id:'10',mode:'light'},root:new THREE.Group(),scene:new THREE.Scene(),car:new THREE.Group(),camera,cameraAim:new THREE.Vector3(0,.85,0),parkingBays:[-5.9,5.9].flatMap(x=>[3.6,0,-3.6,-7.2].map(z=>({x,z,width:4.9,depth:2.8}))),renderFrame(){},finishCameraMotion(){},captureCamera(){return {position:camera.position.clone(),carPosition:this.car.position.clone(),aim:this.cameraAim.clone()}},applyCamera(p){this.car.position.copy(p.carPosition);camera.position.copy(p.position);this.cameraAim.copy(p.aim);camera.lookAt(p.aim)}};
@@ -277,4 +278,23 @@ test('Prepared replay resumes from the same camera and vehicle pose',()=>{
  assert.equal(motion.get().complete,true);motion.reset({replay:true});motion.sync({assist:true});assert.equal(motion.start(),true);motion.pause();
  const position=world.car.position.clone(),camera=world.camera.position.clone(),orientation=world.camera.quaternion.clone();
  assert.equal(motion.start(),true);assert.ok(world.car.position.distanceTo(position)<1e-9);assert.ok(world.camera.position.distanceTo(camera)<1e-9);assert.ok(world.camera.quaternion.angleTo(orientation)<1e-7);
+});
+
+for(const scene of ['10','17'])for(const hz of [30,60,120])test(`Completed replay retains the restored Low framing through its first moving frames in ${scene} at ${hz} Hz`,()=>{
+ const {world,motion,tick}=fixture();world.state.id=scene;
+ world.car.add(new THREE.Mesh(new THREE.BoxGeometry(1.85,1.45,4.65)));
+ world.captureCamera=()=>({position:world.camera.position.clone(),carPosition:world.car.position.clone(),aim:world.cameraAim.clone(),quaternion:world.camera.quaternion.clone(),offset:new THREE.Vector2(world.camera.view?.offsetX??0,world.camera.view?.offsetY??0)});
+ world.applyCamera=pose=>{world.car.position.copy(pose.carPosition);world.camera.position.copy(pose.position);world.cameraAim.copy(pose.aim);world.camera.quaternion.copy(pose.quaternion);world.camera.setViewOffset(1920,1080,pose.offset.x,pose.offset.y,1920,1080);world.camera.updateMatrixWorld(true);};
+ motion.sync({assist:true});motion.previewCamera('default');tick(1.2);motion.selectDefault();motion.start();tick(30);
+ assert.equal(motion.get().complete,true);assert.ok(Math.abs(world.framing.targetCenter-.5)<1e-8);
+ motion.reset({replay:true});motion.sync({assist:true});
+ const frame=parkingFrame(world.car,world.camera),anchor=(frame.top+frame.bottom)/2,orientation=world.camera.quaternion.clone();
+ assert.ok(anchor>.65,'restored Low view places the car below the finished BEV center');
+ assert.equal(motion.start(),true);
+ for(let i=0;i<Math.floor(.3*hz);i++){
+  world.draftTime+=1000/hz;motion.step(1/hz);motion.sync({assist:true});
+  const next=parkingFrame(world.car,world.camera);
+  assert.ok(Math.abs((next.top+next.bottom)/2-anchor)<.002,'replay must not snap Low framing to stale completion framing');
+  assert.ok(orientation.angleTo(world.camera.quaternion)<.002,'the initial hold retains the restored camera angle');
+ }
 });

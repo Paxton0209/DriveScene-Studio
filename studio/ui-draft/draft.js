@@ -219,21 +219,13 @@ function probeVideo(){return videoProbe??=bridge().videoFormat().then(format=>{v
 async function replayTransition(replaying,action){
  if(!replaying){await action();return;}
  const cover=$('frame-cover');await holdFrame();cover.style.zIndex='11';
- const nextFrame=()=>new Promise(resolve=>requestAnimationFrame(resolve));
- const soften=async(from,to)=>{
-  if(reducedMotion()){cover.style.filter=`blur(${to*28}px)`;cover.style.transform=`scale(${1+to*.08})`;return;}
-  let start=null;await new Promise(resolve=>{function frame(time){if(start===null)start=time;const t=Math.min(1,(time-start)/350),v=t*t*(3-2*t),amount=from+(to-from)*v;cover.style.filter=`blur(${amount*28}px)`;cover.style.transform=`scale(${1+amount*.08})`;if(t<1)requestAnimationFrame(frame);else resolve();}requestAnimationFrame(frame);});
- };
  try{
-  await nextFrame();bridge().replay();await action();
+  bridge().replay();await action();
   if(!bridge().get({audit:false}).requestedPlaying)throw Error('Replay did not start');
-  bridge().setPlaying(false);bridge().renderReplayFrame();await nextFrame();await nextFrame();
-  await soften(0,1);
-  // Replace the fully softened snapshot rather than blending two car positions.
-  const source=bridge().canvas;cover.getContext('2d').drawImage(source,0,0);
-  await nextFrame();await soften(1,0);cover.hidden=true;cover.style.filter='';cover.style.transform='';cover.style.zIndex='';
-  bridge().setPlaying(true);
- }finally{cover.hidden=true;cover.style.filter='';cover.style.transform='';cover.style.zIndex='';}
+  // Reveal the prepared start pose in the same turn. The playback clock keeps
+  // running; an extra pause/resume would hold the reset camera between frames.
+  bridge().renderReplayFrame();
+ }finally{cover.hidden=true;cover.style.zIndex='';}
 }
 $('scene-transport').addEventListener('click',async()=>{
  if(!ready||exporting||previewBusy||demoUpdating||sceneUpdating||vehicleUpdating||themeTransition||project.active==='junction'&&status.junction?.complete)return;

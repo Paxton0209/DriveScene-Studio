@@ -77,7 +77,12 @@ export function createParkingMotion(world){
  let readyPromise,modelError=null;function ensureReady(){return readyPromise??=Promise.all([readyTrafficModel(null,'model-y'),prepareParkingMaterialStructure()]).then(()=>{modelReady=true;modelError=null;}).catch(error=>{readyPromise=null;modelError=error.message;throw error})}
  const now=()=>world.draftTime??0;
  const own=mesh=>{mesh.userData.draftOwned=true;group.add(mesh);return mesh;};
- function currentCamera(){return {...captureParkingView(world.camera,world.car,world.cameraAim),anchor:world.framing?.targetCenter??.5};}
+ function currentCamera(){
+  // Replay restores the camera before framing metadata is refreshed. Start
+  // each transition at the projected pose rather than the previous BEV anchor.
+  const frame=parkingFrame(world.car,world.camera);
+  return {...captureParkingView(world.camera,world.car,world.cameraAim),anchor:(frame.top+frame.bottom)/2};
+ }
  function goalFor(kind){
   // Keep the selected elevation and align the vehicle nose with screen up.
   if(manualView)return parkingViewPose(world.camera,world.car,manualView);

@@ -3,13 +3,20 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 const source=await readFile(new URL('../draft.js',import.meta.url),'utf8');
 const definition=source.slice(source.indexOf('async function replayTransition('),source.indexOf("$('scene-transport').addEventListener",source.indexOf('async function replayTransition(')));
-test('Replay prepares and holds the started pose before revealing it',async()=>{
- const trace=[],cover={hidden:true,style:{},getContext(){return {drawImage(){assert.equal(cover.style.filter,'blur(28px)');trace.push('swap')}}}};let time=0,playing=false;
- const bridge={canvas:{},replay(){assert.equal(cover.hidden,false);trace.push('reset')},get:()=>({requestedPlaying:playing}),setPlaying(value){playing=value;trace.push(value?'resume':'pause')},renderReplayFrame(){assert.equal(playing,false);trace.push('render')}};
- const run=new Function('$','holdFrame','bridge','requestAnimationFrame','reducedMotion',definition+';return replayTransition;')(
-  ()=>cover,async()=>{trace.push('capture');cover.hidden=false},()=>bridge,callback=>{time+=100;queueMicrotask(()=>callback(time))},()=>false);
+test('Replay reveals a prepared sharp frame without stopping the playback clock',async()=>{
+ const trace=[],cover={hidden:true,style:{}};let playing=false;
+ const bridge={replay(){assert.equal(cover.hidden,false);trace.push('reset')},get:()=>({requestedPlaying:playing}),setPlaying(){assert.fail('replay must not inject a pause/resume')},renderReplayFrame(){assert.equal(playing,true);assert.equal(cover.hidden,false);trace.push('render')}};
+ const run=new Function('$','holdFrame','bridge',definition+';return replayTransition;')(
+  ()=>cover,async()=>{trace.push('capture');cover.hidden=false},()=>bridge);
  await run(true,async()=>{assert.equal(cover.hidden,false);playing=true;trace.push('prepare')});
- assert.deepEqual(trace,['capture','reset','prepare','pause','render','swap','resume']);
+ assert.deepEqual(trace,['capture','reset','prepare','render']);assert.equal(cover.hidden,true);assert.equal(cover.style.zIndex,'');
+ assert.equal(cover.style.filter,undefined);assert.equal(cover.style.transform,undefined);
+});
+test('Replay releases the existing cover if preparation fails',async()=>{
+ const cover={hidden:true,style:{}},bridge={replay(){}};
+ const run=new Function('$','holdFrame','bridge',definition+';return replayTransition;')(()=>cover,async()=>{cover.hidden=false},()=>bridge);
+ await assert.rejects(run(true,async()=>{throw Error('prepare failed')}),/prepare failed/);
+ assert.equal(cover.hidden,true);assert.equal(cover.style.zIndex,'');
 });
 
 test('Replay control stays hidden outside completion and uses one icon throughout',async()=>{
