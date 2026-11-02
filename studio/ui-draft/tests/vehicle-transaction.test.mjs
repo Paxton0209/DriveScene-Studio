@@ -15,7 +15,7 @@ function harness(){
  const controlPaint=async()=>true,holdFrame=async()=>{$('frame-cover').hidden=false;};
  let ready=true,exporting=false,previewBusy=false,sceneUpdating=false,vehicleUpdating=false,status={},themeTransition=null,requestedTheme='light',sceneRequest=0,sceneSelection=Promise.resolve();
  const params=()=>project.boards[project.active].params,vehicles=[['model-3','Tesla Model 3'],['x6','BMW X6'],['ix','BMW iX'],['xc90','Volvo XC90']];
- const renderLabel=()=>{},refreshExportPreview=()=>{},performScene=()=>{throw Error('Scene must not overlap vehicle replacement');};
+ const warmParkingAssets=()=>{},renderLabel=()=>{},refreshExportPreview=()=>{},performScene=()=>{throw Error('Scene must not overlap vehicle replacement');};
  ${apply}\n${scene}\n${theme}
  return {applyParam,selectScene,setTheme,get busy(){return vehicleUpdating},setThemeTransition(value){themeTransition=value;}};`);
  const controller=create(project,setProjectVehicle,setProjectWeather,setProjectOption,$,bridge,value=>locks.push(value),()=>saved.push(structuredClone(project)),error=>errors.push(error),()=>{});
@@ -39,4 +39,13 @@ test('Failed replacement restores the previous global model and unlocks controls
 });
 test('Model replacement does not start during an existing theme transition',async()=>{
  const h=harness();h.controller.setThemeTransition({});await h.controller.applyParam('model','ix');assert.deepEqual(h.calls,[]);assert.equal(h.project.shared.model,'model-3');assert.equal(h.controller.busy,false);
+});
+
+for(const scene of ['parking','outdoor'])for(const fail of [false,true])test(`Traffic preparation retains the current ${scene} frame and releases it after ${fail?'failure':'success'}`,async()=>{
+ const h=harness();h.project.active=scene;setProjectOption(h.project,'traffic',false);
+ const change=h.controller.applyParam('traffic',true);assert.equal(h.elements.get('frame-cover').hidden,false);
+ await Promise.resolve();await Promise.resolve();assert.deepEqual(h.calls,[['traffic',true]]);
+ if(fail)h.reject(Error('Traffic unavailable'));else h.resolve();
+ assert.equal(await change,!fail);assert.equal(h.elements.get('frame-cover').hidden,true,'no stale overlay after completion');
+ assert.equal(h.project.boards[scene].params.traffic,!fail);assert.equal(h.saved.length,fail?0:1);
 });

@@ -130,7 +130,7 @@ html,body,#app{background:var(--c-bg)}
 :root .format-options button{height:32px;border-radius:var(--r-ctl);font-size:13px}
 
 /* Playback: 12 below the canvas, centred on it */
-:root #canvas-playback #scene-transport{width:88px;min-width:88px;max-width:88px;flex:0 0 88px;justify-content:center;white-space:nowrap;height:32px;padding:0 12px;border:0;border-radius:var(--r-ctl);background:var(--c-raised);box-shadow:var(--sh-raised);color:var(--c-t1);font-size:13px;font-weight:500}
+:root #canvas-playback #scene-transport{width:112px;min-width:112px;max-width:112px;flex:0 0 112px;justify-content:center;white-space:nowrap;height:32px;padding:0 12px;border:0;border-radius:var(--r-ctl);background:var(--c-raised);box-shadow:var(--sh-raised);color:var(--c-t1);font-size:13px;font-weight:500}
 
 /* Below 960 the existing stacked layout stays; only the surfaces follow v5. */
 @media(max-width:959px){
@@ -264,7 +264,7 @@ body[data-ready=true] #canvas-playback #scene-transport:disabled{opacity:1}
 :root #inspector-scroll>#feedback{flex:none;margin:8px 16px 0}
 
 /* Steering-wheel demo states. */
-:root #canvas-playback #scene-transport[role=switch]{position:relative;inset:auto;width:auto;min-width:0;max-width:none;flex:0 0 auto;background:var(--c-raised);box-shadow:var(--sh-raised)}
+:root #canvas-playback #scene-transport[role=switch]{position:relative;inset:auto;background:var(--c-raised);box-shadow:var(--sh-raised)}
 :root #scene-transport[role=switch]::before{width:18px;height:18px;border-radius:50%;background-color:var(--c-t3);background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22white%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M12%203a9%209%200%201%201%200%2018%209%209%200%200%201%200-18Zm0%201.8a7.2%207.2%200%201%200%200%2014.4%207.2%207.2%200%200%200%200-14.4Z%22%2F%3E%3Cpath%20d%3D%22M4.9%2010.9h14.2v1.8c-3.6.2-6.15%202.5-6.15%206.6h-1.9c0-4.1-2.55-6.4-6.15-6.6Z%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");background-size:contain;clip-path:none;transition:background-color .16s}
 :root #canvas-playback #scene-transport[role=switch][aria-checked=true]{background:var(--c-raised);color:var(--c-t1);box-shadow:var(--sh-raised)}
 :root #scene-transport[role=switch][aria-checked=true]::before{background-color:var(--c-toggle-on)}
