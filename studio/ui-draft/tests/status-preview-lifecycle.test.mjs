@@ -6,7 +6,7 @@ const deferred=()=>{let resolve;const promise=new Promise(done=>resolve=done);re
 const flush=async()=>{for(let i=0;i<8;i++)await Promise.resolve()};
 function statusHarness(){
  const nodes=new Map();let writes=0,cameraSyncs=0;
- const $=id=>{if(!nodes.has(id))nodes.set(id,new Proxy({dataset:{},style:{setProperty(key,value){this[key]=value;writes++;}},querySelector:selector=>$(id+selector),querySelectorAll:()=>[],setAttribute(){writes++},removeAttribute(){writes++}}, {set(target,key,value){writes++;target[key]=value;return true}}));return nodes.get(id)};
+ const $=id=>{if(!nodes.has(id))nodes.set(id,new Proxy({dataset:{},style:{setProperty(key,value){this[key]=value;writes++;}},querySelector:selector=>$(id+selector),querySelectorAll:()=>[],setAttribute(name,value){this.attributes??={};this.attributes[name]=value;writes++},removeAttribute(){writes++}}, {set(target,key,value){writes++;target[key]=value;return true}}));return nodes.get(id)};
  const assist=source.slice(source.indexOf('let assistRenderKey='),source.indexOf('\nfunction renderVehicles('));
  const transport=source.slice(source.indexOf('let transportRenderKey='),source.indexOf("\nwindow.addEventListener('message'"));
  const controller=new Function('$','syncCameraLock','syncJunctionPathLock',`
@@ -27,8 +27,8 @@ test('Continuous parking camera and elapsed updates do not rewrite unchanged con
 test('Pause, camera lock, completion and inspector replacement still update controls',()=>{
  const h=statusHarness(),parking={target:{x:1,z:2},elapsed:2,phase:'reverse',view:'bev',cameraLocked:true};
  h.controller.render({playing:true,parking});h.controller.render({playing:false,parking:{...parking,cameraLocked:false}});
- assert.equal(h.$('scene-transport').textContent,'Resume');assert.equal(h.$('scene-transport').hidden,false);assert.equal(h.$('assist').hidden,true);assert.equal(h.cameraSyncs,2);
- h.controller.render({playing:false,parking:{...parking,complete:true}});assert.equal(h.$('scene-transport').textContent,'Replay');
+ assert.equal(h.$('scene-transport').textContent,'Assist demo');assert.equal(h.$('scene-transport').attributes['aria-checked'],'false');assert.equal(h.$('scene-transport').hidden,false);assert.equal(h.$('assist').hidden,true);assert.equal(h.cameraSyncs,2);
+ h.controller.render({playing:false,parking:{...parking,complete:true}});assert.equal(h.$('scene-transport').textContent,'Assist demo');assert.equal(h.$('scene-transport').dataset.tip,'Replay assisted-driving demo');
  const before=h.cameraSyncs;h.controller.render({playing:false,parking:{...parking,complete:true}},true);assert.equal(h.cameraSyncs,before+1);
 });
 test('Parking feedback keeps the paused state and current segment distance visible',()=>{

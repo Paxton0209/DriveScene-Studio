@@ -45,3 +45,20 @@ test('Layout choices use asynchronous construction and never draw a partial root
   assert.equal(world.initializingScene,false);
  }
 });
+
+test('Scene transition cancels prior animation frames and keeps the scheduler closed through asynchronous preparation',async()=>{
+ const bridge=await readFile(new URL('../engine-bridge.js',import.meta.url),'utf8');
+ const method=bridge.match(/async scene\(key,seed,values\)\{[^\n]+\}/)[0];
+ const scheduler=bridge.slice(bridge.indexOf(' function schedule(){'),bridge.indexOf('\n let lastPublish='));
+ let release;const pending=new Promise(resolve=>release=resolve),events=[];
+ const api={prepareDraftScene:()=>pending},world={draftSceneryRandom:{reset(){}},draftTrafficEnabled:false,suspended:false};
+ const make=new Function('api','world','events','requestAnimationFrame','cancelAnimationFrame',`
+ let scenePreparing=false,frame=7,playing=true,audioHeld=false,loopTime=0,junctionPoses=null,exporting=false,themeHeld=false;
+ const document={hidden:false},visualMotion=()=>true,tick=()=>{},resetIndicatorSound=()=>{},appearance={finish(){}},parking={reset(){}},settle=()=>{},drive={reset(){}},waitForRender=async()=>{},seekJunction=()=>{},restartJunctionPath=()=>{},sync=()=>{};
+ ${scheduler}
+ return {${method},schedule,get preparing(){return scenePreparing}};
+ `);
+ const controller=make(api,world,events,()=>{events.push('frame');return 9},id=>events.push(['cancel',id]));
+ const transition=controller.scene('parking',114,{traffic:false});assert.equal(controller.preparing,true);assert.deepEqual(events,[['cancel',7]]);controller.schedule();assert.equal(events.length,1,'a traffic animation cannot render the incoming scene while shaders are pending');
+ release();await transition;assert.equal(controller.preparing,false);assert.deepEqual(events,[['cancel',7],'frame']);
+});

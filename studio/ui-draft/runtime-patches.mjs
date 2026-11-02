@@ -139,7 +139,7 @@ async function installVehicle(car,full=false,animate=false,retainPrevious=false)
   for(const name of environmentIds)if(name in values)preference[name]=!!values[name];
   if(['parking','outdoor'].includes(key))preference.id=({parking:{default:'10',raised:'16',bev:'14'},outdoor:{default:'17',raised:'18',bev:'19'}}[key][values.camera]||preference.id);
   if(key==='junction'){preference.junctionPosition='approaching';preference.cameraView='low';}
-  versionFeatures.set({path:!!values.path,weather:values.weather||'default'},{animate:false});
+  versionFeatures.set({path:!!values.path,weather:values.weather||'default'},{animate:false,render:false});
   trafficSystem?.setEnabled(!!values.traffic);
   const previousRoot=world.root,initializing=world.initializingScene;world.initializingScene=true;
   try{await world.prepareInitialScene(state());}finally{world.initializingScene=initializing;}

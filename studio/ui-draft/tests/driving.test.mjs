@@ -68,7 +68,7 @@ test('Only explicit Assist intent can request sound; restoration is silent by de
  assert.match(source,/function rememberPreview\(immediate=false\)\{if\(query.get\('review'\)==='ui-draft'\)return/);
  const draft=await readFile(new URL('../draft.js',import.meta.url),'utf8');
  const bridge=await readFile(new URL('../engine-bridge.js',import.meta.url),'utf8');
- assert.match(draft,/bridge\(\)\.parkingPlay\(\)/);
+ assert.match(draft,/await setAssistDemo\(bridge\(\)/);
   assert.match(bridge,/await bridge\.param\('path',true,\{sound:true\}\)/);
  assert.equal((draft.match(/sound:true/g)||[]).length,0);
  assert.equal((bridge.match(/sound:true/g)||[]).length,1);

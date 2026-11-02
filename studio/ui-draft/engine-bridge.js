@@ -25,7 +25,7 @@ export function makeRandom(seed){
 }
 
 export function installDraftBridge({world,features,drive,traffic,api,current,updateURL}){
- let playing=['road','elevated','ramp'].includes(current())&&!matchMedia('(prefers-reduced-motion: reduce)').matches,frame=0,last=0,accumulator=0,exporting=false,cancelled=false,idlePaused=false,lastInput=performance.now(),loopTime=0,junctionPoses=null,origin=null,originRoot=null,themeHeld=false,audioHeld=false;
+ let playing=['road','elevated','ramp'].includes(current())&&!matchMedia('(prefers-reduced-motion: reduce)').matches,frame=0,last=0,accumulator=0,exporting=false,cancelled=false,idlePaused=false,lastInput=performance.now(),loopTime=0,junctionPoses=null,origin=null,originRoot=null,themeHeld=false,audioHeld=false,scenePreparing=false;
  // Only the most recently operated preview may own the indicator cue.
  let indicatorOwnsAudio=false;
  const indicatorChannel=typeof BroadcastChannel==='function'?new BroadcastChannel('drivescene-indicator-audio'):null;
@@ -85,12 +85,12 @@ export function installDraftBridge({world,features,drive,traffic,api,current,upd
   junctionPoses.motion.sample(Math.min(loopTime*1000,junctionPoses.motion.duration));
   // Ego stop does not end the cross-traffic simulation.
  }
- function step(seconds){if(!world.state||!world.root||world.initializingScene)return;world.draftTime+=seconds*1000;loopTime+=seconds;drive.advance(seconds);if(isParking(world.state.id)){parking.step(seconds);if(!parking.get().active)playing=false;world.renderFrame();}else if(current()==='junction')seekJunction();else if(!world.cameraMotion&&!world.layoutMotion&&!world.environmentMotion&&!world.structureMotion)world.renderFrame()}
+ function step(seconds){if(!world.state||!world.root||world.initializingScene)return;world.draftTime+=seconds*1000;loopTime+=seconds;drive.advance(seconds);if(isParking(world.state.id)){parking.step(seconds);const parked=parking.get();if(!parked.active)playing=false;if(parked.complete)features.set({path:false},{animate:false,render:false});world.renderFrame();}else if(current()==='junction'){if(junctionPoses&&loopTime*1000>=junctionPoses.motion.duration){playing=false;features.set({path:false},{animate:false,render:false});}seekJunction();}else if(!world.cameraMotion&&!world.layoutMotion&&!world.environmentMotion&&!world.structureMotion)world.renderFrame()}
  const visualMotion=()=>traffic.animating?.()||!!world.layoutMotion||world.draftIndicatorActive||parking.animating()||appearance.active()||world.draftWeatherActive||features.animating()||world.activationSweep?.active();
- function schedule(){if(frame||!playing&&!visualMotion()||document.hidden||exporting||themeHeld)return;frame=requestAnimationFrame(tick)}
+ function schedule(){if(scenePreparing||frame||!playing&&!visualMotion()||document.hidden||exporting||themeHeld)return;frame=requestAnimationFrame(tick)}
  let lastPublish=0;
  function tick(now){
-  frame=0;if(!playing&&!visualMotion()||document.hidden||exporting||themeHeld)return;
+  frame=0;if(scenePreparing||!playing&&!visualMotion()||document.hidden||exporting||themeHeld)return;
   if(!world.state||!world.root||world.initializingScene){last=0;schedule();return}
   if(originRoot!==world.root&&traffic.audit().modelReady){drive.rebind();if(!world.layoutMotion)world.renderFrame();origin=capture();originRoot=world.root}
   if(now-lastInput>=300000){idlePaused=true;playing=false;sync();return}
@@ -139,11 +139,12 @@ export function installDraftBridge({world,features,drive,traffic,api,current,upd
   if(key==='weather')world.draftWeatherActive=true;if(key==='path'&&isParking(world.state?.id)){if(!value)setPlaying(false);else if(sound)setPlaying(true);}
   if(current()==='junction'){seekJunction();if(key==='layout')restartJunctionPath();}else if(!playing||key==='traffic')renderOnce();
   publish();schedule();
- },async scene(key,seed,values){audioHeld=true;resetIndicatorSound();try{appearance.finish();parking.reset();settle();drive.reset();playing=false;world.draftSceneryRandom.reset(seed);junctionPoses=null;loopTime=0;world.draftTrafficEnabled=!!values?.traffic;world.suspended=true;if(world.draftTrafficEnabled)await world.draftPrepareStartup(key);if(values)await api.prepareDraftScene(key,values);else api.scene(key);world.suspended=false;await waitForRender();if(key==='junction'){seekJunction();restartJunctionPath();}sync();schedule()}finally{world.suspended=false;audioHeld=false}},
+ },async scene(key,seed,values){scenePreparing=true;cancelAnimationFrame(frame);frame=0;audioHeld=true;resetIndicatorSound();try{appearance.finish();parking.reset();settle();drive.reset();playing=false;world.draftSceneryRandom.reset(seed);junctionPoses=null;loopTime=0;world.draftTrafficEnabled=!!values?.traffic;world.suspended=true;if(world.draftTrafficEnabled)await world.draftPrepareStartup(key);if(values)await api.prepareDraftScene(key,values);else api.scene(key);world.suspended=false;await waitForRender();if(key==='junction'){seekJunction();restartJunctionPath();}sync();schedule()}finally{world.suspended=false;audioHeld=false;scenePreparing=false;schedule()}},
  finishScene({playing:requested}={}){settle();parking.finishPreview?.();if(current()==='junction')seekJunction();setPlaying(!isParking(world.state?.id)&&(typeof requested==='boolean'?requested:['road','elevated','ramp'].includes(current())&&!matchMedia('(prefers-reduced-motion: reduce)').matches));renderOnce()},
  beginTheme(){themeHeld=true;cancelAnimationFrame(frame);frame=0;sync()},
  endTheme(){themeHeld=false;last=0;sync();schedule()},
  async theme(value,{animate=false}={}){if(!animate)appearance.finish();const from=animate?appearanceSnapshot(world):null,held=world.suspended;world.suspended=true;try{await api.theme(value);world.draftThemeTone.value=value==='dark'?1:0;if(current()==='junction')seekJunction();await world.draftPrepareAppearance();if(from)appearance.start(from,appearanceSnapshot(world),performance.now())}finally{world.suspended=held}renderOnce();publish();schedule()},
+ prepareParkingAssets(){return parking.ready},
  themeStatus(){return {blending:appearance.active(),renderedFrames,held:themeHeld}},
  prepareExit(){setPlaying(false);parking.prepareExit();renderOnce();publish();schedule()},chooseExit(direction){parking.chooseExit(direction);renderOnce();publish();schedule()},
  replay(){audioHeld=true;resetIndicatorSound();try{settle();if(isParking(world.state?.id)){parking.reset();renderOnce();publish();return;}traffic.setEnabled(false);traffic.setEnabled(!!world.draftTrafficEnabled);loopTime=0;const held=world.suspended;world.suspended=false;seekJunction();restartJunctionPath();world.suspended=held;publish();schedule()}finally{audioHeld=false}},

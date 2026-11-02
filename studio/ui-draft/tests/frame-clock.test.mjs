@@ -28,6 +28,6 @@ test('Small 120Hz timestamp jitter does not alternate one-frame and three-frame 
 test('Junction and parking begin paused and the Junction step renders through its native sampler only',async()=>{
  const source=await readFile(new URL('../engine-bridge.js',import.meta.url),'utf8');
  assert.match(source,/playing=\['road','elevated','ramp'\]\.includes\(current\(\)\)/);
- assert.match(source,/if\(current\(\)==='junction'\)seekJunction\(\);else if\(!world.cameraMotion/);
+ assert.match(source,/seekJunction\(\);\}else if\(!world.cameraMotion/);
  assert.doesNotMatch(source,/while\(accumulator>=1\/30\)/);
 });

@@ -21,7 +21,7 @@ export async function fetchStartupAsset(url,{mirror,scope=globalThis,delay=3000}
 // This generated data module is self-contained: no relative imports or code from users.
 export async function loadParkingNormalModule(url){
  const scope=window.parent,mirror=scope.__draftStartupMirrors?.['./parking-normals.bundle.js'];
- const bytes=await fetchStartupAsset(url,{scope,mirror});
+ const bytes=await fetchStartupAsset(url,{scope,mirror,delay:150});
  const local=URL.createObjectURL(new Blob([bytes],{type:'text/javascript'}));
  try{return await import(local)}finally{URL.revokeObjectURL(local)}
 }

@@ -95,7 +95,7 @@ test('Startup synchronizes a suspended Road while preserving Pause and hidden/th
   new Function('world','drive','document','current','publish','renderOnce','schedule',`let playing=${playing},themeHeld=${themeHeld},last=1,accumulator=1;function sync(){${syncBody}};${startupBody}`)(world,drive,{hidden,getElementById:()=>({setAttribute(){}})},()=> 'road',()=>{},()=>{},()=>{});
   assert.equal(drive.playing,playing&&!themeHeld);assert.equal(world.suspended,hidden||themeHeld);assert.equal(drive.playing&&!world.suspended,expected);
  }
- assert.ok(source.includes("get('paused')==='1')query.set('paused','1')"));
+ assert.ok(source.includes("query.set('paused','1')"));assert.ok(source.includes('project.shared.playing=false'));
  assert.doesNotMatch(source,/createProject\(saved\);setProjectVehicle\(project,'model-3'\)/);
 });
 
