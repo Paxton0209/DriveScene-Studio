@@ -1,0 +1,9 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {webcrypto} from 'node:crypto';
+import {fetchStartupAsset} from '../startup-transfer.mjs';
+const bytes=new Uint8Array([1,2,3]).buffer;
+const mirror={url:'https://mirror.test/asset',sha256:'039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81'};
+function scope(fetch,production=true){return {fetch,crypto:webcrypto,location:{hostname:production?'paxton0209.github.io':'localhost'}}}
+test('Fast primary avoids any mirror; local development never uses an external origin',async()=>{for(const production of [true,false]){const calls=[];assert.deepEqual(await fetchStartupAsset('primary',{mirror,delay:10,scope:scope(async url=>{calls.push(url);return new Response(bytes)},production)}),bytes);assert.deepEqual(calls,['primary'])}});
+test('A stalled primary races the verified mirror and is cancelled after success',async()=>{let aborted=false;const result=await fetchStartupAsset('primary',{mirror,delay:5,scope:scope(async(url,{signal})=>{if(url===mirror.url)return new Response(bytes);return new Promise((_,reject)=>signal.addEventListener('abort',()=>{aborted=true;reject(Error('aborted'))}))})});assert.deepEqual(result,bytes);assert.equal(aborted,true)});
+test('A failed primary starts the mirror immediately rather than waiting for its timer',async()=>{const result=await fetchStartupAsset('primary',{mirror,delay:10000,scope:scope(async url=>{if(url==='primary')throw Error('offline');return new Response(bytes)})});assert.deepEqual(result,bytes)});
+test('Invalid mirror bytes cannot replace the original and two failed sources reject',async()=>{await assert.rejects(fetchStartupAsset('primary',{mirror,delay:5,scope:scope(async url=>url==='primary'?new Response('offline',{status:503}):new Response('wrong bytes'))}),/Scene files could not load/)});

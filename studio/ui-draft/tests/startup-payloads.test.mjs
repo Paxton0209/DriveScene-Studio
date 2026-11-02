@@ -81,7 +81,7 @@ test('Parent preloads the saved vehicle and Road entry Traffic regardless of the
  const cases=[['?qa=cold',{active:'parking',shared:{model:'ix',layers:{traffic:true}}},'ix',true,'-qa-cold'],['',{active:'outdoor',boards:{outdoor:{params:{model:'xc90'}}}},'xc90',false,''],['?qa=1',{shared:{model:'invalid'}},'model-3',false,'-qa'],['?qa=cold',{shared:{model:'x6'}},'x6',false,'-qa-cold'],['',{active:'parking',boards:{parking:{params:{traffic:true}}},shared:{layers:{traffic:false}}},'model-3',false,'']];
  cases.push(['',{active:'outdoor',boards:{outdoor:{params:{traffic:false}},road:{params:{traffic:true}}}},'model-3',true,''],['',{active:'parking',boards:{parking:{params:{traffic:true}},road:{params:{traffic:false}}}},'model-3',false,'']);
  for(const [search,saved,model,traffic,suffix] of cases){
-  const calls=[],keys=[],scope={location:{search},document:{documentElement:{dataset:{}},baseURI:'https://example.test/studio/ui-draft/'},localStorage:{getItem(key){keys.push(key);return JSON.stringify(saved)}},fetch:async(url,options)=>{assert.equal(options.priority,'low');calls.push(url);return new Response(new Uint8Array([1,2]))}};
+  const calls=[],keys=[],scope={location:{search},document:{documentElement:{dataset:{}},baseURI:'https://example.test/studio/ui-draft/'},localStorage:{getItem(key){keys.push(key);return JSON.stringify(saved)}},fetch:async(url,options)=>{assert.equal(options.priority,'high');calls.push(url);return new Response(new Uint8Array([1,2]))}};
   const requests=startStartupAssets(scope);await Promise.all(requests.values());
   assert.equal(requests.size,traffic?4:3);assert.equal(new Set(calls).size,requests.size);
   assert.deepEqual(calls.filter(url=>url.includes('framing-hull.json')),[`https://example.test/studio/ui-draft/vehicles/${model}/framing-hull.json?v=cold-20261102`]);
@@ -115,6 +115,7 @@ test('Inline engine styles retain the source cascade and have no unresolved rela
 
 test('Critical HTML contains only the unchanged default preview; other exact JPEGs stay external',async()=>{
  const html=await readFile(new URL('../index.html',import.meta.url),'utf8'),previews=JSON.parse(await readFile(new URL('../startup-previews.json',import.meta.url),'utf8'));
- assert.ok(gzipSync(html).byteLength<160000);assert.equal((html.match(/data:image\/jpeg;base64,/g)||[]).length,1);assert.ok(html.includes(previews['road-light']));
+ // Integrity-checked transfer failover has a 1 KB compressed allowance.
+ assert.ok(gzipSync(html).byteLength<161000);assert.equal((html.match(/data:image\/jpeg;base64,/g)||[]).length,1);assert.ok(html.includes(previews['road-light']));
  for(const [name,data]of Object.entries(previews)){const bytes=await readFile(new URL('../startup-previews/'+name+'.jpg',import.meta.url));assert.deepEqual(bytes,Buffer.from(data.split(',')[1],'base64'));if(name!=='road-light')assert.ok(html.includes('./startup-previews/'+name+'.jpg?v='));}
 });

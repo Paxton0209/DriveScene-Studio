@@ -68,9 +68,10 @@ for(const [tag] of engineHtml.matchAll(/<link[^>]*rel="stylesheet"[^>]*>/g)){
 }
 engineHtml=engineHtml.replaceAll('location.search','(globalThis.__draftSearch??location.search)').replace('<head>','<head><script>globalThis.__draftSearch=window.frameElement?.dataset.search||location.search;<\/script>');
 await writeFile(new URL('./engine.html',import.meta.url),engineHtml);
+const startupScript=await startupAssetScript();
 const parentFile=new URL('./index.html',import.meta.url);let parent=await readFile(parentFile,'utf8');
 parent=parent.replace(/<script id="startup-draft"[^>]*>[\s\S]*?<\/script>/,'<script type="module" src="draft.bundle.js?v=export-clarity-v34-20261029"></script>');
-parent=parent.replace(/<link rel="modulepreload"[^>]+>/g,'').replace(/<link rel="preload" href="icons.json"[^>]+>/g,'').replace(/<script id="startup-assets">[\s\S]*?<\/script>/,'').replace('<title>',`<script id="startup-assets">${startupAssetScript()}</script><title>`).replace(/src="(?:draft|draft.bundle)\.js\?v=[^"]+"/,'src="draft.bundle.js?v=export-clarity-v34-20261029"');
+parent=parent.replace(/<link rel="modulepreload"[^>]+>/g,'').replace(/<link rel="preload" href="icons.json"[^>]+>/g,'').replace(/<script id="startup-assets">[\s\S]*?<\/script>/,'').replace('<title>',`<script id="startup-assets">${startupScript}</script><title>`).replace(/src="(?:draft|draft.bundle)\.js\?v=[^"]+"/,'src="draft.bundle.js?v=export-clarity-v34-20261029"');
 // Discover and download both executable bundles before the poster/body parse.
 // The embedded document reuses the runtime's module request from this origin.
 parent=parent.replace('<script id="startup-assets">','<link rel="modulepreload" fetchpriority="high" href="runtime.bundle.js?v=horizon-startup-20261102"><script id="startup-assets">');
@@ -169,7 +170,7 @@ const themeCSS=await readFile(new URL('./draft.css',import.meta.url),'utf8');
 const themeRules=themeCSS.slice(themeCSS.indexOf('@property --theme-reveal-progress'),themeCSS.indexOf(':root{--e1-lifted'));
 if(!themeRules.startsWith('@property')||!themeRules.includes('@keyframes theme-reveal'))throw Error('Theme reveal stylesheet missing');
 const trialFile=new URL('./skill.html',import.meta.url),trialHtml=(await readFile(trialFile,'utf8')).replace(/@property --theme-reveal-progress[\s\S]*?(?=:root\{--e1-lifted)/,()=>themeRules).replace(/<script id="saved-frame-profile">[\s\S]*?<\/script>/,()=>`<script id="saved-frame-profile">${frameProfile}</script>`);
-const approvedHtml=trialHtml.replace(/<link rel="modulepreload" fetchpriority="high" href="runtime\.bundle\.js\?v=[^"]+">/,()=>parent.match(/<link rel="modulepreload" fetchpriority="high" href="runtime\.bundle\.js\?v=[^"]+">/)[0]).replace(/<script id="startup-poster">[\s\S]*?<\/script>/,()=>parent.match(/<script id="startup-poster">[\s\S]*?<\/script>/)[0]).replace(/<script id="startup-assets">[\s\S]*?<\/script>/,()=>'<script id="startup-assets">'+startupAssetScript()+'</script>').replace(/<script id="startup-draft" type="module">[\s\S]*?<\/script>/,()=>'<script id="startup-draft" type="module">'+trial.outputFiles[0].text.replace(/<\/script/gi,'<\\/script')+'</script>');
+const approvedHtml=trialHtml.replace(/<link rel="modulepreload" fetchpriority="high" href="runtime\.bundle\.js\?v=[^"]+">/,()=>parent.match(/<link rel="modulepreload" fetchpriority="high" href="runtime\.bundle\.js\?v=[^"]+">/)[0]).replace(/<script id="startup-poster">[\s\S]*?<\/script>/,()=>parent.match(/<script id="startup-poster">[\s\S]*?<\/script>/)[0]).replace(/<script id="startup-assets">[\s\S]*?<\/script>/,()=>'<script id="startup-assets">'+startupScript+'</script>').replace(/<script id="startup-draft" type="module">[\s\S]*?<\/script>/,()=>'<script id="startup-draft" type="module">'+trial.outputFiles[0].text.replace(/<\/script/gi,'<\\/script')+'</script>');
 // The approved shell must arrive with the document. External styles delayed
 // module execution and font discovery by another network round trip.
 let shippedHtml=approvedHtml;

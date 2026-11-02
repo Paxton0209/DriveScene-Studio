@@ -34,6 +34,7 @@ test('Default traffic loading skips body preparation while explicit original byt
  const path=new URL('../../engine/traffic-model.js',import.meta.url);
  const {contents}=await load({path:path.pathname});
  const source=contents
+  .replace("from '../ui-draft/startup-transfer.mjs'",`from '${new URL('../startup-transfer.mjs',import.meta.url).href}'`)
   .replace("from '../ui-draft/traffic-payload.js'",`from '${new URL('../traffic-payload.js',import.meta.url).href}'`)
   .replace("from './asset-request.js'",`from '${new URL('../../engine/asset-request.js',import.meta.url).href}'`)
   .replace("from 'three'",`from '${import.meta.resolve('three')}'`)

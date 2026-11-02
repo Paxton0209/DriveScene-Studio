@@ -53,6 +53,7 @@ export function patchFeatures(source){
 }
 
 export function patchApp(source){
+ source=replace(source,'preparePathSound();',`const warmPathSound=()=>{if(window.parent.document.documentElement.dataset.startup){setTimeout(warmPathSound,1000);return;}void preparePathSound();};setTimeout(warmPathSound,1500);`);
  source=replace(source,'const run=async()=>{if(document.hidden||vehicleChanging||world.layoutTransition',"const run=async()=>{if(window.parent.document.documentElement.dataset.startup){scheduleVehicleWarmup(500);return;}if(document.hidden||vehicleChanging||world.layoutTransition");
  // The embedded canvas may be narrow on desktop; capacity follows the host viewport.
  source=replace(source,"maxEntries:matchMedia('(max-width:760px)').matches?2:4","maxEntries:4");
@@ -89,7 +90,7 @@ async function installVehicle(car,full=false,animate=false,retainPrevious=false)
  source=replace(source,"mark('update');world.renderFrame();mark('frame');","mark('update');await world.draftPrepareAppearance?.();world.renderFrame();mark('frame');");
  source=replace(source,"(['05','08','06','07'].includes(world.state?.id)&&!!world.cameraMotion)","(world.draftManaged?!!world.draftJunctionPlaying?.():['05','08','06','07'].includes(world.state?.id)&&!!world.cameraMotion)");
  source="import {previewPixels} from '../ui-draft/pixel-resolution.js';\nimport {installDraftBridge,makeRandom} from '../ui-draft/engine-bridge.js';\n"+source;
- source=replace(source,"function previewResolution(){const mobile=matchMedia('(max-width:760px)').matches;const width=Math.min(mobile?1280:1440,Math.max(640,Math.ceil(preview.clientWidth*Math.min(devicePixelRatio||1,2)/16)*16));return [width,Math.round(width*9/16)];}","function previewResolution(){const raster=previewPixels(preview.clientWidth,devicePixelRatio,window.parent.visualViewport?.scale??1);return [raster.width,raster.height];}");
+ source=replace(source,"function previewResolution(){const mobile=matchMedia('(max-width:760px)').matches;const width=Math.min(mobile?1280:1440,Math.max(640,Math.ceil(preview.clientWidth*Math.min(devicePixelRatio||1,2)/16)*16));return [width,Math.round(width*9/16)];}","function previewResolution(){const raster=previewPixels(preview.clientWidth,devicePixelRatio,window.parent.visualViewport?.scale??1,globalThis.__draftPreviewLimit);return [raster.width,raster.height];}");
  source=source.replaceAll("'material-draft'","'ui-draft'").replaceAll("'sr-theme'","'sr-ui-draft-theme'");
  source=source.replaceAll("history.replaceState(null,'',`?${q}`)","history.replaceState(null,'',location.pathname+`?${q}`)");
  source=replace(source,'createContinuousDriving(world,{onFrame(){if(performance.now()-lastDrivingAudit>180)',"createContinuousDriving(world,{random:world.draftSceneryRandom=makeRandom(Number(query.get('seed'))||110),onFrame(){if(world.root&&!world.initializingScene&&performance.now()-lastDrivingAudit>180)");
@@ -358,9 +359,10 @@ export function isolatedRuntimePlugin(){return {name:'isolated-ui-draft',setup(b
 
 
  if(name==='traffic-model.js'){
+  source="import {fetchStartupAsset} from '../ui-draft/startup-transfer.mjs';\n"+source;
   source="import {consolidateTrafficRear,refineTrafficBody} from '../ui-draft/traffic-surface.js';\n"+source;
   source="import {takePrefetched} from './asset-request.js';\n"+source;
-  source=replace(source,"if(!bytes){const response=await fetch(new URL('../engine/assets/traffic-model-y.json.gz?v=1',import.meta.url));if(!response.ok)throw Error('Traffic model could not load');bytes=await response.arrayBuffer();}","if(!bytes)bytes=await takePrefetched('__draftTrafficRequest',async()=>{const response=await fetch(new URL('../engine/assets/traffic-model-y.json.gz?v=1',import.meta.url));if(!response.ok)throw Error('Traffic model could not load');return response.arrayBuffer();});");
+  source=replace(source,"if(!bytes){const response=await fetch(new URL('../engine/assets/traffic-model-y.json.gz?v=1',import.meta.url));if(!response.ok)throw Error('Traffic model could not load');bytes=await response.arrayBuffer();}","if(!bytes)bytes=await takePrefetched('__draftTrafficRequest',async()=>{const scope=typeof window!=='undefined'?window.parent:globalThis;return fetchStartupAsset(new URL('../engine/assets/traffic-model-y.json.gz?v=1',import.meta.url),{scope,mirror:scope.__draftStartupMirrors?.['./traffic-model-y.prepared.bin.gz']});});");
   source=replace(source,"../engine/assets/traffic-model-y.json.gz?v=1","../ui-draft/traffic-model-y.prepared.bin.gz?v=restore26");
   source="import {decodeTrafficPayload} from '../ui-draft/traffic-payload.js';\n"+source;
   source=replace(source,"const text=header[0]===31&&header[1]===139?await new Response(blob.stream().pipeThrough(new DecompressionStream('gzip'))).text():await blob.text();", "const decoded=header[0]===31&&header[1]===139?await new Response(blob.stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer():await blob.arrayBuffer();");
@@ -394,6 +396,8 @@ export function isolatedRuntimePlugin(){return {name:'isolated-ui-draft',setup(b
  }
  if(name==='traffic-vehicle.js')source=replace(source,'return {group,ready,update,',"return {draftCapture:()=>({last,elapsed,slots:slots.map(slot=>({...slot}))}),draftRestore(snapshot){last=snapshot.last;elapsed=snapshot.elapsed;slots.forEach((slot,index)=>Object.assign(slot,snapshot.slots[index]));},group,ready,update,");
  if(name==='world.js'){
+  source="import {previewPixelLimit} from '../ui-draft/pixel-resolution.js';\n"+source;
+  source=replace(source,'return new World(canvas,car,{...options,renderer});',"globalThis.__draftPreviewLimit=previewPixelLimit(renderer);const width=Math.min(options.width||1920,globalThis.__draftPreviewLimit);return new World(canvas,car,{...options,width,height:width*9/16,renderer});");
   source="import {parkingViewPose,applyParkingView} from '../ui-draft/parking-camera.js';\n"+source;
   source=replace(source,' configureCamera(id,options){',` configureCamera(id,options){
   if(['10','17'].includes(id)){
