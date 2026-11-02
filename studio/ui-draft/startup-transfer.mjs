@@ -17,3 +17,11 @@ export async function fetchStartupAsset(url,{mirror,scope=globalThis,delay=3000}
  catch(cause){throw new Error('Scene files could not load. Please try again.',{cause})}
  finally{clearTimeout(timer);primary.abort();backup.abort()}
 }
+
+// This generated data module is self-contained: no relative imports or code from users.
+export async function loadParkingNormalModule(url){
+ const scope=window.parent,mirror=scope.__draftStartupMirrors?.['./parking-normals.bundle.js'];
+ const bytes=await fetchStartupAsset(url,{scope,mirror});
+ const local=URL.createObjectURL(new Blob([bytes],{type:'text/javascript'}));
+ try{return await import(local)}finally{URL.revokeObjectURL(local)}
+}

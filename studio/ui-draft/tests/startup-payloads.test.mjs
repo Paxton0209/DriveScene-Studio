@@ -31,7 +31,7 @@ test('Runtime excludes the encoder and resolves the complete encoder only throug
  assert.match(runtime,/import\("\.\/video\.bundle\.js\?v=interaction-20261027"\)/);
  assert.ok(Buffer.byteLength(runtime)<1250000);
  assert.ok(gzipSync(runtime).byteLength<500000);
- assert.match(runtime,/import\("\.\/parking-normals\.bundle\.js\?v=[a-f0-9]+"\)/);
+ assert.match(runtime,/new URL\("\.\/parking-normals\.bundle\.js\?v=[a-f0-9]+",import.meta.url\)/);
  assert.ok(Buffer.byteLength(video)>200000);
  assert.match(video,/export\{/);
  const {videoType}=await import('../video.bundle.js');
