@@ -2,3 +2,5 @@ html,body{margin:0!important;padding:0!important;overflow:hidden!important;backg
 
 /* UI-draft posters belong to the shared site and do not match this saved frame. */
 #preview{background-image:none!important}
+/* The host owns the only rounded clip, including WebKit's path fallback. */
+#preview,#preview[data-continuous]{clip-path:none!important;-webkit-mask:none!important;mask:none!important;corner-shape:round!important}

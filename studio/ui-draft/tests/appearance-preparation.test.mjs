@@ -31,3 +31,10 @@ test('A batch warms every model in one pass and restores scene ownership, transf
  world.root={};world.renderPreparedFrame=()=>{throw Error('final draw failed')};await assert.rejects(world.draftPrepareAppearances([active,other]),/final draw failed/);
  assert.equal(other.parent,parent);world.renderPreparedFrame=()=>{};await world.draftPrepareAppearances([active,other]);assert.equal(calls,3);
 });
+
+test('A newly enabled fleet prepares its materials once before visible use, then reuses them across toggles',async()=>{
+ let preparations=0;const world={root:{},car:{uuid:'ego'},draftTrafficEnabled:false,initializingScene:false,suspended:false,renderPreparedFrame(){}};
+ installAppearancePreparation(world,async()=>{preparations++});await world.draftPrepareAppearance();assert.equal(preparations,1);
+ world.draftTrafficEnabled=true;await world.draftPrepareAppearance();assert.equal(preparations,2);
+ world.draftTrafficEnabled=false;await world.draftPrepareAppearance();world.draftTrafficEnabled=true;await world.draftPrepareAppearance();assert.equal(preparations,2);
+});

@@ -18,3 +18,9 @@ test('Shared live material is changed once and restored after all proxies detach
  const detach=attachPreparationBatch({scene,jobs});assert.equal(material.transparent,false);assert.equal(scene.children.length,3);
  detach();assert.equal(material.transparent,true);assert.equal(scene.children.length,0);
 });
+
+test('Large material sets are split into bounded traversals without losing pass identity or objects',()=>{
+ const scene={},camera={},target={},jobs=Array.from({length:25},(_,index)=>({scene,camera,target,proxy:{index}}));
+ const batches=batchPreparationJobs(jobs);assert.deepEqual(batches.map(b=>b.jobs.length),[8,8,8,1]);
+ assert.deepEqual(batches.flatMap(b=>b.jobs),jobs);assert.ok(batches.every(b=>b.scene===scene&&b.camera===camera&&b.target===target));
+});

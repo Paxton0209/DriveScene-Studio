@@ -1,7 +1,7 @@
 export function installAppearancePreparation(world,prepareRenderer){
  // Theme changes update car uniforms; both scene shader variants are drawn
  // during startup. Reuse each model's prepared appearance across themes.
- const preparedAppearances=new WeakMap(),appearanceKey=car=>car.uuid;
+ const preparedAppearances=new WeakMap(),appearanceKey=car=>car.uuid+':traffic-'+!!world.draftTrafficEnabled;
  const remember=car=>{let keys=preparedAppearances.get(world.root);if(!keys)preparedAppearances.set(world.root,keys=new Set());keys.add(appearanceKey(car));};
  const preparedDraw=world.renderPreparedFrame;
  world.renderPreparedFrame=function(...args){const result=preparedDraw.apply(this,args);remember(this.car);return result;};

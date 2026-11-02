@@ -1,3 +1,8 @@
+// Preview uses fewer shadow texels/taps; full-size exports retain the approved profile.
+export function parkingShadowBudget(width=1920){
+ if(width>=1920)return {size:4096,samples:32};
+ return width<=960?{size:1024,samples:8}:{size:2048,samples:16};
+}
 // Fixed user-selected Indoor endpoints; independent from Road and Outdoor.
 export const indoorShadowPresets=Object.freeze({
  dark:Object.freeze({egoShadow:3.21,trafficShadow:1.27,egoOpacity:1,trafficOpacity:1,egoWidth:1,egoLength:1,trafficWidth:1,trafficLength:1,castOpacity:.50,castSoftness:2.9,reflectionGain:2.7,reflectionRange:1.5,reflectionBlur:2.25}),
@@ -27,7 +32,8 @@ export function syncIndoorShadowLight(world,enabled){
  const density=shadow.mapSize&&shadow.camera?shadow.mapSize.x/(shadow.camera.right-shadow.camera.left):0;
  const radius=density?density*.48*(softness/2.9):world.draftParkingFinish?.castSoftness?.value??3;
  if(shadow.radius!==radius){shadow.radius=radius;world.renderer.shadowMap.needsUpdate=true;}
- if(shadow.blurSamples!==32){shadow.blurSamples=32;world.renderer.shadowMap.needsUpdate=true;}
+ const budget=parkingShadowBudget(world.width);
+ if(shadow.blurSamples!==budget.samples){shadow.blurSamples=budget.samples;world.renderer.shadowMap.needsUpdate=true;}
  state.applied=radius;
 }
 
@@ -37,8 +43,8 @@ export function syncParkingShadowPrecision(world,enabled){
  if(enabled&&!saved){saved=world.draftParkingShadowPrecision={bounds:Object.fromEntries(keys.map(k=>[k,camera[k]])),size:shadow.mapSize.clone()};}
  if(!saved)return;
  const bounds=enabled?{left:-36,right:36,top:48,bottom:-36}:saved.bounds;
- const size=enabled?4096:saved.size.x;
+ const size=enabled?parkingShadowBudget(world.width).size:saved.size.x;
  let changed=shadow.mapSize.x!==size;for(const k of keys){changed||=camera[k]!==bounds[k];camera[k]=bounds[k];}
- if(changed){shadow.mapSize.set(size,enabled?4096:saved.size.y);camera.updateProjectionMatrix();shadow.map?.dispose();shadow.map=null;shadow.mapPass?.dispose();shadow.mapPass=null;world.renderer.shadowMap.needsUpdate=true;}
+ if(changed){shadow.mapSize.set(size,enabled?size:saved.size.y);camera.updateProjectionMatrix();shadow.map?.dispose();shadow.map=null;shadow.mapPass?.dispose();shadow.mapPass=null;world.renderer.shadowMap.needsUpdate=true;}
  if(!enabled)world.draftParkingShadowPrecision=null;
 }

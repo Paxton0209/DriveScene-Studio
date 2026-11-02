@@ -135,11 +135,20 @@ test('Parking route keeps its continuous seam, remains occluded and fades at the
  const uv=reverse.geometry.attributes.uv;assert.equal(uv.getY(uv.count-1),1);
 });
 
-for(const side of [-5.9,5.9])for(const frontOffset of [-1.25,-1.72])test(`Approach stops before the front-wheel line for bay ${side} and front axle ${frontOffset}`,()=>{
- const {world,motion,pick,tick}=fixture();world.car.userData.vehicleSpec={length:4.95,width:2.1,wheels:[{min:[-.9,0,frontOffset-.3],max:[-.6,.6,frontOffset+.3]},{min:[.6,0,frontOffset-.3],max:[.9,.6,frontOffset+.3]},{min:[-.9,0,1.05],max:[-.6,.6,1.65]},{min:[.6,0,1.05],max:[.9,.6,1.65]}]};
- const bay=world.parkingBays.find(b=>b.x===side&&b.z===-3.6);assert.ok(pick(bay));motion.sync({assist:true});const line=world.draftParkingGroup.getObjectByName('Approach stop line'),options={vehicle:world.car.userData.vehicleSpec},timing=parkingTiming(bay,0,options),end=parkingPose(timing.forward,bay,0,options),heading=new THREE.Vector3(-Math.sin(end.yaw),0,-Math.cos(end.yaw));
- for(let i=0;i<=300;i++){const p=parkingPose(timing.forward*i/300,bay,0,options),front=new THREE.Vector3(p.x+Math.sin(p.yaw)*frontOffset,0,p.z+Math.cos(p.yaw)*frontOffset),gap=line.position.clone().sub(front).dot(heading);assert.ok(gap>=.0999,`front axle crossed the line at ${i}: ${gap}`);}
- motion.start();tick(timing.forward+.1);const front=world.car.position.clone().add(new THREE.Vector3(Math.sin(world.car.rotation.y)*frontOffset,0,Math.cos(world.car.rotation.y)*frontOffset));assert.ok(Math.abs(line.position.clone().sub(front).dot(heading)-.10)<1e-7,'live vehicle stops 10 cm before line');assert.equal(motion.get().phase,'shift');
+for(const scene of ['10','17'])for(const side of [-5.9,5.9])for(const [length,frontOffset,bodyShift] of [[4.72,-1.25,0],[4.96,-1.72,.12]])test(`Nose reaches the first line at rest in scene ${scene}, bay ${side}, length ${length}`,()=>{
+ const {world,motion,pick,tick}=fixture();world.state.id=scene;
+ world.car.userData.vehicleSpec={length,width:2.1,wheels:[{min:[-.9,0,frontOffset-.3],max:[-.6,.6,frontOffset+.3]},{min:[.6,0,frontOffset-.3],max:[.9,.6,frontOffset+.3]},{min:[-.9,0,1.05],max:[-.6,.6,1.65]},{min:[.6,0,1.05],max:[.9,.6,1.65]}]};
+ const body=new THREE.Mesh(new THREE.BoxGeometry(2.1,1.5,length));body.position.z=bodyShift;world.car.add(body);
+ const noseOffset=bodyShift-length/2,bay=world.parkingBays.find(b=>b.x===side&&b.z===-3.6);assert.ok(pick(bay));motion.sync({assist:true});
+ const line=world.draftParkingGroup.getObjectByName('Approach stop line'),initialLine=line.position.clone(),options={vehicle:world.car.userData.vehicleSpec},timing=parkingTiming(bay,0,options),end=parkingPose(timing.forward,bay,0,options),heading=new THREE.Vector3(-Math.sin(end.yaw),0,-Math.cos(end.yaw));
+ const nose=p=>new THREE.Vector3(p.x+Math.sin(p.yaw)*noseOffset,0,p.z+Math.cos(p.yaw)*noseOffset);
+ for(let i=0;i<=300;i++){const p=parkingPose(timing.forward*i/300,bay,0,options),gap=line.position.clone().sub(nose(p)).dot(heading);assert.ok(gap>=-1e-6,`nose crossed the line before stopping at ${i}: ${gap}`);}
+ assert.ok(nose(end).distanceTo(new THREE.Vector3(line.position.x,0,line.position.z))<1e-6,'line uses the actual nose, including a shifted model origin');
+ const before=parkingPose(timing.forward-.001,bay,0,options);assert.ok(nose(end).distanceTo(nose(before))/.001<.001,'nose reaches the line at zero speed');
+ motion.start();tick(timing.forward+.05);const stopped=world.car.position.clone(),yaw=world.car.rotation.y;
+ assert.ok(nose({x:stopped.x,z:stopped.z,yaw}).distanceTo(new THREE.Vector3(line.position.x,0,line.position.z))<1e-6);assert.equal(motion.get().phase,'shift');
+ tick(.1);assert.ok(world.car.position.distanceTo(stopped)<1e-9,'no creep after touching the line');assert.ok(line.position.distanceTo(initialLine)<1e-9,'line stays anchored during the approach');
+ tick(timing.shift+.1);assert.equal(motion.get().phase,'reverse');tick(timing.total);assert.equal(motion.get().complete,true);assert.ok(world.car.position.distanceTo(new THREE.Vector3(bay.x,0,bay.z))<1e-8,'reverse still arrives at the selected bay');
 });
 
 for(const side of [-5.9,5.9])for(const initialView of ['default','raised','bev'])test(`Camera follows the broad turn and ends with the vehicle facing up for ${side}/${initialView}`,()=>{

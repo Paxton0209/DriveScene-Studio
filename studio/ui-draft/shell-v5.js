@@ -5,6 +5,8 @@ const byId=id=>document.getElementById(id);
 const inspector=byId('inspector'),scroll=byId('inspector-scroll'),exportSection=byId('export-section');
 // Export stays visible on short windows: pin it below the scrolling inspector.
 if(inspector&&exportSection&&exportSection.parentElement===scroll)inspector.append(exportSection);
+// Shared status belongs to the scrolling settings, outside the pinned export block.
+const feedback=byId('feedback');if(scroll&&feedback)scroll.append(feedback);
 
 // A compact scene menu uses the same surface and touch targets as vehicles.
 // Proxy the original scene buttons so loading locks and saved state stay shared.

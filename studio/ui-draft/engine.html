@@ -3,6 +3,8 @@
 
 /* UI-draft posters belong to the shared site and do not match this saved frame. */
 #preview{background-image:none!important}
+/* The host owns the only rounded clip, including WebKit's path fallback. */
+#preview,#preview[data-continuous]{clip-path:none!important;-webkit-mask:none!important;mask:none!important;corner-shape:round!important}
 </style><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><script>let saved;try{saved=localStorage.getItem("sr-ui-draft-theme")}catch{}const q=new URLSearchParams((globalThis.__draftSearch??location.search)),theme=q.get("mode")||saved||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");document.documentElement.dataset.navDesign="1";document.documentElement.dataset.theme=theme==="dark"?"dark":"light";
 const aliases={"13":"02","04":"09","15":"10","11":"09"},raw=q.get("scene")||"02",known=["01","02","03","05","06","07","08","09","10","12","13","14","16","17","18","19"],scene=aliases[raw]||(known.includes(raw)?raw:"02"),road=["01","02","09","12","13"].includes(scene),ramp=["06","07"].includes(scene),junction=["05","08"].includes(scene),lanes=road?(["2","4","6"].includes(q.get("lanes"))?q.get("lanes"):scene==="09"?"2":"6"):"0",view=junction?(q.get("position")==="approaching"?"low":q.get("position")==="near"?"high":q.get("view")==="low"?"low":"high"):(road||ramp||scene==="03")&&q.get("view")==="high"?"high":"low",posterScene=road?(lanes==='2'?'09':'02'):scene;
 const available={buildings:['02','09','03','05','08','17','18','19'].includes(posterScene),waterfront:road,trees:['02','09','03','05','08','17','18','19'].includes(posterScene),vehicle:true,roadworks:road};
@@ -918,4 +920,4 @@ html:not([data-cached-preview=true]) .preview[aria-busy=true]{background-image:n
  if(q.has('qa')){const script=document.createElement('script');script.type='module';script.src='scripts/vehicle-diagnostics.js';document.head.append(script);}
 if(cachedPreviewScroll>0)window.scrollTo({top:cachedPreviewScroll,behavior:'instant'});
 })();
-</script><script type="module" src="../ui-draft/runtime.bundle.js?v=8b0779774781"></script></body></html>
+</script><script type="module" src="../ui-draft/runtime.bundle.js?v=00c74c7a3012"></script></body></html>

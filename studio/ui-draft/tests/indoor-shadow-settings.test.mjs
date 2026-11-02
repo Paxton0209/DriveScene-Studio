@@ -87,3 +87,9 @@ test('Parking penumbra uses dense samples and restores road sampling on exit',()
  syncIndoorShadowLight(world,false);assert.equal(shadow.blurSamples,16);
  assert.equal(shadow.mapSize.x,2048);
 });
+
+test('Preview shadow work is bounded while 1080p and 4K exports retain the full profile',async()=>{
+ const {parkingShadowBudget}=await import('../indoor-shadow-settings.js');
+ assert.deepEqual(parkingShadowBudget(960),{size:1024,samples:8});assert.deepEqual(parkingShadowBudget(1440),{size:2048,samples:16});
+ for(const width of [1920,3840])assert.deepEqual(parkingShadowBudget(width),{size:4096,samples:32});
+});

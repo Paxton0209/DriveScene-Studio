@@ -1,6 +1,6 @@
 // A renderer invocation can warm all proxies sharing a pass at once. Keep
 // transparent traffic variants separate because they share live materials.
-export function batchPreparationJobs(jobs){
+export function batchPreparationJobs(jobs,{maxJobs=8}={}){
  const groups=new Map(),identities=new Map();
  const identity=value=>{if(!identities.has(value))identities.set(value,identities.size);return identities.get(value);};
  for(const job of jobs){
@@ -10,7 +10,9 @@ export function batchPreparationJobs(jobs){
   if(!groups.has(key))groups.set(key,{...job,jobs:[]});
   groups.get(key).jobs.push(job);
  }
- return [...groups.values()];
+ // Bound each synchronous renderer traversal so input and layout can run between cohorts.
+ const limit=Math.max(1,Math.floor(maxJobs));
+ return [...groups.values()].flatMap(batch=>Array.from({length:Math.ceil(batch.jobs.length/limit)},(_,index)=>({...batch,jobs:batch.jobs.slice(index*limit,(index+1)*limit)})));
 }
 export function attachPreparationBatch(batch){
  const original=new Map();

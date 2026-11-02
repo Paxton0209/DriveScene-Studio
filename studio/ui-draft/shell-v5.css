@@ -259,3 +259,6 @@ body[data-ready=true] #canvas-playback #scene-transport:disabled{opacity:1}
 :root #artboard{background:transparent}
 :root #artboard .artboard-clip{border-radius:inherit;isolation:isolate;box-shadow:none}
 :root #artboard #engine,:root #artboard #frame-cover{border-radius:0}
+/* One inset stroke follows the host clip; inner raster surfaces stay rectangular. */
+:root #artboard .artboard-clip::after{content:'';position:absolute;inset:0;z-index:10;box-sizing:border-box;border:1px solid var(--c-line);border-radius:inherit;pointer-events:none}
+:root #inspector-scroll>#feedback{flex:none;margin:8px 16px 0}
