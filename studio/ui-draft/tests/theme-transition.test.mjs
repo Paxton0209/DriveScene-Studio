@@ -11,15 +11,16 @@ test('Theme commits while view transitions have suspended iframe animation callb
  await commit('dark');await commit('light');assert.equal(renders,2);
 });
 
-test('Theme updates use the live renderer without full-page snapshots or remounting',async()=>{
+test('Theme updates restore the button-origin reveal without remounting the live renderer',async()=>{
  const source=await readFile(new URL('../draft.js',import.meta.url),'utf8');
  const theme=source.slice(source.indexOf('async function setTheme('),source.indexOf("$('theme').addEventListener"));
- assert.match(theme,/commit\(target,!reducedMotion\(\)\)/);
- assert.doesNotMatch(theme,/startViewTransition|srcdoc|replaceChildren|innerHTML|location\.reload/);
+ assert.match(theme,/document\.startViewTransition/);
+ assert.match(theme,/commit\(target,liveScene\)/);
+ assert.doesNotMatch(theme,/srcdoc|replaceChildren|innerHTML|location\.reload/);
  for(const page of ['index.html','skill.html']){
   const html=await readFile(new URL('../'+page,import.meta.url),'utf8');
-  assert.match(html,/live-colors/,page+' ships the live renderer transition');
-  assert.doesNotMatch(html,/document\.startViewTransition/,page+' does not take a full-page snapshot');
+  assert.match(html,/soft-radial-live/,page+' ships the live scene reveal');
+  assert.match(html,/soft-radial-unified/,page+' ships the unified paused scene reveal');
  }
 });
 

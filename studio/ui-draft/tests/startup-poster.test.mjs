@@ -44,8 +44,8 @@ test('Phone canvas fills the available width and reserves a visible playback tar
   layoutStartupPoster(doc,vw);
   const width=parseFloat(style.width),height=parseFloat(style.height),top=parseFloat(style.top);
   assert.equal(width/height,16/9);
-  assert.ok(width>=Math.min(w,(h-64)*16/9)-16,'Use the available canvas area');
-  assert.ok(top>=0&&top+height+8+44<=h,'Playback stays inside the stage');
+  assert.ok(width>=Math.min(w,(h-64)*16/9)-1,'Use the available canvas area');
+  assert.ok(top>=0&&top+height+12+44+8<=h,'Playback keeps its trailing space inside the stage');
  }
 });
 test('Desktop canvas geometry remains identical to the released shell',()=>{
