@@ -13,13 +13,13 @@ Each board shows examples on the left (the scene behind a full cockpit screen, a
 An SR scene is never the main subject of a cockpit screen. It sits behind speed, navigation, alerts and controls, and it has to stay readable without competing with them. The palette follows from that:
 
 1. **Quiet, cool and low in saturation.** Roads, ground, buildings and sky are blue-greys and neutral greys. Saturated colour is left for the interface: navigation blue, success green, warning and alert states.
-2. **One saturated colour, reserved for hazards.** Roadwork cones (`cone`) are the only fully saturated colour in the scene. If you place UI over a background, keep orange and red for warnings too, so the scene and the interface use the same signal.
+2. **Saturated orange is reserved for roadworks.** Cones and construction equipment use the hazard accent. If you place UI over a background, keep orange and red for warnings too, so the scene and the interface use the same signal.
 3. **Structure comes from luminance, not hue.** The road layout should be readable in greyscale. The two themes get there in different ways (see below).
 4. **No pure black or pure white.** The darkest dark-theme surface is `#17181B` and the brightest lane line is `#D6E0E9`. White text and icons placed over the scene stay brighter than anything in it.
 
 ### Light theme
 
-The road is the darkest large surface, so the drivable area reads first. Road against ground is about 3.7:1, and lane lines against the road are about 4.9:1. Buildings sit close to the ground tone (about 1.2:1), so they describe the city without drawing attention. The horizon fades into a pale blue haze (`horizon`), which leaves calm space at the top of the frame for speed and status.
+The road is the darkest large surface, so the drivable area reads first. Road against ground is about 4.0:1, and lane lines against the road are about 5.3:1. Buildings sit close to the ground tone (about 1.2:1), so they describe the city without drawing attention. The horizon fades into a pale blue haze (`horizon`), which leaves calm space at the top of the frame for speed and status.
 
 ### Dark theme
 
@@ -29,7 +29,7 @@ Contrast figures are WCAG relative-luminance ratios between base colours. They d
 
 ## Tokens
 
-Token names match the Figma variables (`sr/<token>` in the Color collection, Dark and Light modes) and are listed with the key used in `world.js`.
+The tables list material base values from `studio/engine/world.js`, with their corresponding `sr/<token>` naming and code keys. The current workbench applies additional scene-specific finish, lighting and weather adjustments before rendering; these base values are not a pixel-sampling specification for the exported image.
 
 ### Environment
 
@@ -39,14 +39,14 @@ Token names match the Figma variables (`sr/<token>` in the Color collection, Dar
 | `horizon` | Sky at the horizon and fog colour | `#DCE5EE` | `#373A3E` | sky uniform `bottom`, `scene.fog` |
 | `ground` | Open ground beside the road | `#B4C3D6` | `#373A3E` | `colors.ground` |
 | `grass` | Verges and planted strips | `#809C68` | `#3E4D3D` | `colors.grass` |
-| `foliage` | Tree canopies | `#6F914F` | `#4A593E` | `colors.leaf` |
+| `foliage` | Tree canopies | `#82A68B` | `#45584C` | `colors.leaf` |
 | `water` | Coast and waterfront | `#7695AE` | `#304146` | `colors.water` |
 
 ### Road
 
 | Token | Role | Light | Dark | Code |
 | --- | --- | --- | --- | --- |
-| `road` | Carriageway surface | `#545E6D` | `#303031` | `colors.road` |
+| `road` | Carriageway surface | `#505967` | `#303031` | `colors.road` |
 | `pavement` | Pavements and islands | `#D1DBEE` | `#3C4045` | `colors.pavement` |
 | `curb` | Kerbs and road edges | `#D6E1EF` | `#5A6068` | `colors.curb` |
 | `lane-white` | Lane lines, crossings, stop lines | `#D6E0E9` | `#A7ADB2` | `colors.white` |
@@ -69,7 +69,7 @@ These appear only at small sizes and are not separate design tokens.
 
 | Key | Role | Light | Dark |
 | --- | --- | --- | --- |
-| `colors.leaf2` | Secondary canopy shade | `#84A25C` | `#526047` |
+| `colors.leaf2` | Secondary canopy shade | `#99AD80` | `#52614A` |
 | `colors.trunk` | Tree trunks | `#776956` | `#4B463E` |
 
 ## Lighting
@@ -83,7 +83,7 @@ Rendered colours depend on the lights as much as on the materials. Outdoor scene
 | Hemisphere ground | `#8B959D` | `#717171` |
 | Fill | `#AACDED`, intensity 0.5 | `#CACACA`, intensity 0.45 |
 
-The light theme uses a slightly warm sun with a cool sky fill, so surfaces facing the sun read warmer and shaded faces read cooler. The dark theme uses neutral light, so materials keep their own grey values. Parking scenes use softer variants of the same lights; see `applyEnvironment` in `world.js`.
+The light theme uses a slightly warm sun with a cool sky fill, so surfaces facing the sun read warmer and shaded faces read cooler. The dark theme uses neutral light, so materials keep their own grey values. Parking scenes use softer variants. In the current workbench, indoor parking also uses a neutral sky (`#C0C6CE` to `#B7BFC9` in light mode and `#2E3036` in dark mode), neutral night lighting and a separate floor finish. See `applyEnvironment` in `world.js` and `studio/ui-draft/indoor-finish.mjs` for these overrides.
 
 ## Base colour and rendered colour
 
