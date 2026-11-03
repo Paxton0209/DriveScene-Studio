@@ -98,7 +98,7 @@ export function installDraftBridge({world,features,drive,traffic,api,current,upd
   // Lane morphing and scenery share one timestamp, including paused edits.
   const laneMotion=world.layoutMotion;
   accumulator+=elapsed;
-  const next=laneMotion?{seconds:elapsed,remaining:0}:frameStep(accumulator);accumulator=next.remaining;
+  const next=laneMotion?{seconds:elapsed,remaining:0}:frameStep(accumulator,elapsed);accumulator=next.remaining;
   const wasPlaying=playing;
   if(next.seconds>0){if(playing)step(next.seconds);else{world.draftTime+=next.seconds*1000;if(!laneMotion)renderOnce()}}
   if(laneMotion&&!laneMotion.paused)laneMotion.tick(now);

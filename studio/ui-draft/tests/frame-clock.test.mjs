@@ -40,3 +40,36 @@ test('A 60Hz display with small timing jitter updates every frame without quanti
  }
  assert.ok(Math.abs(total-previous)<1e-9);
 });
+
+test('80Hz and 90Hz callbacks retain every displayed frame instead of halving motion updates',()=>{
+ for(const hz of [80,90]){
+  let accumulator=0,total=0,updates=0;
+  for(let frame=0;frame<hz;frame++){
+   const elapsed=1/hz;accumulator+=elapsed;
+   const next=frameStep(accumulator,elapsed);accumulator=next.remaining;
+   if(next.seconds)updates++;total+=next.seconds;
+  }
+  assert.equal(updates,hz);assert.ok(Math.abs(total-1)<1e-9);
+ }
+});
+
+test('Variable display cadence keeps elapsed time and does not skip 80/90Hz callbacks',()=>{
+ let accumulator=0,total=0,wall=0,updates=0;
+ for(const hz of [120,80,90,60,120])for(let frame=0;frame<hz;frame++){
+  const elapsed=1/hz;wall+=elapsed;accumulator+=elapsed;
+  const next=frameStep(accumulator,elapsed);accumulator=next.remaining;
+  if(hz===80||hz===90)assert.ok(next.seconds>0);
+  if(next.seconds)updates++;total+=next.seconds;
+ }
+ assert.equal(updates,350);assert.ok(Math.abs(total+accumulator-wall)<1e-9);
+});
+
+test('Fast 120Hz callbacks still share a single 60Hz render budget with actual per-callback elapsed time',()=>{
+ let accumulator=0,previous=0,updates=0,lastUpdate=0;
+ for(let frame=1;frame<=120;frame++){
+  const now=frame/120+(frame%4===1?.0008:frame%4===2?-.0008:0),elapsed=now-previous;previous=now;
+  accumulator+=elapsed;const next=frameStep(accumulator,elapsed);accumulator=next.remaining;
+  if(next.seconds){if(lastUpdate)assert.equal(frame-lastUpdate,2);lastUpdate=frame;updates++;}
+ }
+ assert.equal(updates,60);
+});
