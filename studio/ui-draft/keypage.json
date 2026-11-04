@@ -1,0 +1,27 @@
+{
+ "name": "DriveScene 工作台 · 关键页 v2（2026-11-04）",
+ "url": "http://127.0.0.1:8000/studio/ui-draft/",
+ "themeInit": "try{localStorage.setItem('sr-ui-draft-theme','{theme}')}catch(e){}",
+ "waitFor": "body[data-ready=true]",
+ "waitTimeout": 30000,
+ "settle": 1500,
+ "tolerance": 1,
+ "themes": ["light", "dark"],
+ "viewports": [
+  {"name": "desktop", "width": 1440, "height": 900},
+  {"name": "phone", "width": 390, "height": 844, "mobile": true}
+ ],
+ "gaps": [
+  {"name": "组标题 → 第一行", "from": "#inspector h2|Road", "to": "#inspector .property|Lanes", "expect": {"desktop": 4}},
+  {"name": "组标题 → 第一个标签", "from": "#inspector h2|Road", "to": "#inspector .property-label|Lanes", "expect": {"phone": 8}},
+  {"name": "标签 → 控件", "from": "#inspector .property-label|Lanes", "to": "#inspector .property|Lanes >> .segment", "expect": {"phone": 6}},
+  {"name": "控件 → 控件（同组，可见间距）", "from": "#inspector .property|Lanes >> .segment", "to": "#inspector .property|Camera >> .segment", "expect": {"desktop": 8}},
+  {"name": "控件 → 下一个标签", "from": "#inspector .property|Lanes >> .segment", "to": "#inspector .property-label|Camera", "expect": {"phone": 16}},
+  {"name": "组 → 组", "from": "#inspector .property|Camera", "to": "#inspector h2|Environment", "expect": {"desktop": 24}},
+  {"name": "组 → 组（叠放）", "from": "#inspector .property|Camera >> .segment", "to": "#inspector h2|Environment", "expect": {"phone": 28}},
+  {"name": "列表行 → 列表行", "from": "#layers .layer-row|Traffic", "to": "#layers .layer-row|Buildings", "expect": {"desktop": 4, "phone": 4}},
+  {"name": "下拉 → 下拉（可见间距）", "from": "#inspector .property|Format >> .format-trigger", "to": "#inspector .property|Size >> .format-trigger", "expect": {"desktop": 8}},
+  {"name": "下拉 → 下一个标签", "from": "#inspector .property|Format >> .format-trigger", "to": "#inspector .property-label|Size", "expect": {"phone": 16}},
+  {"name": "预览 → 导出按钮", "from": "#export-preview summary", "to": "#export", "expect": {"desktop": 8, "phone": 12}}
+ ]
+}

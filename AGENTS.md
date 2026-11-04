@@ -25,15 +25,20 @@
 4. **不加**规范和作者都没要求的元素、说明文字、装饰、第二个强调色。
 5. **动效**用 SPEC 第 8 节的变量；本产品已确认的动效不改。
 6. **文案**：句首大写，不用「·」分隔，不用他人商标做功能名。
+7. **间距按模型改，不按单点改。** 面板间距只用 SPEC 6.1 的间距模型（桌面并排、手机叠放各一套）。改间距时说清改的是模型里的哪一层（组标题→首项、标签→控件、项→项、组→组、页脚），一次只改一层；不能为了解决一处挤或空，同时调大几个层级。
+8. **不追加覆盖块。** 改已有规则就在原规则上改，不在文件末尾追加「follow-up」覆盖块；覆盖叠多了，没人能说清最终值是哪条规则给的。
+9. **取值合法不等于通过。** 数值来自阶梯只是前提；交付前必须跑关键页检查，可见间距与基准表一致才算通过。
 
 ## 交付前必须做
 
 ```
 node /Users/peixin/Documents/Codex/2026-11-01/bang/outputs/design-system/product/checks/check-ui.mjs 本次修改的界面源码路径
 node /Users/peixin/Documents/Codex/2026-11-01/bang/outputs/design-system/product/checks/audit.mjs --url http://127.0.0.1:8000/ --out work/ui-audit
+node /Users/peixin/Documents/Codex/2026-11-01/bang/outputs/design-system/product/checks/keypage.mjs --spec studio/ui-draft/keypage.json --out work/keypage
 ```
 
 - `check-ui` 零报错（或每条都有 ds-allow 原因）。
+- `keypage` 零失败：桌面和手机、浅色和深色，每一处可见间距与 `studio/ui-draft/keypage.json` 的基准相差不超过 1px。基准要改，先经作者同意，再在同一次提交里改 `keypage.json`。
 - `audit` 的截图：桌面 1440 和手机 390，浅深两套；对比度报告里默认、选中、焦点、错误状态没有低于 4.5:1 的文字。
 - 交付报告写清「已实现」「已验证」「未验证」；构建或测试通过不等于视觉验收。
 - 改动前后同视口、同状态的对照截图。
@@ -45,6 +50,6 @@ node /Users/peixin/Documents/Codex/2026-11-01/bang/outputs/design-system/product
 - tokens 位置：studio/ui-draft/design-system/tokens.css
 - 本地预览：npm start；工作台 http://127.0.0.1:8000/studio/ui-draft/
 - 构建与测试：npm run build --prefix studio/ui-draft；npm test --prefix studio/ui-draft
-- 已确认、不得改动的部分：整个工作台界面以线上 be0f56d08b875493e2bca9f8365294eba13c166a 为基准；现有动效全部冻结。Junction 修复 c1c05ee 必须保留。3D 场景渲染不在设计系统范围；studio/engine 与运行时边界保持原状。
+- 已确认、不得改动的部分：整个工作台界面以关键页 v2（本次发版提交，基准数值见 `studio/ui-draft/keypage.json`）为准；现有动效全部冻结。Junction 修复 c1c05ee 必须保留。3D 场景渲染不在设计系统范围；studio/engine 与运行时边界保持原状。
 
 本入口不追溯迁移既有关键页；检查命令只针对经作者授权的界面改动。仅修改说明文件时，核对文件差异即可，无需重新构建或改写界面。

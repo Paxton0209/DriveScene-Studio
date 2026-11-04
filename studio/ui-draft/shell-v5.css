@@ -408,8 +408,12 @@ body[data-ready=true] #canvas-playback #scene-transport[data-finished=true]:disa
 /* ds-allow: Author-approved local secondary text darkening; the phone scene-menu shadow reduced a visible layer label to 4.238:1. Keep the global text-2 token unchanged. */
 @media(max-width:639px){:root[data-theme=light] #layers .layer-row{--ds-color-text-2:#676767;color:var(--ds-color-text-2)}:root[data-theme=light] #layers .layer-row span{color:inherit}}
 
-/* Author follow-up: separate Format and Size without changing their control sizes. */
-:root #export-section .property+.property{margin-top:var(--ds-space-4)}
+/* Panel spacing model, desktop (SPEC 6.1): every row is 32 with a 28 control, rows 4 apart, so the visual gap
+   between controls is always 8. Dropdown triggers use the same 28 as segments instead of an extra margin. */
+@media(min-width:640px){ /* ds-allow: Existing tablet/desktop breakpoint. */
+ :root #inspector .format-trigger,:root #inspector .export-size{height:var(--ds-size-control);min-height:var(--ds-size-control)}
+ :root #export-section .property+.property{margin-top:0}
+}
 :root .shell-vehicle-card>svg{color:var(--ds-color-text-2)}
 /* A comma followed by `none` invalidates a complete box-shadow list. Dark mode
    has no elevation shadow, so retain only each existing control/menu fine edge. */
@@ -422,19 +426,22 @@ body[data-ready=true] #canvas-playback #scene-transport[data-finished=true]:disa
 
 /* Author follow-up: phone spacing and text, using the existing type/space scale. */
 @media(max-width:639px){ /* ds-allow: Existing phone breakpoint, authorized mobile spacing and typography refinement. */
- :root #inspector .properties{gap:var(--ds-space-7)}
- :root #layers{gap:var(--ds-space-5)}
+ /* Panel spacing model, phone stacked (SPEC 6.1): title→label 8, label→control 6, field→field 16, list rows 4, group 28. */
+ :root #inspector .properties{gap:var(--ds-space-6)}
+ :root #layers{gap:var(--ds-space-2)}
  :root #inspector h2{font:var(--ds-text-ui-strong);height:auto;margin-bottom:var(--ds-space-4)}
- :root #inspector-scroll>#shared-settings:not([hidden]),:root #inspector-scroll>#shared-settings~section:not([hidden]),:root #inspector-scroll #export-section{margin-top:var(--ds-space-10)}
- :root #inspector .property,:root #shared-settings #shared-weather{grid-template-columns:minmax(0,1fr);height:auto;row-gap:var(--ds-space-4);align-items:start}
+ :root #inspector-scroll>#shared-settings:not([hidden]),:root #inspector-scroll>#shared-settings~section:not([hidden]),:root #inspector-scroll #export-section{margin-top:var(--ds-space-9)}
+ :root #inspector .property,:root #shared-settings #shared-weather{grid-template-columns:minmax(0,1fr);height:auto;row-gap:var(--ds-space-3);align-items:start}
  :root #inspector :is(.property-label,.shared-label){display:block;min-height:var(--ds-space-7)}
  :root #inspector :is(.segment,.shared-weather-options,.format-trigger,.export-size){height:var(--ds-size-touch)}
  :root #inspector :is(.segment button,.shared-weather-options button,.segment-indicator){height:calc(var(--ds-size-touch) - var(--ds-size-thumb-inset) * 2)}
  :root #inspector :is(.property-label,.shared-label,.segment button,.shared-weather-options button,.format-trigger),:root #layers .layer-row,:root #export-preview summary{font:var(--ds-text-ui-name);font-weight:400}
  :root #inspector .segment button[aria-checked=true],:root #inspector .shared-weather-options button[aria-checked=true]{font-weight:500}
+ /* Stacked fields: the group title stays text-2, field labels move to text-1 so the title is not the weaker of the two. */
+ :root #inspector :is(.property-label,.shared-label),:root #layers .layer-row,:root[data-theme=light] #layers .layer-row{--ds-color-text-2:var(--ds-color-text-1);color:var(--ds-color-text-1)}
  :root #mobile-scene,:root .shell-vehicle-card .name,:root #artboard #canvas-playback #scene-transport,:root #export,:root .shell-scene-menu [role=menuitemradio],:root .shell-vehicle-menu [role=menuitemradio],:root .format-options button{font:var(--ds-text-ui-name)}
  :root #export-section .property+.property{margin-top:0}
- :root #export-preview{margin-block:var(--ds-space-4) var(--ds-space-5)}
+ :root #export-preview{margin-block:var(--ds-space-2) var(--ds-space-5)}
 }
 @media(max-width:359px){ /* ds-allow: Author requested readable phone labels; omit the redundant vehicle thumbnail on the narrowest phones so the 14px model name fits. */
  :root .shell-vehicle-card .thumb{display:none}
