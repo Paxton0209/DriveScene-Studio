@@ -14,11 +14,10 @@
 .theme-live-scene .artboard-clip{view-transition-name:live-scene}
 .theme-live-scene::view-transition-group(live-scene){animation:none;z-index:3}
 .theme-live-scene::view-transition-image-pair(live-scene){isolation:auto}
-.theme-live-scene::view-transition-old(live-scene){animation:none;mix-blend-mode:normal;opacity:1}
+.theme-live-scene::view-transition-old(live-scene){display:none}
 .theme-live-scene::view-transition-new(live-scene){animation:none;mix-blend-mode:normal;opacity:1}
 @media(prefers-reduced-motion:no-preference){
  .theme-changing::view-transition-old(root){z-index:1}
- .theme-live-scene::view-transition-new(live-scene){mask-image:radial-gradient(circle at var(--theme-scene-x) var(--theme-scene-y),var(--ds-color-on-accent) calc(var(--theme-reveal-progress) - 160px),transparent var(--theme-reveal-progress));animation:theme-reveal 400ms cubic-bezier(.65,0,.35,1) both} /* ds-allow: Author requested canvas/shell synchronization; reuse the frozen 160px feather, 400ms duration and easing in the canvas coordinate space. */
  .theme-changing::view-transition-new(root){z-index:2;mask-image:radial-gradient(circle at var(--theme-reveal-x) var(--theme-reveal-y),var(--ds-color-on-accent) calc(var(--theme-reveal-progress) - 160px),transparent var(--theme-reveal-progress));animation:theme-reveal 400ms cubic-bezier(.65,0,.35,1) both} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token; D-21 freezes this existing motion timing; Existing theme reveal mask is frozen by D-21; its opaque color is a mask channel. */
  @keyframes theme-reveal{from{--theme-reveal-progress:0px;opacity:.5}to{--theme-reveal-progress:var(--theme-reveal-radius);opacity:1}}
 }

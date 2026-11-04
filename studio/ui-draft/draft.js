@@ -12,7 +12,6 @@ import {vehicleShadowPreset} from './vehicle-shadow-settings.js';
 import {indoorFinishValues} from './indoor-finish-settings.js';
 import {createEntryProject,sceneTypes,setProjectWeather,setProjectVehicle,setProjectOption} from './artboards.js?v=traffic33-20261025';
 import {revealScene} from './scene-reveal.js?v=interaction-20261027';
-import {protectThemeFrame} from './theme-frame.js';
 import {mountFormatSelect} from './format-select.js?v=parking-export-20261027';
 import {syncExportFormat} from './export-format.js';
 import {exportSize,sizeLabel} from './export-size.js';
@@ -101,7 +100,7 @@ async function applyParam(key,value,save=true,options={}){const previousTraffic=
 
 function toggleLayer(key){if(!ready||exporting||previewBusy||sceneUpdating||vehicleUpdating||themeTransition)return;const button=$('layers').querySelector(`[data-layer="${key}"]`);if(!button||button.disabled)return;if(key==='traffic'){void commitTrafficToggle({button,value:!params()[key],apply:value=>applyParam(key,value),feedback});return;}params()[key]=!params()[key];button.setAttribute('aria-pressed',String(params()[key]));applyParam(key,params()[key],true,{sound:key==='path'})}
 function lockControls(busy,{cancel=false}={}){
- $('theme').disabled=busy;$('scene-nav').inert=busy;$('scene-transport').disabled=busy||sceneUpdating||(project.active==='junction'&&!!status.junction?.complete);canvasTransport.disabled=busy||sceneUpdating;
+ $('theme').disabled=busy;$('scene-nav').inert=busy;$('scene-transport').disabled=busy||sceneUpdating||!!(status.junction?.complete||status.parking?.complete);canvasTransport.disabled=busy||sceneUpdating;
  for(const section of $('inspector-scroll').children){if(section.id!=='export-section')section.inert=busy;else for(const child of section.children)if(!['export','feedback'].includes(child.id))child.inert=busy;}
  $('export').disabled=(busy&&!cancel)||sceneUpdating||!exporting&&$('format').value==='video'&&!videoReady;
 }
@@ -142,27 +141,24 @@ async function setTheme(theme){
  const commit=async(value,animate=false)=>{syncFinish(value,{render:false});if(ready)await bridge().theme(value,{animate});document.documentElement.dataset.theme=value;try{localStorage.setItem(themeKey,value)}catch{}renderTheme()};
  while(document.documentElement.dataset.theme!==requestedTheme){
   const target=requestedTheme;
-  const liveScene=ready&&['road','elevated','ramp','junction'].includes(project.active)&&bridge().get({audit:false}).playing;
+  const liveScene=ready;
   if(!document.startViewTransition||reducedMotion()){const pending=commit(target);themeTransition={finished:pending};try{await pending}finally{themeTransition=null}continue}
   const rect=$('theme').getBoundingClientRect(),x=rect.left+rect.width/2,y=rect.top+rect.height/2,radius=Math.hypot(Math.max(x,innerWidth-x),Math.max(y,innerHeight-y))+180;
   const root=document.documentElement,sceneRect=frame.closest('.artboard-clip').getBoundingClientRect();
   root.style.setProperty('--theme-scene-x',`${x-sceneRect.left}px`);root.style.setProperty('--theme-scene-y',`${y-sceneRect.top}px`);
   root.style.setProperty('--theme-reveal-x',`${x}px`);root.style.setProperty('--theme-reveal-y',`${y}px`);root.style.setProperty('--theme-reveal-radius',`${radius}px`);
   const started=performance.now(),audit={target,started,method:liveScene?'soft-radial-live':'soft-radial-unified',duration:400,feather:160,blur:0};
-  let raster=null,transition=null,unlock;
-  // Reserve the transaction before image decoding, including rapid taps.
+  let transition=null,unlock;
+  // Reserve the transaction before snapshot capture, including rapid taps.
   themeTransition={finished:new Promise(resolve=>{unlock=resolve})};
   try{
-   if(ready)raster=await protectThemeFrame({canvas:bridge().canvas,renderer:frame,host:frame.closest('.artboard-clip')});
    root.classList.add('theme-changing');if(liveScene)root.classList.add('theme-live-scene');frame.contentDocument?.documentElement.classList.add('theme-changing');
-   transition=document.startViewTransition(async()=>{await commit(target);await raster?.update()});
+   transition=document.startViewTransition(()=>commit(target,liveScene));
    await transition.ready;audit.animationStarted=performance.now();
-   // The live canvas and shell reveal their target colors through the same
-   // radial mask. Keep playback running without a second material-color blend.
-   if(liveScene)raster?.release();
+   // The scene stays live in its own layer; only the shell uses snapshots.
    await transition.finished;
   }catch(error){audit.error=error.message;if(root.dataset.theme!==target)await commit(target,false)}
-  finally{if(transition)await transition.finished.catch(()=>{});raster?.release();root.classList.remove('theme-changing');root.classList.remove('theme-live-scene');frame.contentDocument?.documentElement.classList.remove('theme-changing');themeTransition=null;unlock();audit.finished=performance.now();document.body.dataset.themeMotion=JSON.stringify(audit)}
+  finally{if(transition)await transition.finished.catch(()=>{});root.classList.remove('theme-changing');root.classList.remove('theme-live-scene');frame.contentDocument?.documentElement.classList.remove('theme-changing');themeTransition=null;unlock();audit.finished=performance.now();document.body.dataset.themeMotion=JSON.stringify(audit)}
  }
 }
 $('theme').addEventListener('click',()=>{void setTheme(requestedTheme==='dark'?'light':'dark').then(refreshExportPreview).catch(error=>feedback(error.message))});
@@ -194,7 +190,7 @@ function renderTransport(){
  renderParkingStatus();renderPlayback();const transport=$('scene-transport');
  if(!document.body.dataset.ready){const key='loading:'+project.active;if(transportRenderKey===key)return;transportRenderKey=key;transport.hidden=false;transport.disabled=true;transport.textContent='Loading…';transport.setAttribute('aria-label','Loading scene');return;}
  const complete=!!(status.junction?.complete||status.parking?.complete),running=!!status.playing,assisted=!!status.features?.path,key=JSON.stringify([project.active,running,assisted,complete,!!status.parking?.elapsed]);if(key===transportRenderKey)return;transportRenderKey=key;
- transport.hidden=false;const finished=project.active==='junction'&&!!status.junction?.complete;transport.dataset.finished=String(finished);transport.disabled=finished||exporting||previewBusy||demoUpdating||sceneUpdating||vehicleUpdating||!!themeTransition;const assistName=['parking','outdoor'].includes(project.active)?'Park assist':'Driving assist';transport.textContent=assistName;transport.setAttribute('role','switch');transport.setAttribute('aria-label',assistName);transport.setAttribute('aria-checked',String(assisted));
+ transport.hidden=false;const finished=complete;transport.dataset.finished=String(finished);transport.disabled=finished||exporting||previewBusy||demoUpdating||sceneUpdating||vehicleUpdating||!!themeTransition;const assistName=['parking','outdoor'].includes(project.active)?'Park assist':'Driving assist';transport.textContent=assistName;transport.setAttribute('role','switch');transport.setAttribute('aria-label',assistName);transport.setAttribute('aria-checked',String(assisted));
  transport.dataset.tip=(assisted?'Turn off ':'Turn on ')+assistName.toLowerCase();
 }
 window.addEventListener('message',event=>{if(event.source!==frame.contentWindow||event.origin!==location.origin)return;if(event.data?.type!=='ui-draft-status')return;const priorView=status.parking?.view;status=event.data.value;document.body.dataset.runtime=JSON.stringify(status);if(sceneUpdating||vehicleUpdating||status.scene!==project.active)return;if(status.features&&params().path!==!!status.features.path){params().path=!!status.features.path;persist();}if(status.parking?.view!==priorView)renderLabel();renderAssist();renderTransport();});
@@ -229,7 +225,7 @@ async function replayTransition(replaying,action){
  }finally{cover.hidden=true;cover.style.zIndex='';}
 }
 $('scene-transport').addEventListener('click',async()=>{
- if(!ready||exporting||previewBusy||demoUpdating||sceneUpdating||vehicleUpdating||themeTransition||project.active==='junction'&&status.junction?.complete)return;
+ if(!ready||exporting||previewBusy||demoUpdating||sceneUpdating||vehicleUpdating||themeTransition||status.junction?.complete||status.parking?.complete)return;
  $('export-preview').open=false;demoUpdating=true;lockControls(true);$('scene-transport').setAttribute('aria-busy','true');
  try{await controlPaint('demo');const current=bridge().get({audit:false});await replayTransition(!!current.parking?.complete&&!current.features.path,async()=>{await setAssistDemo(bridge(),!current.features.path)});params().path=bridge().get({audit:false}).features.path;persist();status=bridge().get({audit:false});renderTransport();}
  catch(error){feedback('Unable to start parking. Please try again.')}finally{demoUpdating=false;$('scene-transport').removeAttribute('aria-busy');lockControls(false);}

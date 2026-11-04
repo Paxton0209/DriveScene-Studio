@@ -38,3 +38,14 @@ test('A newly enabled fleet prepares its materials once before visible use, then
  world.draftTrafficEnabled=true;await world.draftPrepareAppearance();assert.equal(preparations,2);
  world.draftTrafficEnabled=false;await world.draftPrepareAppearance();world.draftTrafficEnabled=true;await world.draftPrepareAppearance();assert.equal(preparations,2);
 });
+
+
+import {prepareSceneThemes} from '../appearance-preparation.js';
+test('New scene theme preparation draws both shader endpoints and restores the selected state',()=>{
+ const draws=[],original={id:'05',mode:'light',laneCount:6},world={state:original,draftThemeTone:{value:0},suspended:true,update(state){this.state=state},renderPreparedFrame(){draws.push([this.state.mode,this.draftThemeTone.value])}};
+ prepareSceneThemes(world);assert.deepEqual(draws,[['dark',1],['light',0]]);assert.deepEqual(world.state,original);assert.equal(world.suspended,true);
+});
+test('A failed alternate-theme preparation still restores mode and material tone',()=>{
+ const world={state:{id:'08',mode:'dark'},draftThemeTone:{value:1},update(state){this.state=state},renderPreparedFrame(){throw Error('draw failed')}};
+ assert.throws(()=>prepareSceneThemes(world),/draw failed/);assert.equal(world.state.mode,'dark');assert.equal(world.draftThemeTone.value,1);
+});

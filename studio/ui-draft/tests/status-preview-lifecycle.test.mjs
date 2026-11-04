@@ -117,3 +117,14 @@ test('Junction completion disables Assist until replay begins',()=>{
  assert.equal(h.$('scene-transport').disabled,true);assert.equal(h.$('scene-transport').dataset.finished,'true');
  h.controller.render({features:{path:true},junction:{complete:false},playing:true});assert.equal(h.$('scene-transport').disabled,false);
 });
+
+// Completion and replay must have the same affordance across finite demos.
+test('Indoor and outdoor completion disable Assist while Replay stays available, then re-enable on replay',()=>{
+ for(const scene of ['parking','outdoor'])for(const path of [false,true]){
+  const h=statusHarness();h.controller.scene(scene);h.controller.render({features:{path},parking:{complete:true,replayReady:true}});
+  assert.equal(h.$('scene-transport').disabled,true);assert.equal(h.$('scene-transport').dataset.finished,'true');
+  assert.equal(h.$('canvas-transport').dataset.visible,'true');
+  h.controller.render({features:{path:true},parking:{complete:false,replayReady:false,elapsed:.1},playing:true});
+  assert.equal(h.$('scene-transport').disabled,false);assert.equal(h.$('scene-transport').dataset.finished,'false');
+ }
+});

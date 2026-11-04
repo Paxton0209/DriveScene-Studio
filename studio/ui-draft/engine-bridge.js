@@ -1,5 +1,5 @@
 import {prepareRenderer} from '../engine/prepare-renderer.js';
-import {installAppearancePreparation} from './appearance-preparation.js';
+import {installAppearancePreparation,prepareSceneThemes} from './appearance-preparation.js';
 import {syncVehicleCastFade} from './vehicle-cast-shadow.js';
 import {indoorShadowLimits,syncIndoorShadowLight,syncIndoorReflectionResolution} from './indoor-shadow-settings.js';
 import {syncRoadShadow} from './road-shadow-settings.js';
@@ -141,9 +141,9 @@ export function installDraftBridge({world,features,drive,traffic,api,current,upd
   if(key==='model'&&api.get().vehicle!==value)throw Error('Could not switch vehicle. Please try again.');
   if(parkedPose){world.car.position.copy(parkedPose.position);world.car.rotation.copy(parkedPose.rotation);}
   if(key==='weather')world.draftWeatherActive=true;if(key==='path'&&isParking(world.state?.id)){if(!value)setPlaying(false);}
-  if(current()==='junction'){seekJunction();if(key==='layout')restartJunctionPath();}else if(!playing||key==='traffic')renderOnce();
+  if(current()==='junction'){if(key==='layout'||key==='traffic'&&value)prepareSceneThemes(world);seekJunction();if(key==='layout')restartJunctionPath();}else if(!playing||key==='traffic')renderOnce();
   publish();schedule();
- },async scene(key,seed,values){scenePreparing=true;cancelAnimationFrame(frame);frame=0;audioHeld=true;resetIndicatorSound();try{appearance.finish();parking.reset();settle();drive.reset();playing=false;world.draftSceneryRandom.reset(seed);junctionPoses=null;loopTime=0;world.draftTrafficEnabled=!!values?.traffic;world.suspended=true;if(world.draftTrafficEnabled)await world.draftPrepareStartup(key);if(values)await api.prepareDraftScene(key,values);else api.scene(key);world.suspended=false;await waitForRender();if(key==='junction'){seekJunction();restartJunctionPath();}sync();schedule()}finally{world.suspended=false;audioHeld=false;scenePreparing=false;schedule()}},
+ },async scene(key,seed,values){scenePreparing=true;cancelAnimationFrame(frame);frame=0;audioHeld=true;resetIndicatorSound();try{appearance.finish();parking.reset();settle();drive.reset();playing=false;world.draftSceneryRandom.reset(seed);junctionPoses=null;loopTime=0;world.draftTrafficEnabled=!!values?.traffic;world.suspended=true;if(world.draftTrafficEnabled)await world.draftPrepareStartup(key);if(values)await api.prepareDraftScene(key,values);else api.scene(key);world.suspended=false;await waitForRender();if(key==='junction'){prepareSceneThemes(world);seekJunction();restartJunctionPath();}sync();schedule()}finally{world.suspended=false;audioHeld=false;scenePreparing=false;schedule()}},
  finishScene({playing:requested}={}){settle();parking.finishPreview?.();if(current()==='junction')seekJunction();setPlaying(!isParking(world.state?.id)&&(typeof requested==='boolean'?requested:['road','elevated','ramp'].includes(current())&&!matchMedia('(prefers-reduced-motion: reduce)').matches));renderOnce()},
  beginTheme(){themeHeld=true;cancelAnimationFrame(frame);frame=0;sync()},
  endTheme(){themeHeld=false;last=0;sync();schedule()},

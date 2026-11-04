@@ -28,3 +28,20 @@ export function installAppearancePreparation(world,prepareRenderer){
  };
  world.draftPrepareAppearance=()=>world.draftPrepareAppearances([world.car]);
 }
+
+// A newly selected Junction can introduce reflection shader variants that the
+// opening scene did not compile. Prepare both endpoints behind scene preparation.
+export function prepareSceneThemes(world){
+ const state={...world.state},tone=world.draftThemeTone?.value;
+ if(!state.mode)return;
+ try{
+  const mode=state.mode==='dark'?'light':'dark';
+  world.update({...state,mode},{deferRender:true});
+  if(world.draftThemeTone)world.draftThemeTone.value=mode==='dark'?1:0;
+  world.renderPreparedFrame();
+ }finally{
+  world.update(state,{deferRender:true});
+  if(world.draftThemeTone)world.draftThemeTone.value=tone;
+ }
+ world.renderPreparedFrame();
+}

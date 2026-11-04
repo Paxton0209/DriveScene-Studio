@@ -174,18 +174,18 @@ body[data-ready=true] #canvas-playback #scene-transport:disabled{opacity:1}
 :root #layers .layer-row[aria-pressed=false]:not(:disabled)::after{background:var(--ds-color-track);box-shadow:var(--sh-raised)}
 :root[data-theme=dark] #layers .layer-row[aria-pressed=false]:not(:disabled)::after{background:var(--ds-color-switch-off);box-shadow:none}
 :root #layers .layer-row[aria-pressed=false]:not(:disabled)::before{background:var(--ds-color-on-accent);box-shadow:var(--sh-raised)}
-#parking-status{position:absolute;z-index:4;inset:0 auto auto 0;max-width:100%;width:max-content;height:max-content;background:var(--ds-color-face);box-shadow:0 0 0 1px var(--ds-color-line-control);display:flex;align-items:flex-start;gap:9px;padding:14px 16px;overflow:hidden;border-radius:inherit;pointer-events:none;color:var(--c-t1);font-variant-numeric:tabular-nums;opacity:1;visibility:visible;transition:opacity 250ms linear,visibility 0s linear} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token; D-21 freezes this existing motion timing. */
+#parking-status{position:absolute;z-index:4;inset:0;display:flex;align-items:flex-start;gap:9px;padding:14px 16px;overflow:hidden;border-radius:inherit;pointer-events:none;color:var(--c-t1);font-variant-numeric:tabular-nums;opacity:1;visibility:visible;transition:opacity 250ms linear,visibility 0s linear} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token; D-21 freezes this existing motion timing. */
 #parking-status[hidden]{display:flex!important;opacity:0;visibility:hidden;transition:opacity 250ms linear,visibility 0s linear 250ms} /* ds-allow: D-21 freezes this existing motion timing. */
 .parking-gear{width:24px;height:24px;flex:none;display:block;margin-top:5px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 .parking-gear svg{width:100%;height:100%;overflow:visible}
-.parking-gear circle{fill:none;stroke:currentColor;stroke-width:3;opacity:1}
+.parking-gear circle{fill:none;stroke:currentColor;stroke-width:3;opacity:.4} /* ds-allow: Restore the author-confirmed HUD ring opacity. */
 .parking-gear text{fill:currentColor;text-anchor:middle;font-family:Arial,sans-serif;font-size:20px;font-weight:600} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 #parking-status[data-executing=true] .parking-ring{color:var(--c-parking-active);opacity:1}
 
 .parking-copy{display:flex;flex-direction:column;gap:4px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 .parking-instruction{font-size:13px;font-weight:500;line-height:1.23;white-space:nowrap} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
-.parking-reminder{font:var(--ds-text-ui-caption);font-weight:400;line-height:1.27;color:var(--c-t2)}
-@media(max-width:959px){#parking-status{padding:10px 12px;gap:8px}.parking-gear{width:24px;height:24px;margin-top:4px}.parking-copy{gap:3px}.parking-instruction{font-size:12px;line-height:1.25}.parking-reminder{font:var(--ds-text-ui-caption);line-height:1.27}} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+.parking-reminder{font-size:11px;font-weight:400;line-height:1.27;color:var(--c-t2)} /* ds-allow: Author explicitly requested restoration of the original HUD typography. */
+@media(max-width:959px){#parking-status{padding:10px 12px;gap:8px}.parking-gear{width:24px;height:24px;margin-top:4px}.parking-copy{gap:3px}.parking-instruction{font-size:12px;line-height:1.25}.parking-reminder{font-size:11px;line-height:1.27}} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 @media(forced-colors:active){
  :root #inspector .segment-indicator,:root .shell-vehicle-menu [aria-checked=true]{outline:1px solid Highlight;outline-offset:-1px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
  :root #layers .layer-row[aria-pressed=true]::after{background:Highlight}
@@ -193,7 +193,8 @@ body[data-ready=true] #canvas-playback #scene-transport:disabled{opacity:1}
 }
 
 /* Share one opacity transition with the HUD; keep building contours continuous. */
-#parking-status::before{display:none}
+#parking-status::before{content:"";position:absolute;z-index:-1;inset:0 0 auto;height:128px;pointer-events:none;background:linear-gradient(to bottom,rgba(188,196,207,.76) 0%,rgba(188,196,207,.66) 28%,rgba(188,196,207,.4) 52%,rgba(188,196,207,.14) 76%,rgba(188,196,207,0) 100%)} /* ds-allow: Restore the author-confirmed original HUD scrim, including its 128px height and gradient. */
+:root[data-theme=dark] #parking-status::before{background:linear-gradient(to bottom,rgba(20,24,29,.7) 0%,rgba(20,24,29,.6) 28%,rgba(20,24,29,.36) 52%,rgba(20,24,29,.12) 76%,rgba(20,24,29,0) 100%)} /* ds-allow: Author explicitly requested restoration of the original parking HUD scrim and its theme colors. */
 
 @media(prefers-reduced-motion:reduce){#parking-status{transition-duration:120ms,0s}#parking-status[hidden]{transition-duration:120ms,0s;transition-delay:0s,120ms}} /* ds-allow: D-21 freezes this existing motion timing. */
 
@@ -268,7 +269,7 @@ body[data-ready=true] #canvas-playback #scene-transport:disabled{opacity:1}
  :root #inspector button,:root #inspector select,:root #library button,:root #library select,:root #canvas-playback button{touch-action:manipulation;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
  :root #parking-status{padding:10px;gap:6px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
  :root .parking-gear{width:20px;height:20px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
- :root .parking-reminder{font:var(--ds-text-ui-caption)}
+ :root .parking-reminder{font-size:11px} /* ds-allow: Restore the original phone HUD typography at author request. */
 }
 @media(min-width:640px) and (max-width:959px) and (max-height:500px){ /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
  :root .toolbar{height:40px;flex-basis:40px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
@@ -320,7 +321,7 @@ body[data-ready=true] #canvas-playback #scene-transport:disabled{opacity:1}
 :root #canvas-playback #scene-transport[data-finished=true]{opacity:.45}
 :root #scene-transport[data-finished=true]::before{background-color:var(--c-t3)}
 body[data-ready=true] #canvas-playback #scene-transport[data-finished=true]:disabled{opacity:.45}
-:root #scene-transport[role=switch][data-finished=true]::before{background-color:color-mix(in srgb,var(--assist-disc-off) 80%,transparent)}
+:root #scene-transport[role=switch][data-finished=true]::before{background-color:color-mix(in srgb,var(--assist-disc-off) 80%,transparent);background-image:url("./assist-wheel-off.svg")}
 
 /* Visual system v5 · 2026-11-04
  * Semantic light / cool-neutral dark scale, three materials: ground (canvas), face (flat + 1px
@@ -338,7 +339,10 @@ body[data-ready=true] #canvas-playback #scene-transport[data-finished=true]:disa
 }
 
 /* Superellipse corners on every shell surface; plain radii where unsupported. */
-:root :is(#library,#inspector,#artboard,#artboard .artboard-clip,#artboard::after,.shell-vehicle-card,.shell-vehicle-menu,.shell-vehicle-menu [role=menuitemradio],.shell-vehicle-card .thumb,#library .scene-row,#library .scene-indicator,#inspector .segment,#inspector .shared-weather-options,#inspector .segment-indicator,#inspector .format-trigger,#inspector select,#export,.format-options,.format-options button,#canvas-playback button,#mobile-scene){corner-shape:superellipse(1.6)}
+:root :is(#library,#inspector,#artboard,#artboard .artboard-clip,#canvas-transport,#parking-status,#theme,#tooltip,.shell-scene-menu,.shell-scene-menu [role=menuitemradio],.shell-vehicle-card,.shell-vehicle-menu,.shell-vehicle-menu [role=menuitemradio],.shell-vehicle-card .thumb,#library .scene-row,#library .scene-indicator,#inspector .segment,#inspector .shared-weather-options,#inspector .segment-indicator,#inspector .format-trigger,#inspector select,#export,.format-options,.format-options button,#canvas-playback button,#mobile-scene){corner-shape:superellipse(1.6)}
+/* Author follow-up: pseudo-elements must follow the same continuous corner as their surface. */
+:root :is(#library,#inspector,#artboard,#parking-status)::before,
+:root :is(#library,#inspector,#artboard,#parking-status)::after{corner-shape:inherit}
 /* Selected row, segment thumb and menu choice share one raised tile. */
 :root #library .scene-indicator,:root #library .scene-indicator.is-moving,
 :root #inspector .segment-indicator,
@@ -347,7 +351,7 @@ body[data-ready=true] #canvas-playback #scene-transport[data-finished=true]:disa
 :root #library .nav-title,:root #inspector h2{margin-bottom:4px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 :root #library .nav-title:not(:first-of-type){margin-top:24px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 /* Assist switch sizes to its name; the minimum keeps the old footprint. */
-:root #canvas-playback #scene-transport{width:auto;min-width:112px;max-width:none;flex:0 0 auto;padding:0 12px;gap:8px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+:root #canvas-playback #scene-transport{width:auto;min-width:112px;max-width:none;flex:0 0 auto;padding:0 var(--ds-space-5);gap:var(--ds-space-4)} /* ds-allow: Author follow-up increases icon-to-label spacing to the approved 8px token; D-21 retains the existing keypage geometry, radii and type metrics on this rule. */
 /* Neutral off-state for switches; only "on" uses the single accent. */
 :root #layers .layer-row[aria-pressed=false]:not(:disabled)::after{background:var(--ds-color-track);box-shadow:none}
 :root[data-theme=dark] #layers .layer-row[aria-pressed=false]:not(:disabled)::after{background:var(--ds-color-switch-off);box-shadow:none}
@@ -393,7 +397,7 @@ body[data-ready=true] #canvas-playback #scene-transport[data-finished=true]:disa
 :root #layers .layer-row::before{background:var(--ds-color-on-accent)}
 :root #inspector #export:not(:disabled){background:var(--ds-color-accent-fill);color:var(--ds-color-on-accent);border:0;box-shadow:none}
 :root #export::before{background:color-mix(in srgb,var(--ds-color-on-accent) 18%,transparent)}
-:root #artboard #canvas-transport{background:var(--ds-color-raised)}
+:root #artboard #canvas-transport{background:var(--ds-color-raised);color:var(--ds-color-text-1)}
 :root #tooltip{background:var(--ds-color-ink);color:var(--ds-color-face);font:var(--ds-text-ui-caption);box-shadow:none}
 :root .format-options button[aria-selected=true]{background:var(--ds-color-selected);color:var(--ds-color-text-1);font-weight:500}
 :root .format-options button[aria-selected=true]::after{content:none}
@@ -441,3 +445,9 @@ body[data-ready=true] #canvas-playback #scene-transport[data-finished=true]:disa
 /* Author 2026-11-04: one information blue across Export, switches, supplied
    active icon and the 3D information ribbon. Shared DS tokens remain untouched. */
 :root[data-theme]{--ds-color-accent:var(--ds-color-accent-fill);--assist-disc-off:#757780} /* ds-allow: Preserve the neutral off-disc color from the author-supplied Sketch asset, source 9DCF19AA; active uses the approved accent-fill token. */
+
+/* Author-requested matching side and bottom insets for the two desktop footers. */
+@media(min-width:960px){ /* ds-allow: Preserve the existing desktop breakpoint for the author-requested footer alignment. */
+ :root #library,:root #inspector{padding-bottom:var(--ds-space-6)}
+ :root #vehicle-panel,:root #inspector>#export-section{padding-inline:var(--ds-space-6)}
+}
