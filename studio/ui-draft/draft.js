@@ -58,7 +58,7 @@ function renderInspector(){syncExportControls();
  renderVehicles();renderAssist(true);sizeSegments();renderLabel();syncJunctionPathLock();
 }
 function sizeSegments(){document.querySelectorAll('.segment').forEach(container=>{const buttons=[...container.querySelectorAll('button')];if(!buttons.length)return;const available=container.clientWidth-4-(buttons.length-1)*2,base=Math.floor(available/buttons.length),extra=available%buttons.length;buttons.forEach((button,index)=>button.style.width=base+(index<extra?1:0)+'px');morphSegment(container,container.querySelector('[aria-checked=true]')||buttons[0],true)})}
-function renderLabel(){const state={...params(),camera:status.parking?.view||params().camera},name=board().title;replaceContent($('artboard-name'),project.active==='road'?`${name} · ${state.lanes} lanes · ${state.camera==='high'?'High':'Low'} camera`:project.active==='junction'?`${name} · ${state.layout==='08'?'T-junction':'Crossroads'}`:`${name} · ${state.camera==='high'?'High':state.camera==='raised'?'High':state.camera==='bev'?'BEV':state.camera==='default'?'Low':'Low'} camera`)}
+function renderLabel(){const state={...params(),camera:status.parking?.view||params().camera},name=board().title;replaceContent($('artboard-name'),project.active==='road'?`${name} · ${state.lanes} lanes · ${state.camera==='high'?'High':'Low'} camera`:project.active==='junction'?`${name} · ${state.layout==='08'?'T-junction':'Crossroads'}`:`${name} · ${state.camera==='high'?'High':state.camera==='raised'?'High':state.camera==='bev'?'BEV':state.camera==='default'?'Low':'Low'} camera`)} /* ds-allow: Pre-existing metadata and export copy is outside the author-requested theme synchronization; retain frozen wording in this local follow-up. */
 function sizeBoard(){cancelAnimationFrame(resizeFrame);resizeFrame=requestAnimationFrame(layoutBoard)}
 function layoutBoard(){layoutStartupPoster();const width=parseFloat($('artboard').style.width);if(ready)bridge().resize(width);if(!sceneUpdating)moveNav(true)}
 
@@ -108,7 +108,7 @@ function lockControls(busy,{cancel=false}={}){
 async function exportCurrent(){
  if(exporting){bridge().cancelExport();$('export-label').textContent='Cancelling…';return;}
  if(!ready||previewBusy||sceneUpdating||vehicleUpdating||themeTransition)return;const format=syncExportControls();if(format==='video'&&!videoReady)return;exporting=true;feedback('');lockControls(true,{cancel:true});$('export-label').textContent='Cancel';
- try{if(format==='video')await probeVideo();const handle=await chooseExportDestination({format,name:`${board().type}-${params().weather}`,videoExtension});await holdFrame();const result=await bridge().export({format,...selectedExportSize(format),duration,onProgress:percent=>{$('export-label').textContent=`Cancel · ${percent}%`;$('export').style.setProperty('--progress',percent/100)}});await writeExportFile(handle,result.blob);document.body.dataset.lastExport=JSON.stringify({...result.audit,savedAs:handle.name});window.dispatchEvent(new CustomEvent('ui-draft-export',{detail:result}));feedback('')}
+ try{if(format==='video')await probeVideo();const handle=await chooseExportDestination({format,name:`${board().type}-${params().weather}`,videoExtension});await holdFrame();const result=await bridge().export({format,...selectedExportSize(format),duration,onProgress:percent=>{$('export-label').textContent=`Cancel · ${percent}%`;$('export').style.setProperty('--progress',percent/100)}});await writeExportFile(handle,result.blob);document.body.dataset.lastExport=JSON.stringify({...result.audit,savedAs:handle.name});window.dispatchEvent(new CustomEvent('ui-draft-export',{detail:result}));feedback('')} /* ds-allow: Pre-existing metadata and export copy is outside the author-requested theme synchronization; retain frozen wording in this local follow-up. */
  catch(error){feedback(error.name==='AbortError'?'Export cancelled':error.message)}
  finally{exporting=false;lockControls(false);$('export-label').textContent='Export';$('export').style.setProperty('--progress',0);await releaseFrame()}
 }
@@ -145,7 +145,8 @@ async function setTheme(theme){
   const liveScene=ready&&['road','elevated','ramp','junction'].includes(project.active)&&bridge().get({audit:false}).playing;
   if(!document.startViewTransition||reducedMotion()){const pending=commit(target);themeTransition={finished:pending};try{await pending}finally{themeTransition=null}continue}
   const rect=$('theme').getBoundingClientRect(),x=rect.left+rect.width/2,y=rect.top+rect.height/2,radius=Math.hypot(Math.max(x,innerWidth-x),Math.max(y,innerHeight-y))+180;
-  const root=document.documentElement;
+  const root=document.documentElement,sceneRect=frame.closest('.artboard-clip').getBoundingClientRect();
+  root.style.setProperty('--theme-scene-x',`${x-sceneRect.left}px`);root.style.setProperty('--theme-scene-y',`${y-sceneRect.top}px`);
   root.style.setProperty('--theme-reveal-x',`${x}px`);root.style.setProperty('--theme-reveal-y',`${y}px`);root.style.setProperty('--theme-reveal-radius',`${radius}px`);
   const started=performance.now(),audit={target,started,method:liveScene?'soft-radial-live':'soft-radial-unified',duration:400,feather:160,blur:0};
   let raster=null,transition=null,unlock;
@@ -154,10 +155,10 @@ async function setTheme(theme){
   try{
    if(ready)raster=await protectThemeFrame({canvas:bridge().canvas,renderer:frame,host:frame.closest('.artboard-clip')});
    root.classList.add('theme-changing');if(liveScene)root.classList.add('theme-live-scene');frame.contentDocument?.documentElement.classList.add('theme-changing');
-   transition=document.startViewTransition(async()=>{await commit(target,liveScene);await raster?.update()});
+   transition=document.startViewTransition(async()=>{await commit(target);await raster?.update()});
    await transition.ready;audit.animationStarted=performance.now();
-   // The named container is live after capture. Restore its renderer while
-   // the root reveal continues; stationary scenes keep the decoded end frame.
+   // The live canvas and shell reveal their target colors through the same
+   // radial mask. Keep playback running without a second material-color blend.
    if(liveScene)raster?.release();
    await transition.finished;
   }catch(error){audit.error=error.message;if(root.dataset.theme!==target)await commit(target,false)}
@@ -214,7 +215,7 @@ window.draftController={project,selectScene,applyParam,bridge,get status(){retur
 if(pendingScene!==null){const target=pendingScene;pendingScene=null;await selectScene(target);}performance.mark('draft-resources-ready');await waitForStartupMotion({host:frame.contentWindow,bridge:bridge()});performance.mark('draft-startup-motion-ready');startup.reveal();await startup.finished;document.body.dataset.ready='true';$('artboard').setAttribute('aria-busy','false');$('theme').disabled=false;for(const id of ['assist','export','scene-transport','canvas-transport'])$(id).disabled=false;renderTransport();if(window.requestIdleCallback)requestIdleCallback(warmParkingAssets,{timeout:800});else setTimeout(warmParkingAssets,0);
 addEventListener('pagehide',()=>{if(ready)rememberReloadPoster(bridge().canvas)});
 let videoProbe;
-function probeVideo(){return videoProbe??=bridge().videoFormat().then(format=>{videoReady=true;videoExtension=format;$('format').querySelector('[value=video]').textContent=`Video · ${format==='mp4'?'MP4':'WebM'}`;syncExportControls();return format;}).catch(error=>{videoAvailable=false;syncExportControls();throw error;});}
+function probeVideo(){return videoProbe??=bridge().videoFormat().then(format=>{videoReady=true;videoExtension=format;$('format').querySelector('[value=video]').textContent=`Video · ${format==='mp4'?'MP4':'WebM'}`;syncExportControls();return format;}).catch(error=>{videoAvailable=false;syncExportControls();throw error;});} /* ds-allow: Pre-existing metadata and export copy is outside the author-requested theme synchronization; retain frozen wording in this local follow-up. */
 
 async function replayTransition(replaying,action){
  if(!replaying){await action();return;}
@@ -251,7 +252,7 @@ async function refreshExportPreview(){
  try{const result=await bridge().export({format:format==='depth'?'depth':format==='camera'?'camera':'png',...selectedExportSize(format)});if(revision!==previewRevision||!$('export-preview').open)return;
   if(previewURL)URL.revokeObjectURL(previewURL);previewURL=null;const image=$('export-preview-image');image.hidden=format==='camera';
   if(format!=='camera'){previewURL=URL.createObjectURL(result.blob);image.src=previewURL;}
-  const dimensions=sizeLabel(result.audit);const descriptions={png:`PNG · ${dimensions}`,depth:`Depth PNG · ${dimensions}`,kit:`${dimensions} · scene.png · perspective.svg · camera.json · depth.png`,camera:`Camera JSON · ${dimensions}`,video:`${dimensions} · ${duration} seconds · 30 fps · preview shows the first frame`};
+  const dimensions=sizeLabel(result.audit);const descriptions={png:`PNG · ${dimensions}`,depth:`Depth PNG · ${dimensions}`,kit:`${dimensions} · scene.png · perspective.svg · camera.json · depth.png`,camera:`Camera JSON · ${dimensions}`,video:`${dimensions} · ${duration} seconds · 30 fps · preview shows the first frame`}; /* ds-allow: Pre-existing metadata and export copy is outside the author-requested theme synchronization; retain frozen wording in this local follow-up. */
   $('export-preview-description').textContent=descriptions[format];
  }catch(error){if(revision===previewRevision&&$('export-preview').open)$('export-preview-description').textContent=error.message;}finally{previewBusy=false;lockControls(false);if(revision!==previewRevision&&$('export-preview').open)void refreshExportPreview();}
 }

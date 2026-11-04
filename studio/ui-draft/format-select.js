@@ -1,3 +1,4 @@
+import {exportMenuPlacement} from './export-menu-placement.js';
 export function mountFormatSelect(select, name='Export format') {
   const trigger = document.createElement('button');
   trigger.type = 'button';
@@ -51,9 +52,29 @@ export function mountFormatSelect(select, name='Export format') {
     menu.style.width = `${rect.width}px`;
     menu.style.maxHeight = `${Math.max(80, innerHeight - 16)}px`;
     menu.style.left = `${Math.max(8, Math.min(rect.left, innerWidth - rect.width - 8))}px`;
-    const height = menu.getBoundingClientRect().height;
-    const opensAbove = rect.bottom + height + 12 > innerHeight;
-    menu.style.top = `${Math.max(8, opensAbove ? rect.top - height - 4 : rect.bottom + 4)}px`;
+    let height = menu.getBoundingClientRect().height;
+    let opensAbove = rect.bottom + height + 12 > innerHeight;
+    if (select.closest('#export-section')) {
+      const triggers=[...document.querySelectorAll('#export-section .format-trigger')].filter(node=>!node.disabled);
+      const items=triggers.map(node=>{
+        const list=document.getElementById(node.getAttribute('aria-controls'));
+        const wasHidden=list.hidden,visibility=list.style.visibility;
+        list.style.visibility='hidden';list.hidden=false;
+        list.style.width=`${node.getBoundingClientRect().width}px`;
+        list.style.maxHeight='none';
+        const bounds=node.getBoundingClientRect(),height=list.getBoundingClientRect().height;
+        list.hidden=wasHidden;list.style.visibility=visibility;
+        return {top:bounds.top,bottom:bounds.bottom,height};
+      });
+      const placement=exportMenuPlacement({items,index:triggers.indexOf(trigger),viewportHeight:innerHeight,exportTop:document.getElementById('export').getBoundingClientRect().top});
+      opensAbove=placement.direction==='up';height=placement.height;
+      menu.style.maxHeight=`${height}px`;
+      menu.style.top=`${placement.top}px`;
+    } else {
+      menu.style.top = `${Math.max(8, opensAbove ? rect.top - height - 4 : rect.bottom + 4)}px`;
+    }
+    menu.dataset.direction=opensAbove?'up':'down';
+    menu.style.transformOrigin=opensAbove?'center bottom':'center top';
     trigger.setAttribute('aria-expanded', 'true');
     const choices = [...menu.querySelectorAll('button:not(:disabled)')];
     (menu.querySelector('[aria-selected=true]:not(:disabled)') || choices[last ? choices.length - 1 : 0])?.focus();

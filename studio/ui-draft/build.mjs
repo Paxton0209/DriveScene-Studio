@@ -176,11 +176,12 @@ const approvedHtml=trialHtml.replace(/<link rel="modulepreload" fetchpriority="h
 let shippedHtml=approvedHtml;
 shippedHtml=shippedHtml.replace(/<meta name="viewport"[^>]*>/,'<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">');
 shippedHtml=shippedHtml.replace(/<script id="startup-layout">[\s\S]*?<\/script>/,()=>parent.match(/<script id="startup-layout">[\s\S]*?<\/script>/)[0]);
-for(const name of ['guizang-trial.css','shell-v5.css']){
- const sourceCss=await readFile(new URL('./'+name,import.meta.url),'utf8');
+for(const name of ['draft.css','inspector.css','guizang-trial.css','shell-v5.css']){
+ const sourceCss=(await readFile(new URL('./'+name,import.meta.url),'utf8')).replace('@import url("./design-system/tokens.css");',await readFile(new URL('./design-system/tokens.css',import.meta.url),'utf8'));
  const {code:css}=await transform(sourceCss,{loader:'css',minifyWhitespace:true});
- const tag=`<style data-shell-css="${name}">${css}</style>`;
- const existing=new RegExp('<style data-shell-css="'+name.replaceAll('.','\\.')+'">[\\s\\S]*?<\\/style>');
+ const attr=['draft.css','inspector.css'].includes(name)?'data-startup-css':'data-shell-css';
+ const tag=`<style ${attr}="${name}">${css}</style>`;
+ const existing=new RegExp('<style '+attr+'="'+name.replaceAll('.','\\.')+'">[\\s\\S]*?<\\/style>');
  const external=new RegExp('<link[^>]*href="\\./'+name.replaceAll('.','\\.')+'[^\"]*"[^>]*>');
  shippedHtml=existing.test(shippedHtml)?shippedHtml.replace(existing,()=>tag):shippedHtml.replace(external,()=>tag);
 }

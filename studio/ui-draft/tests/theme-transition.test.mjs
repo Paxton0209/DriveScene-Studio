@@ -15,7 +15,8 @@ test('Theme updates restore the button-origin reveal without remounting the live
  const source=await readFile(new URL('../draft.js',import.meta.url),'utf8');
  const theme=source.slice(source.indexOf('async function setTheme('),source.indexOf("$('theme').addEventListener"));
  assert.match(theme,/document\.startViewTransition/);
- assert.match(theme,/commit\(target,liveScene\)/);
+ assert.match(theme,/await commit\(target\);await raster\?\.update\(\)/);
+ assert.doesNotMatch(theme,/commit\(target,liveScene\)/);
  assert.doesNotMatch(theme,/srcdoc|replaceChildren|innerHTML|location\.reload/);
  for(const page of ['index.html','skill.html']){
   const html=await readFile(new URL('../'+page,import.meta.url),'utf8');

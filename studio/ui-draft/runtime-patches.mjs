@@ -6,7 +6,8 @@ import {refineWorld,refineWeather,refineRainGround,refineSnowGround,refineActiva
 function replace(source,from,to){if(!source.includes(from))throw Error(`UI draft baseline mismatch: ${from.slice(0,90)}`);return source.replace(from,to)}
 
 export function patchFeatures(source){
- source="import {blendPathTheme} from '../ui-draft/path-theme.js';\n"+source;
+ source="import {blendPathTheme,unifyPathAccent} from '../ui-draft/path-theme.js';\n"+source;
+ source=replace(source,'const PATH_RETRACT_MS=','unifyPathAccent(PATH_THEME,PATH_COLOR,PATH_PALETTE,PATH_RADIANCE);\nconst PATH_RETRACT_MS=');
  source=replace(source,'u.color.value.copy(PATH_COLOR[tone]);','');
  source=replace(source,'for(const z of [0,30,60])','for(const z of [0])');
  source=replace(source,"if(path.tone!==tone){u.edgeBlend.value=tone==='light'?.34:.72;for(const [key,value]of Object.entries(PATH_RADIANCE[tone]))u[key].value.copy(value);path.tone=tone;}","blendPathTheme(u,PATH_COLOR,PATH_RADIANCE,world.draftThemeTone?.value??(tone==='dark'?1:0));path.tone=tone;");

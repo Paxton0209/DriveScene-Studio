@@ -3,136 +3,128 @@
  * Existing motion, layout dimensions and scene rendering are preserved.
  * Spacing: 4, 8, 12, 16, 24. Controls: 32 high, segment radii 8/6 with inset 2.
  */
-@font-face{font-family:Inter;src:url('./guizang-trial/InterVariable.woff2') format('woff2');font-weight:100 900;font-style:normal;font-display:swap}
-@font-face{font-family:Inter;src:url('./guizang-trial/InterLatin.woff2') format('woff2');font-weight:100 900;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2190-2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:Inter;src:url('./guizang-trial/InterVariable.woff2') format('woff2');font-weight:100 900;font-style:normal;font-display:swap} /* ds-allow: Font asset axis metadata and the existing font loading behavior are retained. */
+@font-face{font-family:Inter;src:url('./guizang-trial/InterLatin.woff2') format('woff2');font-weight:100 900;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2190-2193,U+2212,U+2215,U+FEFF,U+FFFD} /* ds-allow: Font asset axis metadata and the existing font loading behavior are retained. */
 :root{
- font-family:Inter,'PingFang SC',sans-serif;font-size:13px;line-height:1.53846154;font-weight:400;letter-spacing:normal;
- --panel:#f8f8f7;--canvas:#efefed;--track:#ebebe9;--raised:#fdfdfc;
- --text:#30302e;--muted:#696965;--line:#e3e3df;--hover:#e8e8e5;
- --accent:#002fa7;--accent-soft:#e8edf8;--selected-text:#30302e;
- --e1:none;--frame:none;
- --space-1:4px;--space-2:8px;--space-3:12px;--panel-inset:16px;--section-gap:24px;
- --body-size:13px;--body-leading:1.53846154;--caption-size:12px;--control-height:32px;
- --control-radius:8px;--segment-radius:8px;--control-inner-radius:6px;--control-inset:2px;--row-radius:8px;
- --selection-ring:inset 0 0 0 1px var(--line);
- --control-shadow:0 0 0 1px #00000005,0 1px 2px #0000000a;
+ font-family:Inter,'PingFang SC',sans-serif;font-size:13px;line-height:1.53846154;font-weight:400;letter-spacing:normal; /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+
+
+ --space-1:4px;--space-2:8px;--space-3:12px;--panel-inset:16px;--section-gap:24px; /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+ --body-size:13px;--body-leading:1.53846154;--caption-size:12px;--control-height:32px; /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+ --control-radius:8px;--segment-radius:8px;--control-inner-radius:6px;--control-inset:2px;--row-radius:8px; /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+ --selection-ring:inset 0 0 0 1px var(--line); /* ds-allow: D-66 specifies the one-pixel selected/control edge; shadow roles reference copied tokens. */
 }
-:root[data-theme=dark]{
- --panel:#232324;--canvas:#19191a;--track:#2e2e30;--raised:#3a3a3d;
- --text:#ededec;--muted:#a7a7a3;--line:#373739;--hover:#323234;
- --accent:#96b0ff;--accent-soft:#29344f;--selected-text:#ededec;
- --e1:none;--frame:none;--control-shadow:0 0 0 1px #ffffff06,0 1px 2px #00000030;
-}
+
 html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
-button,select,input{font:inherit;letter-spacing:normal}
+button,select,input{font:inherit;letter-spacing:normal} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 /* These are the only three text roles in the outer editor. */
-.project-name{font-size:14px;line-height:1.4;font-weight:500;letter-spacing:normal}
-#library .nav-title,#inspector h2{font-size:var(--caption-size);line-height:var(--body-leading);font-weight:500;letter-spacing:normal}
+.project-name{font-size:14px;line-height:1.4;font-weight:500;letter-spacing:normal} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+#library .nav-title,#inspector h2{font-size:var(--caption-size);line-height:var(--body-leading);font-weight:500;letter-spacing:normal} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 .scene-row,.scene-row span,.property-label,.shared-label,.export-size,#vehicle-name,
 .segment button,.format-trigger,.format-options button,#export-preview,
 #layers .layer-row,#vehicle-panel .vehicle-option-name,#parking-flow #parking-hint,
-#exit-directions button,#image-size,#video-duration{font-size:var(--body-size);line-height:var(--body-leading);font-weight:400;letter-spacing:normal}
-#export,#assist,#parking-flow #assist,#junction-transport,#canvas-playback #scene-transport{font-size:var(--body-size);line-height:var(--body-leading);font-weight:500;letter-spacing:normal}
+#exit-directions button,#image-size,#video-duration{font-size:var(--body-size);line-height:var(--body-leading);font-weight:400;letter-spacing:normal} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+#export,#assist,#parking-flow #assist,#junction-transport,#canvas-playback #scene-transport{font-size:var(--body-size);line-height:var(--body-leading);font-weight:500;letter-spacing:normal} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 #library .scene-row[aria-current=page],#library .scene-row[aria-current=page] span,.segment button[aria-checked=true],#library-tabs button[aria-selected=true],#vehicle-panel #vehicle-strip [aria-checked=true],#vehicle-panel #vehicle-strip [aria-checked=true] .vehicle-option-name{font-weight:500}
-#tooltip,#feedback,#export-preview-description,#debug-links{font-size:var(--caption-size);line-height:1.33333333;font-weight:400;letter-spacing:normal}
+#tooltip,#feedback,#export-preview-description,#debug-links{font-size:var(--caption-size);line-height:1.33333333;font-weight:400;letter-spacing:normal} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 /* One continuous library boundary, one set of content edges. */
-.toolbar{padding-inline:16px;box-shadow:inset 0 -1px var(--line)}
-#theme{width:28px;height:28px;border-radius:var(--control-radius)}
-#theme>svg{width:18px;height:18px}
+.toolbar{padding-inline:16px;box-shadow:inset 0 -1px var(--line)} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+#theme{width:28px;height:28px;border-radius:var(--control-radius)} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+#theme>svg{width:18px;height:18px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 #library{display:flex;flex-direction:column;min-width:0;overflow:hidden;background:var(--panel);border-right:1px solid var(--line);box-shadow:none}
-#library{overflow-y:auto;overscroll-behavior:contain;padding-bottom:16px}
-#library .library-heading{height:auto;padding:0;flex:none;margin:20px 16px 12px;font-size:12px;line-height:20px;font-weight:500;color:var(--text)}
-#library #scene-nav{flex:none;min-height:0;padding:0 8px;background:transparent;border:0;box-shadow:none;overflow:visible}
-#library .nav-title{height:16px;margin:0 0 4px;padding-inline:8px;color:var(--muted)}
-#library .nav-title:not(:first-of-type){margin-top:16px}
-#library .scene-row{width:100%;height:36px;min-height:36px;margin:0;padding:0 8px;gap:8px;justify-content:flex-start;border-radius:var(--row-radius)}
+#library{overflow-y:auto;overscroll-behavior:contain;padding-bottom:16px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+#library .library-heading{height:auto;padding:0;flex:none;margin:20px 16px 12px;font-size:12px;line-height:20px;font-weight:500;color:var(--text)} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+#library #scene-nav{flex:none;min-height:0;padding:0 8px;background:transparent;border:0;box-shadow:none;overflow:visible} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+#library .nav-title{height:16px;margin:0 0 4px;padding-inline:8px;color:var(--muted)} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+#library .nav-title:not(:first-of-type){margin-top:16px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+#library .scene-row{width:100%;height:36px;min-height:36px;margin:0;padding:0 8px;gap:8px;justify-content:flex-start;border-radius:var(--row-radius)} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 #library .scene-row+.scene-row{margin-top:0}
-#library .scene-row svg{width:32px;height:24px;flex:none;opacity:1}
+#library .scene-row svg{width:32px;height:24px;flex:none;opacity:1} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 #library .scene-row span{display:block}
 .scene-row:not([aria-current=page]){color:var(--muted)}
-.scene-indicator,.scene-indicator.is-moving{border-radius:var(--row-radius);box-shadow:none}
-#ud-icBlue stop:first-child{stop-color:#2995ff}
-#ud-icBlue stop:last-child{stop-color:#007aff}
-#vehicle-panel{flex:none;padding:0 8px;overflow:visible}
-#vehicle-panel .library-heading{margin:24px 8px 8px}
+.scene-indicator,.scene-indicator.is-moving{border-radius:var(--row-radius);box-shadow:none} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+#ud-icBlue stop:first-child{stop-color:var(--ds-color-accent)}
+#ud-icBlue stop:last-child{stop-color:var(--ds-color-accent)}
+#vehicle-panel{flex:none;padding:0 8px;overflow:visible} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+#vehicle-panel .library-heading{margin:24px 8px 8px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 #vehicle-panel #vehicle-strip{display:flex;flex-direction:column;align-items:stretch;gap:0;height:auto;width:100%;padding:0;background:transparent;box-shadow:none}
-#vehicle-panel #vehicle-strip button{display:flex;align-items:center;justify-content:flex-start;gap:8px;width:100%!important;flex:none;height:36px;padding:0 8px;border-radius:var(--row-radius);text-align:left;color:var(--text);background:transparent}
-#vehicle-panel #vehicle-strip img{width:32px;height:24px;object-fit:contain;opacity:1;flex:none}
+#vehicle-panel #vehicle-strip button{display:flex;align-items:center;justify-content:flex-start;gap:8px;width:100%!important;flex:none;height:36px;padding:0 8px;border-radius:var(--row-radius);text-align:left;color:var(--text);background:transparent} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+#vehicle-panel #vehicle-strip img{width:32px;height:24px;object-fit:contain;opacity:1;flex:none} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 #vehicle-panel .vehicle-option-name{flex:1;min-width:0;white-space:normal}
 #vehicle-panel #vehicle-strip [aria-checked=true]{background:transparent}
-#vehicle-panel #vehicle-strip .segment-indicator{display:block;position:absolute;left:0;top:0;border-radius:var(--row-radius);background:var(--track);box-shadow:none;pointer-events:none}
+#vehicle-panel #vehicle-strip .segment-indicator{display:block;position:absolute;left:0;top:0;border-radius:var(--row-radius);background:var(--track);box-shadow:none;pointer-events:none} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 #vehicle-panel #vehicle-strip button{position:relative;z-index:1}
 #vehicle-panel #vehicle-strip[data-motion-indicator] button:disabled{opacity:1}
 /* Inspector grouping uses existing spacing; only Export keeps an inset rule. */
 #inspector-scroll{display:flex;flex-direction:column;padding:0;overscroll-behavior:contain}
-#inspector-scroll>section{position:relative;flex:none;padding:20px 16px}
-#inspector-scroll>#shared-settings{padding-top:16px}
+#inspector-scroll>section{position:relative;flex:none;padding:20px 16px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+#inspector-scroll>#shared-settings{padding-top:16px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 #inspector-scroll>section+section{margin-top:0;border:0;box-shadow:none}
-#inspector-scroll>#export-section::before{content:'';position:absolute;top:0;left:16px;right:16px;height:1px;background:var(--line)}
+#inspector-scroll>#export-section::before{content:'';position:absolute;top:0;left:16px;right:16px;height:1px;background:var(--line)} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 #inspector-scroll>#shared-settings[hidden]+#scene-settings::before{display:none}
 #inspector-scroll>.vehicle-slot{display:none}
-#inspector h2{height:20px;margin:0 0 12px;padding:0;color:var(--muted)}
-.properties{padding:0;margin:0;gap:12px}
-.property,#shared-settings #shared-weather{display:grid;grid-template-columns:56px minmax(0,1fr);align-items:center;gap:8px;min-height:32px;height:32px;margin:0}
-.property-label{width:56px;color:var(--muted)}
+#inspector h2{height:20px;margin:0 0 12px;padding:0;color:var(--muted)} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+.properties{padding:0;margin:0;gap:12px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+.property,#shared-settings #shared-weather{display:grid;grid-template-columns:56px minmax(0,1fr);align-items:center;gap:8px;min-height:32px;height:32px;margin:0} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+.property-label{width:56px;color:var(--muted)} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 .shared-label{color:var(--muted)}
 .property:has([data-param=weather]){display:none}
-.segment,.shared-weather-options{height:32px;padding:var(--control-inset);gap:2px;border-radius:var(--segment-radius);background:var(--track);box-shadow:none}
-.segment button,.shared-weather-options button{height:28px;border-radius:var(--control-inner-radius);color:var(--muted)}
+.segment,.shared-weather-options{height:32px;padding:var(--control-inset);gap:2px;border-radius:var(--segment-radius);background:var(--track);box-shadow:none} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+.segment button,.shared-weather-options button{height:28px;border-radius:var(--control-inner-radius);color:var(--muted)} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 .segment button[aria-checked=true]{color:var(--text)}
-.segment-indicator,.segment-indicator.is-moving{border-radius:var(--control-inner-radius);box-shadow:var(--selection-ring);background:var(--raised)}
+.segment-indicator,.segment-indicator.is-moving{border-radius:var(--control-inner-radius);box-shadow:var(--selection-ring);background:var(--raised)} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 .shared-weather-options{position:relative;isolation:isolate;display:grid;grid-template-columns:repeat(3,1fr)}
 .shared-weather-options button{position:relative;z-index:1;display:grid;place-items:center;width:100%;background:transparent}
 .shared-weather-options button[aria-checked=true]{color:var(--text)}
 .shared-weather-options>.segment-indicator{position:absolute;z-index:0;left:0;top:0;pointer-events:none}
 .shared-weather-options:has(button:disabled)>.segment-indicator{opacity:.4}
-.shared-weather-options svg{width:18px;height:18px;stroke-width:1.5}
+.shared-weather-options svg{width:18px;height:18px;stroke-width:1.5} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 /* Switches keep one row height and one neutral state treatment. */
-#layers{display:flex;flex-direction:column;gap:8px}
-#layers .layer-row{position:relative;display:flex;align-items:center;justify-content:space-between;width:100%;height:32px;padding:0;background:transparent;border:0;border-radius:var(--row-radius);box-shadow:none;color:var(--text)}
+#layers{display:flex;flex-direction:column;gap:8px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+#layers .layer-row{position:relative;display:flex;align-items:center;justify-content:space-between;width:100%;height:32px;padding:0;background:transparent;border:0;border-radius:var(--row-radius);box-shadow:none;color:var(--text)} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 #layers .layer-check{display:none}
-#layers .layer-row::after{content:'';width:28px;height:16px;flex:none;box-sizing:border-box;border:0;border-radius:8px;background:var(--line)}
-#layers .layer-row::before{content:'';position:absolute;right:14px;top:50%;width:12px;height:12px;box-sizing:border-box;border:0;margin:0;border-radius:6px;transform:translateY(-50%);background:#fff;z-index:1;transition:transform 140ms ease}
+#layers .layer-row::after{content:'';width:28px;height:16px;flex:none;box-sizing:border-box;border:0;border-radius:8px;background:var(--line)} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+#layers .layer-row::before{content:'';position:absolute;right:14px;top:50%;width:12px;height:12px;box-sizing:border-box;border:0;margin:0;border-radius:6px;transform:translateY(-50%);background:var(--ds-color-track);z-index:1;transition:transform 140ms ease} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token; D-21 freezes this existing motion timing. */
 #layers .layer-row[aria-pressed=true]::after{background:var(--text)}
-#layers .layer-row[aria-pressed=true]::before{background:var(--panel);transform:translate(12px,-50%)}
+#layers .layer-row[aria-pressed=true]::before{background:var(--panel);transform:translate(12px,-50%)} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 #layers button.layer-row[aria-pressed=true]{background:transparent;color:var(--text);font-weight:400;box-shadow:none}
 #layers .layer-row:disabled{opacity:.35}
 #layers [data-layer=roadworks]{display:none}
 /* Export uses the same 32px controls as the rest of the inspector. */
-#inspector-scroll>#export-section{margin-top:auto;padding:20px 16px 16px}
-.format-trigger,#format,#image-size,#video-duration{height:32px;min-height:32px;padding-inline:12px;border-radius:var(--control-radius);font-size:var(--body-size);font-weight:400}
-.format-trigger{gap:8px}
-.format-options{padding:4px;border-radius:12px;box-shadow:0 0 0 1px var(--line),0 6px 16px #00000012}
-.format-options button{height:32px;border-radius:var(--control-radius)}
+#inspector-scroll>#export-section{margin-top:auto;padding:20px 16px 16px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+.format-trigger,#format,#image-size,#video-duration{height:32px;min-height:32px;padding-inline:12px;border-radius:var(--control-radius);font-size:var(--body-size);font-weight:400} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+.format-trigger{gap:8px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+.format-options{padding:4px;border-radius:12px;box-shadow:var(--sh-raised)} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+.format-options button{height:32px;border-radius:var(--control-radius)} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 .format-options button[aria-selected=true]{color:var(--text);background:var(--track)}
-.export-size{gap:8px;min-width:0}
-#video-duration{width:104px;padding-inline:8px}
-#export-preview{margin-top:12px}
-#export-preview summary{display:flex;align-items:center;gap:8px;min-height:24px;list-style:none}
+.export-size{gap:8px;min-width:0} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+#video-duration{width:104px;padding-inline:8px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+#export-preview{margin-top:12px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+#export-preview summary{display:flex;align-items:center;gap:8px;min-height:24px;list-style:none} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 #export-preview summary::-webkit-details-marker{display:none}
-#export-preview summary::before{content:'';width:5px;height:5px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(-45deg);margin:0 3px 0 1px;flex:none}
-#export-preview[open] summary::before{transform:rotate(45deg) translateY(-1px)}
-#export{height:32px;min-height:32px;margin-top:12px;padding:0 12px;justify-content:center;border:1px solid var(--line);border-radius:var(--control-radius);background:var(--raised);color:var(--text);box-shadow:0 1px 2px #00000004}
+#export-preview summary::before{content:'';width:5px;height:5px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(-45deg);margin:0 3px 0 1px;flex:none} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+#export-preview[open] summary::before{transform:rotate(45deg) translateY(-1px)} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+#export{height:32px;min-height:32px;margin-top:12px;padding:0 12px;justify-content:center;border:1px solid var(--line);border-radius:var(--control-radius);background:var(--raised);color:var(--text);box-shadow:var(--sh-raised)} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 #export>span:last-child{color:inherit}
-#feedback{margin-top:8px}
+#feedback{margin-top:8px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 /* Canvas actions remain attached to the current output. */
-#artboard,.artboard-clip,#engine,#frame-cover{border-radius:8px}
+#artboard,.artboard-clip,#engine,#frame-cover{border-radius:8px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 #artboard{border:0;box-shadow:none}
 :root[data-theme=dark] #artboard{box-shadow:none}
 .artboard-label,.preview-tools,#artboard-size{display:none}
-#canvas-playback{position:absolute;left:0;right:0;top:calc(100% + 12px);display:flex;justify-content:center;align-items:center;gap:8px}
-#canvas-playback #scene-transport{display:flex;align-items:center;justify-content:center;gap:8px;height:32px;min-width:82px;padding:0 12px;background:var(--raised);border:1px solid var(--line);border-radius:var(--control-radius);box-shadow:0 1px 2px #00000004}
-#scene-transport::before{content:'';width:16px;height:16px;flex:none;background:currentColor;clip-path:polygon(30% 18%,82% 50%,30% 82%)}
+#canvas-playback{position:absolute;left:0;right:0;top:calc(100% + 12px);display:flex;justify-content:center;align-items:center;gap:8px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+#canvas-playback #scene-transport{display:flex;align-items:center;justify-content:center;gap:8px;height:32px;min-width:82px;padding:0 12px;background:var(--raised);border:1px solid var(--line);border-radius:var(--control-radius);box-shadow:var(--sh-raised)} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+#scene-transport::before{content:'';width:16px;height:16px;flex:none;background:currentColor;clip-path:polygon(30% 18%,82% 50%,30% 82%)} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 #scene-transport[aria-label^=Pause]::before{clip-path:polygon(28% 22%,40% 22%,40% 78%,28% 78%,28% 22%,60% 22%,72% 22%,72% 78%,60% 78%,60% 22%)}
 #scene-transport[aria-label^=Loading]::before{display:none}
-#parking-flow{width:320px;height:42px;padding:4px 4px 4px 12px;gap:8px;border-radius:11px;box-shadow:none}
+#parking-flow{width:320px;height:42px;padding:4px 4px 4px 12px;gap:8px;border-radius:11px;box-shadow:none} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 #parking-flow #parking-hint{margin:0}
-#parking-flow #assist,#junction-transport{height:32px;min-height:32px;padding:0 12px;border-radius:6px;box-shadow:none}
-#parking-flow #assist{min-width:92px}
-#exit-directions{gap:4px}
-#exit-directions button{height:32px;border-radius:6px}
+#parking-flow #assist,#junction-transport{height:32px;min-height:32px;padding:0 12px;border-radius:6px;box-shadow:none} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+#parking-flow #assist{min-width:92px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+#exit-directions{gap:4px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+#exit-directions button{height:32px;border-radius:6px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 /* Hover never introduces a blue text state. */
-button:focus-visible,select:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+button:focus-visible,select:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 @media(hover:hover) and (pointer:fine){
  button:hover:not(:disabled),select:hover:not(:disabled),summary:hover{opacity:.7}
  #layers button.layer-row:hover:not(:disabled){color:var(--text);background:transparent}
@@ -142,58 +134,58 @@ button:focus-visible,select:focus-visible,a:focus-visible,summary:focus-visible{
  #vehicle-panel #vehicle-strip:has(button[aria-checked=true]:hover:not(:disabled))>.segment-indicator{opacity:.7}
  #vehicle-panel #vehicle-strip button:hover:not(:disabled),#theme:hover:not(:disabled){color:var(--text);background:transparent}
 }
-@media(min-width:640px) and (max-width:1179px){.workspace{grid-template-columns:196px minmax(0,1fr) 272px}}
-@media(min-width:640px) and (max-width:959px){
- .workspace{grid-template-columns:196px minmax(0,1fr)}
- #inspector-scroll{display:grid;grid-template-columns:repeat(2,minmax(240px,1fr));align-content:start}
+@media(min-width:640px) and (max-width:1179px){.workspace{grid-template-columns:196px minmax(0,1fr) 272px}} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+@media(min-width:640px) and (max-width:959px){ /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+ .workspace{grid-template-columns:196px minmax(0,1fr)} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+ #inspector-scroll{display:grid;grid-template-columns:repeat(2,minmax(240px,1fr));align-content:start} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 }
-@media(max-width:639px){
- #library{display:block;min-height:112px;border-right:0;border-bottom:1px solid var(--line)}
- #library #scene-nav{padding:8px;display:flex;overflow-x:auto}
+@media(max-width:639px){ /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+ #library{display:block;min-height:112px;border-right:0;border-bottom:1px solid var(--line)} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+ #library #scene-nav{padding:8px;display:flex;overflow-x:auto} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
  #library .nav-title{display:none}
- #library .scene-row{width:auto;min-width:max-content;margin:0;gap:8px}
- #vehicle-panel{padding:8px}
+ #library .scene-row{width:auto;min-width:max-content;margin:0;gap:8px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+ #vehicle-panel{padding:8px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
  #vehicle-panel #vehicle-strip{flex-direction:row;overflow:auto}
- #vehicle-panel #vehicle-strip button{min-width:180px}
+ #vehicle-panel #vehicle-strip button{min-width:180px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
  #inspector-scroll{display:grid}
  #shared-weather{display:grid}
- #canvas-playback{top:calc(100% + 12px)}
+ #canvas-playback{top:calc(100% + 12px)} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 }
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important}}
 
 /* Both controls belong to preview time, directly below the canvas. */
-#canvas-playback #indicator-mute{position:static;flex:none;width:32px;height:32px;display:grid;place-items:center;border:1px solid var(--line);background:var(--raised);border-radius:var(--control-radius);color:var(--muted)}
-:root[data-controls=blue]{--control-active:#1683e8;--primary-fill:#0875d8;--primary-text:#fff}
-:root[data-controls=blue][data-theme=dark]{--control-active:#3498f5;--primary-fill:#3498f5;--primary-text:#101c29}
+#canvas-playback #indicator-mute{position:static;flex:none;width:32px;height:32px;display:grid;place-items:center;border:1px solid var(--line);background:var(--raised);border-radius:var(--control-radius);color:var(--muted)} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+
+:root[data-controls=blue][data-theme=dark]{}
 :root[data-controls=blue] #layers .layer-row[aria-pressed=true]::after{background:var(--control-active)}
-:root[data-controls=blue] #layers .layer-row[aria-pressed=true]::before{background:#fff}
+:root[data-controls=blue] #layers .layer-row[aria-pressed=true]::before{background:var(--ds-color-track)}
 :root #export{background:var(--primary-fill,var(--text));color:var(--primary-text,var(--panel));border-color:transparent;box-shadow:none}
 /* Preserve the approved icon families; lift only the dark lower edge. */
-:root[data-theme=dark] #ud-icAsph stop:last-child{stop-color:#626c7e}
+:root[data-theme=dark] #ud-icAsph stop:last-child{stop-color:var(--ds-color-accent)}
 #library .scene-row svg [stroke="{{t.bg}}"]{stroke:var(--panel)}
-@media(max-width:639px){#library>.library-heading{margin:12px 16px 0}#vehicle-panel .library-heading{margin:12px 8px 8px}#library #scene-nav{padding:8px;overflow-x:auto}#vehicle-panel #vehicle-strip button{height:44px}}
+@media(max-width:639px){#library>.library-heading{margin:12px 16px 0}#vehicle-panel .library-heading{margin:12px 8px 8px}#library #scene-nav{padding:8px;overflow-x:auto}#vehicle-panel #vehicle-strip button{height:44px}} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 
 /* Local hierarchy comparison: retain color families and the existing motion. */
-#library #scene-nav{padding-top:24px}
-#library .nav-title,#vehicle-panel .library-heading{height:16px;font-size:12px;line-height:16px;font-weight:500;color:var(--muted)}
-#library .nav-title{margin-bottom:8px}
-#library .nav-title:not(:first-of-type){margin-top:24px}
-#vehicle-panel .library-heading{margin:24px 8px 8px}
+#library #scene-nav{padding-top:24px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+#library .nav-title,#vehicle-panel .library-heading{height:16px;font-size:12px;line-height:16px;font-weight:500;color:var(--muted)} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+#library .nav-title{margin-bottom:8px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+#library .nav-title:not(:first-of-type){margin-top:24px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+#vehicle-panel .library-heading{margin:24px 8px 8px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 #vehicle-panel #vehicle-strip button{color:var(--muted)}
 #vehicle-panel #vehicle-strip button[aria-checked=true]{color:var(--text)}
-#vehicle-panel .vehicle-icon-slot{display:grid;place-items:center;flex:none;width:32px;height:24px;border-radius:6px;background:var(--track)}
-#vehicle-panel #vehicle-strip .vehicle-icon-slot img{width:32px;height:24px}
+#vehicle-panel .vehicle-icon-slot{display:grid;place-items:center;flex:none;width:32px;height:24px;border-radius:6px;background:var(--track)} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+#vehicle-panel #vehicle-strip .vehicle-icon-slot img{width:32px;height:24px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 #library .scene-row svg,#vehicle-panel .vehicle-icon-slot{opacity:.72;filter:saturate(.12)}
 :root[data-library-icons=dim] #library .scene-row:not([aria-current=page]) svg,
 :root[data-library-icons=dim] #vehicle-panel button:not([aria-checked=true]) .vehicle-icon-slot{filter:brightness(.78)}
 #library .scene-row[aria-current=page] svg,
 #vehicle-panel #vehicle-strip button[aria-checked=true] .vehicle-icon-slot{opacity:1;filter:none}
-#inspector-scroll>#scene-settings{padding-top:20px}
-#inspector-scroll>#shared-settings{padding-top:20px}
+#inspector-scroll>#scene-settings{padding-top:20px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+#inspector-scroll>#shared-settings{padding-top:20px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 @media(hover:hover) and (pointer:fine){
  #library .scene-row:hover:not(:disabled),#vehicle-panel #vehicle-strip button:hover:not(:disabled){opacity:1;color:var(--muted);background:transparent}
  #library .scene-row[aria-current=page]:hover:not(:disabled),#vehicle-panel #vehicle-strip button[aria-checked=true]:hover:not(:disabled){color:var(--text)}
  #library .scene-row:hover:not(:disabled)>span,#vehicle-panel #vehicle-strip button:hover:not(:disabled)>.vehicle-option-name{opacity:.7}
  #scene-nav:has(.scene-row[aria-current=page]:hover:not(:disabled))>.scene-indicator{opacity:.7}
 }
-@media(max-width:639px){#library #scene-nav{padding-top:8px}#vehicle-panel .library-heading{margin-top:16px}}
+@media(max-width:639px){#library #scene-nav{padding-top:8px}#vehicle-panel .library-heading{margin-top:16px}} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */

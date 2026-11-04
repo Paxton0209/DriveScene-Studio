@@ -20,7 +20,7 @@ function harness({playing=false,scene='road',reduce=false,unavailable=false,fail
  let ready=true,exporting=false,previewBusy=false,sceneUpdating=false,vehicleUpdating=false;const themeKey='test';
  ${block}
  return {setTheme,get busy(){return !!themeTransition}};
- `)(document,{contentDocument:{documentElement:root},closest(){return {}}},bridge,{setItem(){}},()=>({getBoundingClientRect:()=>({left:1220,top:8,width:28,height:28})}),()=>{},()=>{},()=>reduce,1266,1000,{active:scene},(resolve,ms)=>timers.push({resolve,ms}),protectThemeFrame);
+ `)(document,{contentDocument:{documentElement:root},closest(){return {getBoundingClientRect:()=>({left:280,top:220})}}},bridge,{setItem(){}},()=>({getBoundingClientRect:()=>({left:1220,top:8,width:28,height:28})}),()=>{},()=>{},()=>reduce,1266,1000,{active:scene},(resolve,ms)=>timers.push({resolve,ms}),protectThemeFrame);
  return {controller,document,styles,classes,transitions,timers,events,rasters,get held(){return held},get playing(){return playing}};
 }
 test('Stationary scenes retain the circular reveal and playback intent',async()=>{
@@ -33,21 +33,22 @@ test('Stationary scenes retain the circular reveal and playback intent',async()=
   assert.equal(h.rasters[0].updates,1);assert.ok(h.rasters[0].releases>0);
  }
 });
-test('Playing driving scenes retain the shell reveal and blend the live scene without holding playback',async()=>{
+test('Playing driving scenes share the reveal wave with the shell without holding playback',async()=>{
  for(const scene of ['road','elevated','ramp','junction']){
   const h=harness({playing:true,scene}),done=h.controller.setTheme('dark');await flush();
   assert.equal(h.document.documentElement.dataset.theme,'dark');assert.equal(h.transitions.length,1);
-  assert.deepEqual(h.events,[['dark',true]]);assert.equal(h.held,false);assert.equal(h.playing,true);
+  assert.deepEqual(h.events,[['dark',false]]);assert.equal(h.held,false);assert.equal(h.playing,true);
   assert.equal(h.controller.busy,true);assert.ok(h.classes.has('theme-live-scene'));
+  assert.equal(h.styles['--theme-scene-x'],'954px');assert.equal(h.styles['--theme-scene-y'],'-198px');
   assert.equal(h.rasters[0].updates,1);assert.equal(h.rasters[0].releases,1);
   h.transitions[0].finish();await done;assert.equal(h.controller.busy,false);assert.equal(h.classes.size,0);
   assert.equal(JSON.parse(h.document.body.dataset.themeMotion).method,'soft-radial-live');
  }
 });
-test('Rapid requests during live driving finish the active blend before returning to light',async()=>{
+test('Rapid requests during live driving finish the active reveal before returning to light',async()=>{
  const h=harness({playing:true}),done=h.controller.setTheme('dark');await flush();
- await h.controller.setTheme('light');assert.deepEqual(h.events,[['dark',true]]);
- h.transitions[0].finish();await flush();assert.deepEqual(h.events,[['dark',true],['light',true]]);
+ await h.controller.setTheme('light');assert.deepEqual(h.events,[['dark',false]]);
+ h.transitions[0].finish();await flush();assert.deepEqual(h.events,[['dark',false],['light',false]]);
  h.transitions[1].finish();await done;assert.equal(h.document.documentElement.dataset.theme,'light');
  assert.equal(h.controller.busy,false);assert.equal(h.transitions.length,2);assert.equal(h.classes.size,0);
 });
@@ -81,6 +82,7 @@ test('A failed snapshot commits once without pausing playback',async()=>{
 test('Transport stays in the root snapshot and soft reveal follows the reference recipe',async()=>{
  const css=await readFile(new URL('../inspector.css',import.meta.url),'utf8'),base=await readFile(new URL('../draft.css',import.meta.url),'utf8');
  assert.doesNotMatch(css,/view-transition-(?:name:scene-transport|old\(scene-transport\)|new\(scene-transport\))/);
+ assert.match(base,/view-transition-new\(live-scene\)\{mask-image:radial-gradient\(circle at var\(--theme-scene-x\) var\(--theme-scene-y\)/);assert.doesNotMatch(base,/view-transition-old\(live-scene\)\{display:none/);
  assert.match(base,/@property --theme-reveal-progress\{[^}]*inherits:false/);assert.match(base,/- 160px/);assert.doesNotMatch(base,/theme-defocus|--theme-reveal-background/);assert.match(base,/400ms cubic-bezier\(\.65,0,\.35,1\)/);
 });
 
