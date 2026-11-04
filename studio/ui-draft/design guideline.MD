@@ -469,3 +469,17 @@ A 入口为 skill.html?refine=shell-hierarchy-3&icons=desaturate，B 将 icons �
 * 测试：发布前在本地安装依赖后运行工作台全量测试，522 项通过。
 * 构建：发布产物由仓库的 `npm run build --prefix studio/ui-draft` 生成，两个工作台入口使用相同内容。
 * 未验证：真机 iPhone / Safari 冷启动帧序列、限速下占位与首帧交接的逐帧录屏、完整悬停与禁用矩阵截图。
+
+## 24. 产品设计系统第 3–4 轮迁移（2026-11-04）
+
+依据设计系统 `product/DECISIONS.md` 的 D-01 至 D-06、D-20、D-21、D-24。本节覆盖第 23 节中与以下数值冲突的旧值，改动限定于 `shell-v5.css` 的 v5 层及末尾覆盖；引擎、场景、播放和导出逻辑保持不变。
+
+分段轨道浅色为 #ECECEC、深色为 #1C1C1C，不加边或投影。所有选项文字使用文字 1；选中块保留现有细边与 500 字重，原有位移动效不变。Format 与 Size 下拉仍保留浅色 rgba(0,0,0,.07) / 深色 rgba(255,255,255,.09) 的 1px 细边。
+
+沿用第 3 轮迁移：组标题统一文字 2；关闭开关改为浅色 #8C8C8C / 深色 #6E6E6E；产品名为 14px / 20px、500；通用禁用透明度统一 .45；Driving assist 水平内边距 12px。准备阶段的锁定控件继续遵守既有锁定规则，不人为闪变禁用透明度。D-05 对禁用透明度的变更是上一轮已记录的例外，本轮未增加动效例外。
+
+本地验证：`npm run build --prefix studio/ui-draft` 成功，`npm test --prefix studio/ui-draft` 523 / 523 通过。与第 3 轮相比，41 条 transition / animation / transform / scale / opacity 声明顺序和值完全一致；基线 c1c05ee 的 40 条原声明亦保留。两个构建入口中的 shell CSS 与源文件经构建器压缩后的结果一致。
+
+截图对照采用 c1c05ee 的 HTML 与当前构建 CSS，在同一页面、同一暂停的 Road 场景中替换样式，分别保存 1440×900、390×844 的浅深主题前后图。四组前后 distance 和 loopTime 相同，无页面脚本异常或横向溢出。截图为本地 Chrome / SwiftShader 验证；未覆盖真实 iPhone / Safari 的逐帧动效，也不代表用户视觉验收或线上发布。
+
+关键页保护（D-31）：作品集首页与 DriveScene 工作台是作者已确认的基线。设计系统与关键页冲突时保留关键页，新增变更须作者逐项确认。本次仅合入已批准的迁移。以 c1c05ee 为父提交重新构建；Junction 的 frame-clock、engine-bridge、运行时 bundle、engine.html 与帧同步测试均逐字节保留，两个 HTML 入口除 shell 样式外与该基线一致。
