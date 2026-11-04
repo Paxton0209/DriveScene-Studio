@@ -165,7 +165,9 @@ export function createParkingMotion(world){
   for(const [i,bay]of bays.entries()){const badge=createParkingSightTarget(i+1);if(badge){badge.userData.bay=bay;badge.position.set(bay.x,.055,bay.z);group.add(badge);badges.push(badge);}}
   highlight.name='Parking target space';highlight.renderOrder=2;highlight.rotation.x=-Math.PI/2;highlight.position.y=.032;
   paths=[0,1].map(i=>own(new THREE.Mesh(new THREE.BufferGeometry(),new THREE.ShaderMaterial({transparent:true,depthWrite:false,toneMapped:false,side:THREE.DoubleSide,uniforms:{tone:{value:0},opacity:{value:i?.40:.84},activation:{value:1},startFade:{value:i?0:1},endFade:{value:i?1:0}},vertexShader:'attribute vec2 uv;varying vec2 v;void main(){v=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}'.replace('attribute vec2 uv;',''),fragmentShader:parkingPathFragment}))));
-  paths.forEach((p,i)=>{p.name=i?'Parking reverse path':'Parking approach path';p.renderOrder=3});
+  // Composite the future reverse leg first: its pale rim must not cross the
+  // current approach ribbon. Keep both below stop markers and ground shadows (4).
+  paths.forEach((p,i)=>{p.name=i?'Parking reverse path':'Parking approach path';p.renderOrder=i?3:3.5});
   stops=[0,1].map(i=>{const m=own(new THREE.Mesh(new THREE.PlaneGeometry(1,.065),new THREE.ShaderMaterial({transparent:true,depthWrite:false,depthTest:true,side:THREE.DoubleSide,toneMapped:false,vertexShader:'void main(){gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:parkingStopFragment})));m.name=i?'Reverse stop line':'Approach stop line';m.rotation.x=-Math.PI/2;m.renderOrder=4;return m;});
   ownedOffset=view==='bev'?bev.clone():view==='raised'?raised.clone():new THREE.Vector3(0,11,22);cameraState=goalFor(view);cameraGoal=cameraState;lastCameraTime=now();camera();
   return true;

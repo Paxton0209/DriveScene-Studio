@@ -127,6 +127,15 @@ test('Automatic parking skips an occupied preferred bay and fails without a reac
  world.root=new THREE.Group();world.parkingBays=[];motion.sync({traffic:true});assert.equal(motion.selectDefault(),false);assert.equal(motion.get().target,null);assert.equal(motion.start(),false);
 });
 
+test('Approach covers the reverse preview rim without lifting either route above stop markers or vehicle shadows',()=>{
+ const {world,motion,pick}=fixture();assert.ok(pick(world.parkingBays.find(b=>b.x===-5.9&&b.z===-3.6)));motion.sync({assist:true});
+ const group=world.draftParkingGroup,approach=group.getObjectByName('Parking approach path'),reverse=group.getObjectByName('Parking reverse path'),stop=group.getObjectByName('Approach stop line');
+ assert.ok(reverse.renderOrder<approach.renderOrder,'reverse rim is composited before the opaque approach interior');
+ assert.ok(approach.renderOrder<stop.renderOrder,'stop marker stays above both ribbons');
+ assert.ok(approach.renderOrder<4,'ground shadow layer stays above both ribbons');
+ for(const path of [approach,reverse]){assert.equal(path.material.depthTest,true);assert.equal(path.material.depthWrite,false);}
+});
+
 test('Parking route keeps its continuous seam, remains occluded and fades at the parked rear bumper',()=>{
  const {world,motion,pick}=fixture(),bay=world.parkingBays.find(b=>b.x===-5.9&&b.z===-3.6);assert.ok(pick(bay));motion.sync({assist:true});
  const group=world.draftParkingGroup,approach=group.getObjectByName('Parking approach path'),reverse=group.getObjectByName('Parking reverse path'),stop=group.getObjectByName('Approach stop line');
