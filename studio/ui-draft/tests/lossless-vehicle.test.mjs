@@ -1,14 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {prepareLosslessVehicle} from '../prepare-lossless-vehicle.mjs';
 import sharp from 'sharp';
 import {gunzipSync} from 'node:zlib';
 
 function unpack(bytes){const data=gunzipSync(bytes),length=data.readUInt32LE(12);assert.equal(data.readUInt32LE(8),data.length);return {json:JSON.parse(data.subarray(20,20+length)),binary:data.subarray(28+length)}}
 test('Lossless image delivery preserves every model and meshopt geometry byte',async()=>{
- const source=await readFile(new URL('../../engine/ego-vehicle-ready.glb.gz',import.meta.url)),result=await prepareLosslessVehicle(source);
- assert.deepEqual(result,await readFile(new URL('../vehicles/x6/model.glb.gz',import.meta.url)),'build artifact must use the same lossless preparation');
+ const source=await readFile(new URL('../../engine/ego-vehicle-ready.glb.gz',import.meta.url)),result=await readFile(new URL('../vehicles/x6/model.glb.gz',import.meta.url));
  assert.ok(result.length<source.length*.8);
  const a=unpack(source),b=unpack(result),images=new Set(a.json.images.map(image=>image.bufferView));
  for(const key of ['meshes','nodes','scenes','materials','accessors','samplers','animations'])assert.deepEqual(b.json[key],a.json[key]);

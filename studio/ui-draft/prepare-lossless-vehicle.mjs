@@ -1,4 +1,3 @@
-import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import {gunzipSync,gzipSync} from 'node:zlib';
 import {pathToFileURL} from 'node:url';
 
@@ -37,8 +36,9 @@ export async function prepareLosslessVehicle(source){
  return gzipSync(result,{level:9,mtime:0});
 }
 
+// Keep the original preparation entry point usable while recording the manifest
+// in the same operation as the generated binary.
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
- const source=await readFile(new URL('../engine/ego-vehicle-ready.glb.gz',import.meta.url));
- await mkdir(new URL('./vehicles/x6/',import.meta.url),{recursive:true});
- await writeFile(new URL('./vehicles/x6/model.glb.gz',import.meta.url),await prepareLosslessVehicle(source));
+ const {prepareDisplayVehicles}=await import('./prepare-display-assets.mjs');
+ await prepareDisplayVehicles({regenerateX6:true,prepareX6:prepareLosslessVehicle});
 }

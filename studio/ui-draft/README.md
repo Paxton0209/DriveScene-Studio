@@ -8,13 +8,15 @@ Serve the repository root with `python3 -m http.server 18034 --bind 127.0.0.1`, 
 
 ## Rebuild and verify
 
+The X6 delivery binary and `vehicles/display-manifest.json` are committed together. A normal build checks the X6 source SHA-256, output SHA-256 and byte lengths before preparing display vehicles; it does not encode or rewrite the X6 binary. Missing or mismatched files stop the build. To intentionally regenerate X6, run `npm run prepare:x6 --prefix studio/ui-draft`, review and commit the binary and manifest together, and update the resource version if the deployed bytes change. The original `node studio/ui-draft/prepare-lossless-vehicle.mjs` preparation entry point also updates both files. Encoder versions are pinned, but byte stability across different platforms is not assumed.
+
 Install dependencies with `npm ci --prefix studio` and `npm ci --prefix studio/ui-draft`. Run `npm run build --prefix studio/ui-draft` and `npm test --prefix studio/ui-draft` from the repository root. The build reads shared engine inputs, applies isolated UI-draft transformations, then applies `saved-preview/build.mjs` to reproduce the saved runtime. It does not write shared engine files. Keep the saved profile application in this chain when rebuilding this version.
 
 `saved-preview/` contains the fixed Parking settings, local material-normal data, build-time transformations and cached frame adapter. `manifest.json` records profile hashes and the original review-runtime hash for equivalence checking. The frame adapter loads before the deferred UI module and runs inside the existing draw loop; no temporary HTTP injection is required.
 
 ## Cold-start delivery
 
-The default Road runtime excludes Parking-only material normals and all-model framing tables. Parking awaits `parking-normals.bundle.js` before displaying its prepared traffic vehicles; the module preserves the approved Float32 bits. Each vehicle loads its own exact `vehicles/<id>/framing-hull.json` alongside its GLB, consuming the parent's early request when available. A failed framing request falls back to full-mesh projection and can retry. GLBs, traffic geometry, materials and render quality are unchanged.
+The default Road runtime excludes Parking-only material normals and all-model framing tables. Parking awaits `parking-normals.bundle.js` before displaying its prepared traffic vehicles; the module preserves the approved Float32 bits. Each vehicle loads its own exact `vehicles/<id>/framing-hull.json` alongside its GLB, consuming the parent's early request when available. A failed framing request falls back to full-mesh projection and can retry. Vehicle geometry, traffic geometry and material parameters remain unchanged. X6 delivery uses the committed lossless WebP texture artifact; the other three vehicle GLBs remain byte-for-byte copies of the approved sources.
 
 The shell preloads `guizang-trial/InterLatin.woff2`; the full original Inter font remains available for other scripts. Regenerate the subset with `python prepare-startup-font.py` in an environment containing `fonttools[woff]`. The script retains variation axes, features and metrics. For an opt-in report of the final saved runtime's dependency contributions, set `DRIVESCENE_BUNDLE_REPORT` to an absolute JSON output path when building.
 
