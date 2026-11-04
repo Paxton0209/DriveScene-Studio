@@ -330,7 +330,7 @@ body[data-ready=true] #canvas-playback #scene-transport[data-finished=true]:disa
  --primary-text:#0A0A0A;
 }
 /* Superellipse corners on every shell surface; plain radii where unsupported. */
-:root :is(#library,#inspector,#artboard,#artboard .artboard-clip,#artboard::after,.shell-vehicle-card,.shell-vehicle-menu,.shell-vehicle-card .thumb,#library .scene-row,#library .scene-indicator,#inspector .segment,#inspector .shared-weather-options,#inspector .segment-indicator,#inspector .format-trigger,#inspector select,#export,.format-options,.format-options button,#canvas-playback button,#mobile-scene){corner-shape:superellipse(1.6)}
+:root :is(#library,#inspector,#artboard,#artboard .artboard-clip,#artboard::after,.shell-vehicle-card,.shell-vehicle-menu,.shell-vehicle-menu [role=menuitemradio],.shell-vehicle-card .thumb,#library .scene-row,#library .scene-indicator,#inspector .segment,#inspector .shared-weather-options,#inspector .segment-indicator,#inspector .format-trigger,#inspector select,#export,.format-options,.format-options button,#canvas-playback button,#mobile-scene){corner-shape:superellipse(1.6)}
 /* Selected row, segment thumb and menu choice share one raised tile. */
 :root #library .scene-indicator,:root #library .scene-indicator.is-moving,
 :root #inspector .segment-indicator,

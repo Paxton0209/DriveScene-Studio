@@ -52,12 +52,13 @@ export function mountFormatSelect(select, name='Export format') {
     menu.style.maxHeight = `${Math.max(80, innerHeight - 16)}px`;
     menu.style.left = `${Math.max(8, Math.min(rect.left, innerWidth - rect.width - 8))}px`;
     const height = menu.getBoundingClientRect().height;
-    menu.style.top = `${Math.max(8, rect.bottom + height + 12 > innerHeight ? rect.top - height - 4 : rect.bottom + 4)}px`;
+    const opensAbove = rect.bottom + height + 12 > innerHeight;
+    menu.style.top = `${Math.max(8, opensAbove ? rect.top - height - 4 : rect.bottom + 4)}px`;
     trigger.setAttribute('aria-expanded', 'true');
     const choices = [...menu.querySelectorAll('button:not(:disabled)')];
     (menu.querySelector('[aria-selected=true]:not(:disabled)') || choices[last ? choices.length - 1 : 0])?.focus();
     if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      menu.animate([{opacity: 0, transform: 'translateY(-3px)'}, {opacity: 1, transform: 'translateY(0)'}], {duration: 150, easing: 'cubic-bezier(.2,.8,.2,1)'});
+      menu.animate([{opacity: 0, transform: `translateY(${opensAbove ? 3 : -3}px)`}, {opacity: 1, transform: 'translateY(0)'}], {duration: 150, easing: 'cubic-bezier(.2,.8,.2,1)'});
     }
   }
 
