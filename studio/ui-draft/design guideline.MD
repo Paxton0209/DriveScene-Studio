@@ -426,6 +426,8 @@ A 入口为 skill.html?refine=shell-hierarchy-3&icons=desaturate，B 将 icons �
 
 画布下方的开关按场景命名：驾驶场景 Driving assist，泊车场景 Park assist；悬停提示 Turn on / Turn off + 小写名称，无障碍名称与文字一致。保持句首大写，与 Indoor parking 等标签一致。不用 Autopilot（商标）和 Self-driving（夸大 L2 能力）。开关状态由方向盘图标颜色表示，文字不随状态变化。
 
+尺寸（作者 2026-11-04 确认）：桌面高 40，水平内边距 16（`--ds-space-6`），方向盘图标 20，图标与文字间距 8；圆角保持 `--r-panel` 10。手机高度仍为 44、与画布同宽。按钮内不放 switch，开启状态不加底色，状态只由图标颜色表示。
+
 ### 23.7 冷启动
 
 问题：画布透明度按约 1.8 秒的固定时钟升到 0.99，与引擎是否就绪无关，引擎未就绪时用户看到的是拉伸的 1280×720 JPEG 占位，表现为「先糊后清」。
@@ -454,7 +456,7 @@ A 入口为 skill.html?refine=shell-hierarchy-3&icons=desaturate，B 将 icons �
 | 左栏场景行 | 32 / —（手机改为选择器） | 选中块滑动 | — | 文字 2 → 选中文字 1 |
 | 分段（Lanes、Camera、Weather） | 轨道 28、滑块 24 / 轨道 40、滑块 36 | 选中块 + 500 | 沿用现有 | Weather 仅图标，需名称与悬停提示 |
 | 开关（Layers） | 行高 32 / 44 | 开启强调色 | 沿用现有 | 关闭为中性灰 |
-| Driving assist | 高 32、宽自适应 / 高 44、与画布同宽 | aria-checked，图标强调色 | Junction 完成后 0.45；加载中显示 Loading… 并禁用 | 浮起材质 |
+| Driving assist | 高 40、宽自适应 / 高 44、与画布同宽 | aria-checked，图标强调色 | Junction 完成后 0.45；加载中显示 Loading… 并禁用 | 浮起材质 |
 | 下拉（Format、Size） | 28 / 40 | 菜单内选中打勾 | 沿用现有 | 菜单圆角 10，浮起 |
 | 车型卡 / 菜单 | 卡 48 / 44 | 菜单项选中块 | 卡 0.5 | 手机名称 12px |
 | 手机场景选择器 | — / 44 | 菜单项选中块 | — | 12px |
