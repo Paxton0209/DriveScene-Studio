@@ -142,9 +142,9 @@ html,body,#app{background:var(--c-bg)}
 :root #layers .layer-row{height:32px;margin:0;padding:0;color:var(--c-t2);font-size:13px;line-height:16px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 :root #layers .layer-row span{color:var(--c-t2)}
 
-/* Export: pinned below the scroll area, divider inset 16, bottom 12 */
-:root #inspector>#export-section{flex:none;position:relative;margin:0;padding:16px 16px 0} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
-:root #inspector>#export-section::before{content:'';position:absolute;top:0;left:16px;right:16px;height:1px;background:var(--c-line)} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+/* Export: pinned below the scroll area; author removed both divider layers on 2026-11-04. */
+:root #inspector>#export-section{flex:none;position:relative;margin:0;padding:16px 16px 0;box-shadow:none} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+:root #inspector>#export-section::before{content:none}
 :root #export-preview{margin:4px 0 8px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 :root #export-preview summary{display:flex;align-items:center;gap:4px;height:32px;font-size:13px;line-height:16px;color:var(--c-t2)} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 :root #export{width:100%;height:32px;margin:0;border-radius:var(--r-ctl);font-size:13px;font-weight:500} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
@@ -355,8 +355,8 @@ body[data-ready=true] #canvas-playback #scene-transport[data-finished=true]:disa
 :root[data-theme=dark] #layers .layer-row[aria-pressed=false]:not(:disabled)::after{background:var(--ds-color-switch-off);box-shadow:none}
 /* Keyboard focus: one 2px ink ring, offset 2, following the element's corner. */
 :root :is(#library .scene-row,#inspector button,#inspector select,#inspector summary,#canvas-playback button,#theme):focus-visible{outline:2px solid var(--c-t1);outline-offset:2px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
-/* Corner rule: tiles on the ground 10, controls inside a panel 6, thumbs in a track 4. */
-:root #canvas-playback #scene-transport{border-radius:var(--r-panel)} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+/* Author 2026-11-04: Assist and pickers share the control corner; panels/canvas retain the panel corner. */
+:root #canvas-playback #scene-transport{border-radius:var(--ds-radius-control)}
 /* Export is the page's single emphasis: raised face plus a 1.5px ink stroke.
  * No large solid ink block in light, no large light block in dark. */
 :root #inspector #export:not(:disabled){background:var(--c-raised);color:var(--c-t1);box-shadow:0 0 0 1.5px var(--c-t1),var(--v5-lift)}
@@ -371,7 +371,8 @@ body[data-ready=true] #canvas-playback #scene-transport[data-finished=true]:disa
  :root #inspector h2{margin-bottom:2px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
  :root #inspector-scroll>#shared-settings:not([hidden]),:root #inspector-scroll>#shared-settings~section:not([hidden]),:root #inspector-scroll #export-section{margin-top:28px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
  :root #artboard #canvas-playback #scene-transport{width:100%;flex:1 1 auto;min-width:0;box-shadow:var(--sh-thumb)}
- :root #artboard,:root #artboard .artboard-clip,:root #artboard::after,:root #mobile-scene,:root .shell-vehicle-card,:root #artboard #canvas-playback #scene-transport{border-radius:var(--r-panel)} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+ :root #artboard,:root #artboard .artboard-clip,:root #artboard::after{border-radius:var(--ds-radius-panel)}
+ :root #mobile-scene,:root .shell-vehicle-card,:root #artboard #canvas-playback #scene-transport{border-radius:var(--ds-radius-control)}
 }
 
 /* Round 3: approved static values; all pre-existing motion declarations retained. */
