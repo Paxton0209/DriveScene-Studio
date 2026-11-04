@@ -6,6 +6,7 @@ import {NodeIO} from '@gltf-transform/core';
 import {ALL_EXTENSIONS} from '@gltf-transform/extensions';
 import {MeshoptDecoder} from 'meshoptimizer';
 import {decodeTrafficPayload} from '../traffic-payload.js';
+import {createHash} from 'node:crypto';
 
 await MeshoptDecoder.ready;
 const io=new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({'meshopt.decoder':MeshoptDecoder});
@@ -31,7 +32,11 @@ test('Display models retain named body parts, finite geometry and source dimensi
   for(let axis=0;axis<3;axis++)for(const key of ['min','max'])assert.ok(Math.abs(a[key][axis]-b[key][axis])<extent*.003,`${id} ${key}/${axis}`);
   const names=new Set(display.getRoot().listNodes().map(node=>node.getName()));
   for(const node of original.getRoot().listNodes())if(node.getMesh())assert.ok(names.has(node.getName()),`${id}: ${node.getName()}`);
-  assert.equal(result.length,manifest[id].bytes);assert.deepEqual(result,source);
+  assert.equal(result.length,manifest[id].bytes);
+  assert.equal(createHash('sha256').update(source).digest('hex'),manifest[id].source);
+  assert.equal(createHash('sha256').update(result).digest('hex'),manifest[id].output);
+  if(id==='x6')assert.ok(result.length<source.length*.8);
+  else assert.deepEqual(result,source);
  }
 });
 

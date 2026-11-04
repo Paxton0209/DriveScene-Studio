@@ -1,5 +1,6 @@
 // Race a slow public asset against an immutable, integrity-checked mirror.
-// Only the build's allowlisted, byte-identical assets may use another origin.
+// Only pinned, integrity-checked build inputs may use another origin. X6's
+// original PNG model is also valid when its primary uses lossless WebP pixels.
 export async function fetchStartupAsset(url,{mirror,scope=globalThis,delay=3000}={}){
  const read=async(target,signal)=>{const response=await scope.fetch(target,{priority:'high',signal});if(!response.ok)throw Error(`Scene asset could not load (${response.status})`);return response.arrayBuffer()};
  if(!mirror||scope.location?.hostname!=='paxton0209.github.io')return read(url);

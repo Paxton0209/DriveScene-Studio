@@ -167,7 +167,7 @@ export function patchVehicleMaterials(source){
 }
 
 export function patchLoadPrepared(source){
- source=replace(source,'../prepared/${id}/model.glb.gz','../../../ui-draft/vehicles/${id}/model.glb.gz?v=restore26');
+ source=replace(source,'../prepared/${id}/model.glb.gz',"../../../ui-draft/vehicles/${id}/model.glb.gz?v=${id==='x6'?'x6-lossless-20261104':'restore26'}");
  source="import {takePrefetched} from '../../asset-request.js';\nimport {loadFramingHull} from '../../../ui-draft/framing-data.js';\n"+source;
  source=replace(source,'const response=await fetch(url,{signal});','const hullRequest=loadFramingHull(id);const response=await fetch(url,{signal});');
  source=replace(source,'const response=await fetch(url,{signal});if(!response.ok)throw Error(`Vehicle download failed (${response.status})`);\n let bytes=await response.arrayBuffer();',`const early=globalThis.__draftPreparedVehicle;
@@ -265,9 +265,9 @@ export function isolatedRuntimePlugin(){return {name:'isolated-ui-draft',setup(b
   source=replace(source,'width="1920" height="1080" viewBox="0 0 1920 1080"','width="${exportSize.width}" height="${exportSize.height}" viewBox="0 0 ${exportSize.width} ${exportSize.height}"');
   source=replace(source,'{width,height}=exportSize;','{width,height}=world;');
  }
- if(name==='app.js')source=patchApp(source).replaceAll('./vehicle-library/prepared/${id}/model.glb.gz','../ui-draft/vehicles/${id}/model.glb.gz?v=restore26');
+ if(name==='app.js')source=patchApp(source).replaceAll('./vehicle-library/prepared/${id}/model.glb.gz',"../ui-draft/vehicles/${id}/model.glb.gz?v=${id==='x6'?'x6-lossless-20261104':'restore26'}");
  if(name==='vehicle.js'){
-  source=source.replaceAll('./ego-vehicle-ready.glb.gz?v=17.9','../ui-draft/vehicles/x6/model.glb.gz?v=restore26');
+  source=source.replaceAll('./ego-vehicle-ready.glb.gz?v=17.9','../ui-draft/vehicles/x6/model.glb.gz?v=x6-lossless-20261104');
   source=replace(source,"import frameHulls from './vehicle-frame-hull.js';","import {loadFramingHull} from '../ui-draft/framing-data.js';");
   source=replace(source,'export async function createVehicle({startup=false}={}){',"export async function createVehicle({startup=false}={}){\n const hullRequest=startup?Promise.resolve(null):loadFramingHull('x6');");
   source=replace(source,'let frameIndex=0;','const frameHulls=await hullRequest||[];let frameIndex=0;');

@@ -31,10 +31,14 @@ export async function repackVehicleTextures(glb,encode){
  return Buffer.concat([header,paddedText,binHeader,payload]);
 }
 
-if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
+export async function prepareLosslessVehicle(source){
  const {default:sharp}=await import('sharp');
- const source=gunzipSync(await readFile(new URL('../engine/ego-vehicle-ready.glb.gz',import.meta.url)));
- const result=await repackVehicleTextures(source,bytes=>sharp(bytes).webp({lossless:true,effort:6}).toBuffer());
+ const result=await repackVehicleTextures(gunzipSync(source),bytes=>sharp(bytes).webp({lossless:true,effort:6}).toBuffer());
+ return gzipSync(result,{level:9,mtime:0});
+}
+
+if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
+ const source=await readFile(new URL('../engine/ego-vehicle-ready.glb.gz',import.meta.url));
  await mkdir(new URL('./vehicles/x6/',import.meta.url),{recursive:true});
- await writeFile(new URL('./vehicles/x6/model.glb.gz',import.meta.url),gzipSync(result,{level:9,mtime:0}));
+ await writeFile(new URL('./vehicles/x6/model.glb.gz',import.meta.url),await prepareLosslessVehicle(source));
 }
