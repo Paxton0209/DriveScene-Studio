@@ -73,3 +73,17 @@ test('Fast 120Hz callbacks still share a single 60Hz render budget with actual p
  }
  assert.equal(updates,60);
 });
+
+test('Junction playback samples every callback across a mixed display cadence',()=>{
+ const cadence=[.008,.011,.008,.0167,.008,.012,.008,.0167];
+ let accumulator=0,total=0;
+ for(const elapsed of cadence){
+  accumulator+=elapsed;
+  const next=frameStep(accumulator,elapsed,true);
+  assert.equal(next.seconds,elapsed);
+  accumulator=next.remaining;
+  total+=next.seconds;
+ }
+ assert.equal(total,cadence.reduce((sum,elapsed)=>sum+elapsed,0));
+ assert.equal(frameStep(.3,.3,true).seconds,.1);
+});
