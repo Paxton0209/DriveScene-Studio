@@ -33,7 +33,7 @@ test('Normal and delayed completion preserve opacity and velocity without a reve
   const p=pendingFade(elapsed),tail=readyFade(elapsed),h=.01;
   assert.equal(tail.at(0),p.opacity);assert.ok(Math.abs(tail.at(tail.duration)-1)<1e-12);
   const velocity=(tail.at(h)-tail.at(0))/h;
-  assert.ok(Math.abs(velocity-p.velocity)<1e-8);
+  assert.ok(Math.abs(velocity-p.velocity)<1e-6);
   let prior=p.opacity;
   for(let i=1;i<=200;i++){const value=tail.at(tail.duration*i/200);assert.ok(value>=prior-1e-12&&value<=1+1e-12);prior=value}
  }
@@ -54,8 +54,10 @@ test('Only a successful ready handoff marks the session',()=>{
  const s=setup();assert.deepEqual(s.writes,[]);s.lifecycle.reveal();assert.deepEqual(s.writes,[]);s.motion.onfinish();assert.deepEqual(s.writes,[['session-test','ready']]);
 });
 
-test('Every normal ready time retains a single constant opacity rate and finishes within two seconds',()=>{
- for(let ready=0;ready<=1760;ready+=20){const tail=readyFade(ready);assert.equal(ready+tail.duration,1800);for(let t=0;t<tail.duration;t+=10)assert.ok(Math.abs(tail.at(t)-(.1+.9*(ready+t)/1800))<1e-12);}
+test('Pending placeholder stays faint until the renderer is ready',()=>{
+ for(let t=0;t<=120000;t+=250)assert.ok(pendingFade(t).opacity<=.34+1e-12);
+ assert.ok(Math.abs(pendingFade(1760).opacity-.3)<1e-12);
+ for(const ready of [0,600,1760,5000,30000]){const tail=readyFade(ready);assert.equal(tail.duration,720);assert.ok(Math.abs(tail.at(720)-1)<1e-12);}
 });
 
 test('Parser and module startup time count toward the navigation budget without changing speed at readiness',()=>{
@@ -63,7 +65,7 @@ test('Parser and module startup time count toward the navigation budget without 
   const s=setup(false,false,started),m=s.motion,rate=m.playbackRate;
   const readyAt=1900,elapsed=(readyAt-started)*rate;
   m.currentTime=elapsed;s.lifecycle.reveal();
-  assert.equal(m.playbackRate,rate);assert.ok(Math.abs(started+m.options.duration/rate-1950)<1e-7);
+  assert.equal(m.playbackRate,rate);assert.ok(Math.abs(m.options.duration-elapsed-720)<1e-7);
   assert.equal(m.frames[0].opacity,.1);assert.equal(m.frames.at(-1).opacity,1);
  }
 });

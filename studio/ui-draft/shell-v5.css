@@ -299,3 +299,67 @@ body[data-ready=true] #canvas-playback #scene-transport:disabled{opacity:1}
 :root #scene-transport[data-finished=true]::before{background-color:var(--c-t3)}
 body[data-ready=true] #canvas-playback #scene-transport[data-finished=true]:disabled{opacity:.45}
 :root #scene-transport[role=switch][data-finished=true]::before{background-color:var(--c-t3)}
+
+/* Visual system v5 · 2026-11-04
+ * Neutral r=g=b scale, three materials: ground (canvas), face (flat + 1px
+ * hairline), raised (hairline + soft 0 12 28 -14 shadow; dark uses a brighter
+ * face instead of shadow). No gradients, no top inner highlight.
+ * Superellipse corners, concentric: inner = outer - padding.
+ * Motion untouched; sliding thumbs carry a hairline, never a drop shadow. */
+:root{
+ --c-bg:#F3F3F3;--c-panel:#FAFAFA;--c-raised:#FFFFFF;
+ --c-line:rgba(0,0,0,.055);--c-fill:#ECECEC;--c-fill-sel:#FFFFFF;
+ --c-t1:#1D1D1F;--c-t2:#6E6E6E;--c-t3:#8C8C8C;
+ --v5-lift:0 12px 28px -14px rgba(0,0,0,.20);
+ --sh-panel:0 0 0 1px var(--c-line);
+ --sh-raised:0 0 0 1px rgba(0,0,0,.07),var(--v5-lift);
+ --sh-thumb:0 0 0 1px rgba(0,0,0,.07);
+ --sh-canvas:none;
+ --sh-menu:0 0 0 1px rgba(0,0,0,.07),0 16px 32px -12px rgba(0,0,0,.20);
+ --r-panel:10px;--r-ctl:6px;--r-in:4px;
+ --shell-group-gap:24px;
+}
+:root[data-theme=dark]{
+ --c-bg:#0A0A0A;--c-panel:#141414;--c-raised:#1C1C1C;
+ --c-line:rgba(255,255,255,.08);--c-fill:#1C1C1C;--c-fill-sel:#262626;
+ --c-t1:#EDEDED;--c-t2:#A0A0A0;--c-t3:#7A7A7A;
+ --sh-panel:0 0 0 1px var(--c-line);
+ --sh-raised:0 0 0 1px rgba(255,255,255,.09);
+ --sh-thumb:0 0 0 1px rgba(255,255,255,.08);
+ --sh-menu:0 0 0 1px rgba(255,255,255,.09);
+ --primary-text:#0A0A0A;
+}
+/* Superellipse corners on every shell surface; plain radii where unsupported. */
+:root :is(#library,#inspector,#artboard,#artboard .artboard-clip,#artboard::after,.shell-vehicle-card,.shell-vehicle-menu,.shell-vehicle-card .thumb,#library .scene-row,#library .scene-indicator,#inspector .segment,#inspector .shared-weather-options,#inspector .segment-indicator,#inspector .format-trigger,#inspector select,#export,.format-options,.format-options button,#canvas-playback button,#mobile-scene){corner-shape:superellipse(1.6)}
+/* Selected row, segment thumb and menu choice share one raised tile. */
+:root #library .scene-indicator,:root #library .scene-indicator.is-moving,
+:root #inspector .segment-indicator,
+:root .shell-vehicle-menu [aria-checked=true]{background:var(--c-fill-sel);box-shadow:var(--sh-thumb)}
+/* Titles sit close to their group; groups breathe apart. */
+:root #library .nav-title,:root #inspector h2{margin-bottom:4px}
+:root #library .nav-title:not(:first-of-type){margin-top:24px}
+/* Assist switch sizes to its name; the minimum keeps the old footprint. */
+:root #canvas-playback #scene-transport{width:auto;min-width:112px;max-width:none;flex:0 0 auto;padding:0 14px;gap:8px}
+/* Neutral off-state for switches; only "on" uses the single accent. */
+:root #layers .layer-row[aria-pressed=false]:not(:disabled)::after{background:#A8A8A8;box-shadow:none}
+:root[data-theme=dark] #layers .layer-row[aria-pressed=false]:not(:disabled)::after{background:#3A3A3A;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+/* Keyboard focus: one 2px ink ring, offset 2, following the element's corner. */
+:root :is(#library .scene-row,#inspector button,#inspector select,#inspector summary,#canvas-playback button,#theme):focus-visible{outline:2px solid var(--c-t1);outline-offset:2px}
+/* Corner rule: tiles on the ground 10, controls inside a panel 6, thumbs in a track 4. */
+:root #canvas-playback #scene-transport{border-radius:var(--r-panel)}
+/* Export is the page's single emphasis: raised face plus a 1.5px ink stroke.
+ * No large solid ink block in light, no large light block in dark. */
+:root #inspector #export:not(:disabled){background:var(--c-raised);color:var(--c-t1);box-shadow:0 0 0 1.5px var(--c-t1),var(--v5-lift)}
+:root[data-theme=dark] #inspector #export:not(:disabled){box-shadow:0 0 0 1.5px var(--c-t1)}
+:root #inspector #export:not(:disabled) #export-label{color:inherit}
+:root #inspector #export:disabled{background:var(--c-fill);color:var(--c-t3);box-shadow:none;opacity:1}
+@media(max-width:639px), (max-width:959px) and (max-height:500px){
+ /* Scene and vehicle pickers use the existing smaller size. */
+ :root #mobile-scene,:root .shell-vehicle-card .name{font-size:12px;line-height:16px}
+ /* Canvas → Play 12, Play → panel about 20; titles hug their rows. */
+ :root #inspector .properties,:root #layers{gap:4px}
+ :root #inspector h2{margin-bottom:2px}
+ :root #inspector-scroll>#shared-settings:not([hidden]),:root #inspector-scroll>#shared-settings~section:not([hidden]),:root #inspector-scroll #export-section{margin-top:28px}
+ :root #artboard #canvas-playback #scene-transport{width:100%;flex:1 1 auto;min-width:0;box-shadow:var(--sh-thumb)}
+ :root #artboard,:root #artboard .artboard-clip,:root #artboard::after,:root #mobile-scene,:root .shell-vehicle-card,:root #artboard #canvas-playback #scene-transport{border-radius:var(--r-panel)}
+}

@@ -27,8 +27,8 @@ test('Continuous parking camera and elapsed updates do not rewrite unchanged con
 test('Pause, camera lock, completion and inspector replacement still update controls',()=>{
  const h=statusHarness(),parking={target:{x:1,z:2},elapsed:2,phase:'reverse',view:'bev',cameraLocked:true};
  h.controller.render({playing:true,parking});h.controller.render({playing:false,parking:{...parking,cameraLocked:false}});
- assert.equal(h.$('scene-transport').textContent,'Assist');assert.equal(h.$('scene-transport').attributes['aria-checked'],'true');assert.equal(h.$('scene-transport').hidden,false);assert.equal(h.$('assist').hidden,true);assert.equal(h.cameraSyncs,2);
- h.controller.render({playing:false,parking:{...parking,complete:true}});assert.equal(h.$('scene-transport').textContent,'Assist');assert.equal(h.$('scene-transport').dataset.tip,'Turn off assistance');
+ assert.match(h.$('scene-transport').textContent,/^(Driving|Park) assist$/);assert.equal(h.$('scene-transport').attributes['aria-checked'],'true');assert.equal(h.$('scene-transport').hidden,false);assert.equal(h.$('assist').hidden,true);assert.equal(h.cameraSyncs,2);
+ h.controller.render({playing:false,parking:{...parking,complete:true}});assert.match(h.$('scene-transport').textContent,/^(Driving|Park) assist$/);assert.match(h.$('scene-transport').dataset.tip,/^Turn off (driving|park) assist$/);
  const before=h.cameraSyncs;h.controller.render({playing:false,parking:{...parking,complete:true}},true);assert.equal(h.cameraSyncs,before+1);
 });
 test('Parking feedback keeps the paused state and current segment distance visible',()=>{

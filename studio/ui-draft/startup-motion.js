@@ -1,20 +1,18 @@
 // Only a prepared, running renderer may complete the opening. A previous
 // document cannot grant readiness to this new WebGL context.
-const HORIZON=60000,STEP=20,RATE=.9/1800,LINEAR_END=1760;
+// Cold start keeps the prepared poster as a faint hint. The scene only becomes
+// clear once the renderer is ready, so a stretched poster never reads as blur.
+const HORIZON=60000,STEP=20,FLOOR=.1,HOLD=.3,CEILING=.34,LINEAR_END=1760,RATE=(HOLD-FLOOR)/LINEAR_END,REVEAL=720;
 export function pendingFade(time){
  const t=Math.max(0,time);
- if(t<=LINEAR_END)return {opacity:.1+RATE*t,velocity:RATE,acceleration:0};
- const denominator=1+(t-LINEAR_END)*RATE/.01;
- return {opacity:.99-.01/denominator,velocity:RATE/denominator**2,acceleration:-2*RATE*RATE/.01/denominator**3};
+ if(t<=LINEAR_END)return {opacity:FLOOR+RATE*t,velocity:RATE,acceleration:0};
+ const span=CEILING-HOLD,denominator=1+(t-LINEAR_END)*RATE/span;
+ return {opacity:CEILING-span/denominator,velocity:RATE/denominator**2,acceleration:-2*RATE*RATE/span/denominator**3};
 }
 export function readyFade(time){
- const start=pendingFade(time);
- // When resources meet the normal budget there is no change of speed, curve,
- // or animation clock at readiness. The same fade ends at 1.8 seconds.
- if(time<=LINEAR_END)return {duration:1800-time,at:elapsed=>Math.min(1,start.opacity+RATE*Math.max(0,elapsed))};
- // A delayed load never restarts the fade or rushes a large remaining range.
- // Preserve the current opacity and velocity; finish the tiny remainder promptly.
- const distance=1-start.opacity,duration=Math.min(240,2*distance/start.velocity),b=start.velocity*duration;
+ // Readiness starts one clearing pass from the current opacity and speed.
+ // The pass settles at full opacity with zero velocity; it never reverses.
+ const start=pendingFade(time),distance=1-start.opacity,duration=REVEAL,b=start.velocity*duration;
  return {duration,at(elapsed){const u=Math.max(0,Math.min(1,elapsed/duration));return start.opacity+b*u+(3*distance-2*b)*u*u+(b-2*distance)*u*u*u}};
 }
 function pendingFrames(end,total){
