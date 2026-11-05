@@ -47,10 +47,11 @@ test('Startup publication follows traffic, saved finish and immediate final rast
 test('All scenes share a visible transport while readiness disables playback', () => {
   const block = source.slice(source.indexOf('let transportRenderKey='), source.indexOf("\nwindow.addEventListener('message'"));
   for (const active of ['road', 'parking', 'outdoor']) {
-    const transport = {dataset:{},setAttribute() {}},document={body:{dataset:{}}};
+    const attrs={},transport = {dataset:{},setAttribute(k,v) {attrs[k]=v}},document={body:{dataset:{}}};
     const render=new Function('$', 'project','document', `let status={playing:false},exporting=false,previewBusy=false,demoUpdating=false,sceneUpdating=false,vehicleUpdating=false,themeTransition=null;const syncJunctionPathLock=()=>{};${block};return renderTransport;`)(() => transport, {active},document);
-    render();assert.equal(transport.hidden,false);assert.equal(transport.disabled,true);assert.equal(transport.textContent,'Loading…');
-    document.body.dataset.ready='true';render();assert.equal(transport.hidden,false);assert.notEqual(transport.textContent,'Loading…');
+    render();assert.equal(transport.hidden,false);assert.equal(transport.disabled,true);assert.equal(transport.textContent,active==='road'?'Driving assist':'Park assist');
+    assert.equal(attrs.role,'switch');assert.equal(attrs['aria-checked'],'false');
+    document.body.dataset.ready='true';render();assert.equal(transport.hidden,false);assert.equal(transport.textContent,active==='road'?'Driving assist':'Park assist');
   }
 });
 test('Initial label population skips the replacement blur; subsequent changes still animate', () => {

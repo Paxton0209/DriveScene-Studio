@@ -109,11 +109,12 @@ if(panel&&strip){
  const render=()=>{
   const current=selected();if(!current)return;
   const name=current.getAttribute('aria-label')||'';
-  const key=name+'|'+thumb(current)+'|'+current.disabled+'|'+mobileQuery.matches;
+  // Readiness changes interaction only; keep the decoded thumbnail mounted.
+  card.disabled=current.disabled;
+  const key=name+'|'+thumb(current)+'|'+mobileQuery.matches;
   if(card.dataset.key===key)return;
   card.dataset.key=key;
   card.setAttribute('aria-label','Vehicle: '+name);
-  card.disabled=current.disabled;
   card.innerHTML=`<span class="thumb"><img src="${thumb(current)}" alt=""></span><span class="text"><span class="caption">Vehicle</span><span class="name">${name}</span></span>${mobileQuery.matches?mobileChevron:chevron}`;
  };
  const close=(returnFocus=false)=>{

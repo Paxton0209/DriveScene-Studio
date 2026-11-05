@@ -63,8 +63,12 @@ export async function prepareStartupChoices({world,models,cache,prepareVehicle,c
 }
 
 export async function decodeStartupControls(root){
- await Promise.all([...root.querySelectorAll('#vehicle-strip img')].map(async image=>{
-  await image.decode();if(!image.naturalWidth)throw Error('Vehicle thumbnail could not load');
+ const images=[...root.querySelectorAll('#vehicle-strip img')];
+ // CSS backgrounds have no decode gate. Prepare both Assist states explicitly.
+ const Image=root.defaultView?.Image;
+ if(Image)for(const state of ['off','on']){const image=new Image();image.src=new URL('./assist-wheel-'+state+'.svg',root.baseURI).href;images.push(image);}
+ await Promise.all(images.map(async image=>{
+  await image.decode();if(!image.naturalWidth)throw Error('Control image could not load');
  }));
  await root.fonts?.ready;
 }

@@ -188,7 +188,7 @@ function renderPlayback(){
 }
 function renderTransport(){
  renderParkingStatus();renderPlayback();const transport=$('scene-transport');
- if(!document.body.dataset.ready){const key='loading:'+project.active;if(transportRenderKey===key)return;transportRenderKey=key;transport.hidden=false;transport.disabled=true;transport.textContent='Loading…';transport.setAttribute('aria-label','Loading scene');return;}
+ if(!document.body.dataset.ready){const key='loading:'+project.active;if(transportRenderKey===key)return;transportRenderKey=key;transport.hidden=false;transport.disabled=true;const assistName=['parking','outdoor'].includes(project.active)?'Park assist':'Driving assist';transport.textContent=assistName;transport.setAttribute('role','switch');transport.setAttribute('aria-label',assistName);transport.setAttribute('aria-checked','false');return;}
  const complete=!!(status.junction?.complete||status.parking?.complete),running=!!status.playing,assisted=!!status.features?.path,key=JSON.stringify([project.active,running,assisted,complete,!!status.parking?.elapsed]);if(key===transportRenderKey)return;transportRenderKey=key;
  transport.hidden=false;const finished=complete;transport.dataset.finished=String(finished);transport.disabled=finished||exporting||previewBusy||demoUpdating||sceneUpdating||vehicleUpdating||!!themeTransition;const assistName=['parking','outdoor'].includes(project.active)?'Park assist':'Driving assist';transport.textContent=assistName;transport.setAttribute('role','switch');transport.setAttribute('aria-label',assistName);transport.setAttribute('aria-checked',String(assisted));
  transport.dataset.tip=(assisted?'Turn off ':'Turn on ')+assistName.toLowerCase();

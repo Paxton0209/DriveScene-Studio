@@ -193,6 +193,10 @@ for(const name of ['guizang-layout.js','shell-v5.js']){
  shippedHtml=existing.test(shippedHtml)?shippedHtml.replace(existing,()=>tag):shippedHtml.replace(external,()=>tag);
 }
 shippedHtml=shippedHtml.replace(/<link data-startup-font[^>]*>/g,'').replace('<head>','<head><link data-startup-font rel="preload" href="./guizang-trial/InterLatin.woff2" as="font" type="font/woff2" crossorigin>');
+// Fetch both Assist states before any control becomes visible.
+shippedHtml=shippedHtml.replace(/<link data-startup-icon[^>]*>/g,'').replace('<head>','<head>'+['off','on'].map(state=>`<link data-startup-icon rel="preload" href="./assist-wheel-${state}.svg" as="image">`).join(''));
+// The parser's first button has the same label and icon geometry as readiness.
+shippedHtml=shippedHtml.replace(/<button id="scene-transport"[^>]*>[^<]*<\/button>/,'<button id="scene-transport" class="raised" role="switch" aria-checked="false" aria-label="Driving assist" disabled hidden>Driving assist</button>');
 await writeFile(trialFile,shippedHtml);
 // Publish the reviewed shell at the existing public entry point as well.
 await writeFile(parentFile,shippedHtml);
