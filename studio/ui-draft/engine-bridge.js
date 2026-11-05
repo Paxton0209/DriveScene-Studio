@@ -105,7 +105,9 @@ export function installDraftBridge({world,features,drive,traffic,api,current,upd
   const wasPlaying=playing;
   if(next.seconds>0){if(playing)step(next.seconds);else{world.draftTime+=next.seconds*1000;if(!laneMotion)renderOnce()}}
   if(laneMotion&&!laneMotion.paused)laneMotion.tick(now);
-  const replayReady=!!parking.get().replayReady;
+  // A retained bay belongs to the parking scene. Reading its progress here
+  // would replan against the moving Junction ego on every animation frame.
+  const replayReady=isParking(world.state.id)&&!!parking.get().replayReady;
   if(wasPlaying!==playing||replayReady!==lastReplayReady||now-lastPublish>200||!playing&&!visualMotion()){lastPublish=now;lastReplayReady=replayReady;publish()}
   schedule();
  }

@@ -76,7 +76,7 @@
   parkingFloor=parking?floor:null;
   if(parking&&floor){
    syncEnvironment(world,scene,dark);
-   if(floor.customProgramCacheKey()!=='feedback160-parking-floor-v4'){
+   if(floor.customProgramCacheKey()!=='feedback160-parking-floor-v5'){
     const original=qa.floors.get(floor)||floor.onBeforeCompile;qa.floors.set(floor,original);
     floor.onBeforeCompile=function(shader,r){
      original.call(this,shader,r);
@@ -91,13 +91,15 @@
  dark160=mix(dark160,luma160*blue160,.10165)*.91;
  vec3 floor160=mix(light,dark160,tone);
  ${shader.fragmentShader.includes('vec3 weatherGround(')?'floor160=weatherGround(floor160,p,1.,normalize(cameraPosition-p).y,0.,p);':''}
- float aerial160=1.-exp(-pow(max(0.,-p.z)/70.,1.25));
+ // Parking rotates the camera by 90 degrees after a maneuver. Fade in every
+ // horizontal direction before the finite floor edge, keeping the near 25m intact.
+ float aerial160=1.-exp(-pow(max(0.,length(p.xz-cameraPosition.xz)-25.)/70.,1.25));
  gl_FragColor.rgb=mix(floor160,horizon,aerial160);
  `+shader.fragmentShader.slice(end);
      shader.fragmentShader=shader.fragmentShader.replace('mix(4.,18.,smoothstep(0.,.9,height))','mix(3.,8.,smoothstep(0.,.9,height))').replace('(float(y)+float(x)/7.)*8.','(float(y)+float(x)/7.)*2.');
      // Retain the same local reflection response in Indoor and Outdoor.
     };
-    floor.customProgramCacheKey=()=> 'feedback160-parking-floor-v4';floor.needsUpdate=true;changed=true;
+    floor.customProgramCacheKey=()=> 'feedback160-parking-floor-v5';floor.needsUpdate=true;changed=true;
    }
    const egoContacts=new Set(),liveContacts=new Set(),contacts=[];
    const contactParent=s.getObjectByName('Parking maneuver');
