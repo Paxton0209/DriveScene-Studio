@@ -204,7 +204,7 @@ for(const name of ['guizang-layout.js','shell-v5.js']){
 shippedHtml=shippedHtml.replace(/<link data-startup-font[^>]*>/g,'').replace('<head>','<head><link data-startup-font rel="preload" href="./guizang-trial/InterLatin.woff2" as="font" type="font/woff2" crossorigin>');
 // Discover the Assist states and compact scene chevron during HTML parsing.
 const startupIcons=['off','on'].map(state=>`<link data-startup-icon rel="preload" href="./assist-wheel-${state}.svg" as="image">`).join('');
-const compactChevron='<link data-startup-icon rel="preload" href="./chevron-down.svg" as="image" media="(max-width:639px), (max-width:959px) and (max-height:500px)">';
+const compactChevron='<link data-startup-icon rel="preload" href="./chevron-down.svg" as="image" media="(max-width:639px), (max-width:959px) and (max-height:500px), (max-width:959px) and (orientation:portrait)">';
 shippedHtml=shippedHtml.replace(/<link data-startup-icon[^>]*>/g,'').replace('<head>','<head>'+startupIcons+compactChevron);
 // Feedback stays in the viewport even when the settings surface is scrolled.
 const feedbackMarkup='<div id="feedback-stack" class="ds-toast-stack"><div id="feedback" class="ds-toast" hidden><span id="feedback-message"></span><span id="feedback-action"></span></div></div><span id="feedback-live" class="feedback-live" role="status" aria-live="polite" aria-atomic="true"></span>';

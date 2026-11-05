@@ -11,7 +11,7 @@ stackedInspector.addEventListener('change',placeExport);placeExport();
 // A compact scene menu uses the same surface and touch targets as vehicles.
 // Proxy the original scene buttons so loading locks and saved state stay shared.
 const nav=byId('scene-nav'),library=byId('library');
-const mobileQuery=matchMedia('(max-width:639px), (max-width:959px) and (max-height:500px)');
+const mobileQuery=matchMedia('(max-width:639px), (max-width:959px) and (max-height:500px), (max-width:959px) and (orientation:portrait)');
 if(nav&&library){
  const picker=document.createElement('button');
  picker.type='button';picker.id='mobile-scene';
@@ -77,17 +77,24 @@ if(nav&&library){
 }
 
 if(inspector&&scroll){
- const syncScrollEdges=()=>{
-  const mobile=mobileQuery.matches;
-  inspector.toggleAttribute('data-fade-top',mobile&&scroll.scrollTop>1);
-  inspector.toggleAttribute('data-fade-bottom',mobile&&scroll.scrollHeight-scroll.clientHeight-scroll.scrollTop>1);
+ let scrollRange=0;
+ const updateScrollPosition=()=>{
+  if(!scrollRange)return;
+  const progress=Math.max(0,Math.min(1,scroll.scrollTop/scrollRange));
+  inspector.style.setProperty('--scroll-progress',progress);
  };
- scroll.addEventListener('scroll',syncScrollEdges,{passive:true});
- const resizeEdges=new ResizeObserver(syncScrollEdges);
- resizeEdges.observe(scroll);
- for(const child of scroll.children)resizeEdges.observe(child);
- mobileQuery.addEventListener('change',syncScrollEdges);
- syncScrollEdges();
+ const updateScrollIndicator=()=>{
+  const height=scroll.clientHeight,range=scroll.scrollHeight-height;
+  scrollRange=mobileQuery.matches&&height>0&&range>1?range:0;
+  inspector.toggleAttribute('data-scroll-overflow',scrollRange>0);
+  updateScrollPosition();
+ };
+ scroll.addEventListener('scroll',updateScrollPosition,{passive:true});
+ const resizeIndicator=new ResizeObserver(updateScrollIndicator);
+ resizeIndicator.observe(scroll);
+ for(const child of scroll.children)resizeIndicator.observe(child);
+ mobileQuery.addEventListener('change',updateScrollIndicator);
+ updateScrollIndicator();
 }
 
 const panel=byId('vehicle-panel'),strip=byId('vehicle-strip');

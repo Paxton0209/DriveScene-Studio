@@ -53,6 +53,9 @@ export function patchFeatures(source){
 }
 
 export function patchApp(source){
+ // The diagnostic instance ID must not block startup on an HTTP preview.
+ source="import {MathUtils} from 'three';\n"+source;
+ source=replace(source,'crypto.randomUUID();','crypto.randomUUID?.()??MathUtils.generateUUID();');
  source=replace(source,'preparePathSound();',`const warmPathSound=()=>{if(window.parent.document.documentElement.dataset.startup){setTimeout(warmPathSound,1000);return;}void preparePathSound();};setTimeout(warmPathSound,1500);`);
  // A live driving frame is never idle enough to parse/upload three unused
  // models. Keep selection preparation and its cache; remove the opening sweep.
