@@ -44,6 +44,12 @@ export function refineWorld(source){
     float aerial=t*t*t*(t*(t*6.-15.)+10.);`);
  source=replace(source,'gl_FragColor.rgb=mix(gl_FragColor.rgb,fogColor,fogFactor);','gl_FragColor.rgb=mix(gl_FragColor.rgb,linearToOutputTexel(vec4(fogColor,1.)).rgb,fogFactor);');
  source=replace(source,'float horizonDistance=length(vGroundWorld.xz-cameraPosition.xz);float horizonAerial=smoothstep(70.,280.,horizonDistance)*darkAerialPerspective;outgoingLight=mix(outgoingLight,sharedHorizon,horizonAerial);','');
+ // The Cross exit must continue past the full distance fade at both camera heights.
+ source=replace(source,'r=2.4,crossroad=id===\'05\';',"r=2.4,crossroad=id==='05',exitEnd=-650;");
+ source=replace(source,'if(crossroad)this.road(0,w,far,-260);','if(crossroad)this.road(0,w,far,exitEnd);');
+ source=replace(source,'limit=hx?150:hz<0?110:220;','limit=hx?150:hz<0?110:-40-exitEnd;');
+ source=replace(source,'if(crossroad)this.line(side*(half-.25),far-r,-260);','if(crossroad)this.line(side*(half-.25),far-r,exitEnd);');
+ source=replace(source,'if(crossroad)this.curbs(w,far-r,-260);','if(crossroad)this.curbs(w,far-r,exitEnd);');
  // Restore the published v0.18 neutral night sky exactly. The shared
  // horizon continues to feed distant fog; light-mode values stay unchanged.
  source=replace(source,'this.sky.material.uniforms.range.value=dark?.42:.20;','this.sky.material.uniforms.range.value=dark?.20:.20;');
