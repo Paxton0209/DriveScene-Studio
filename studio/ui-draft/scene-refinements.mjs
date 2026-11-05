@@ -1,6 +1,9 @@
 function replace(source,from,to){const count=source.split(from).length-1;if(count!==1)throw Error('Scene refinement baseline mismatch: expected 1 anchor, found '+count+': '+from.slice(0,80));return source.replace(from,to)}
 
 export function refineWorld(source){
+ // Remove the inset rooftop slab: from the high camera its shaded underside
+ // reads as a black slot. Keep the main solid volume and its existing height.
+ source=replace(source,"   this.box(w*.76,.30,d*.73,x+w*.04,h+.03,z-d*.05,'building',.03);",'');
  source="import {brakingSpeed,requestedJunctionTiming,junctionLiftStart} from '../ui-draft/junction-playback.js';\n"+source;
  // Light-mode ground-level Driving roads: reduce material radiance by 10%.
  // Apply after palette assignment so all palettes and theme restores agree.
