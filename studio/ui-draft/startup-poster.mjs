@@ -25,7 +25,8 @@ export function showStartupPoster(previews,scope=window){
  root.style.setProperty('--startup-poster',`url("${image}")`);
 }
 export function layoutStartupPoster(doc=document,viewportWidth=innerWidth){
- const phone=viewportWidth<640||(viewportWidth<960&&doc.documentElement?.clientHeight<500);
+ const viewportHeight=doc.documentElement?.clientHeight;
+ const phone=viewportWidth<640||(viewportWidth<960&&(viewportHeight<=500||viewportHeight>=viewportWidth));
  if(phone){
   const bounds=doc.getElementById('stage').getBoundingClientRect(),width=Math.max(16,Math.floor(Math.min(bounds.width,Math.max(9,bounds.height-64)*16/9))),height=width*9/16;
   Object.assign(doc.getElementById('artboard').style,{width:width+'px',height:height+'px',left:Math.round((bounds.width-width)/2)+'px',top:'0px'});

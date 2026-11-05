@@ -17,7 +17,7 @@ test('Shipped controls preload the Assist icons and compact scene chevron',async
  for(const entry of ['index.html','skill.html']){
   const html=await readFile(new URL('../'+entry,import.meta.url),'utf8');
   for(const state of ['off','on'])assert.ok(html.includes(`<link data-startup-icon rel="preload" href="./assist-wheel-${state}.svg" as="image">`));
-  assert.match(html,/<link data-startup-icon rel="preload" href="\.\/chevron-down\.svg" as="image" media="\(max-width:639px\), \(max-width:959px\) and \(max-height:500px\)">/);
+  assert.match(html,/<link data-startup-icon rel="preload" href="\.\/chevron-down\.svg" as="image" media="\(max-width:639px\), \(max-width:959px\) and \(max-height:500px\), \(max-width:959px\) and \(orientation:portrait\)">/);
   assert.match(html,/<button id="scene-transport"[^>]*role="switch"[^>]*aria-checked="false"[^>]*disabled[^>]*>Driving assist<\/button>/);
  }
 });
