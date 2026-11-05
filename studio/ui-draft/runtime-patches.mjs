@@ -63,6 +63,8 @@ export function patchApp(source){
  source=replace(source,"if(query.has('qa')){const records=JSON.parse(preview.dataset.vehiclePerformance", "if(query.has('qa')||query.get('review')==='ui-draft'){const records=JSON.parse(preview.dataset.vehiclePerformance");
  source=replace(source,' vehicleReady=true;vehicleFullReady=full;',` await prepareAllStartupChoices();
  vehicleReady=true;vehicleFullReady=full;`);
+ source=replace(source,"catch(error){error.code='renderer';throw error;}","catch(error){error.code='renderer';window.parent.postMessage({type:'ui-draft-error',message:'3D rendering is unavailable.'},location.origin);throw error;}");
+ source=replace(source," world.suspended=true;world.clearLayoutTransition();"," window.parent.postMessage({type:'ui-draft-context-lost'},location.origin);\n world.suspended=true;world.clearLayoutTransition();");
  source=replace(source,'function failedVehicle(error){console.error(error);',"function failedVehicle(error){console.error(error);window.parent.postMessage({type:'ui-draft-error',message:error.message},location.origin);");
  source=replace(source,'async function installVehicle(car,full=false,animate=false,retainPrevious=false){',`async function prepareAllStartupChoices(){
  const project=window.parent.__draftStartupProject;if(!project)return;

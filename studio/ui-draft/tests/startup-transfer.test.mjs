@@ -7,3 +7,16 @@ test('Fast primary avoids any mirror; local development never uses an external o
 test('A stalled primary races the verified mirror and is cancelled after success',async()=>{let aborted=false;const result=await fetchStartupAsset('primary',{mirror,delay:5,scope:scope(async(url,{signal})=>{if(url===mirror.url)return new Response(bytes);return new Promise((_,reject)=>signal.addEventListener('abort',()=>{aborted=true;reject(Error('aborted'))}))})});assert.deepEqual(result,bytes);assert.equal(aborted,true)});
 test('A failed primary starts the mirror immediately rather than waiting for its timer',async()=>{const result=await fetchStartupAsset('primary',{mirror,delay:10000,scope:scope(async url=>{if(url==='primary')throw Error('offline');return new Response(bytes)})});assert.deepEqual(result,bytes)});
 test('Invalid mirror bytes cannot replace the original and two failed sources reject',async()=>{await assert.rejects(fetchStartupAsset('primary',{mirror,delay:5,scope:scope(async url=>url==='primary'?new Response('offline',{status:503}):new Response('wrong bytes'))}),/Scene files could not load/)});
+
+test('An active download that takes longer than the stall interval avoids a second transfer',async()=>{
+ const calls=[];
+ const body=new ReadableStream({async start(controller){
+  for(let i=1;i<=3;i++){
+   controller.enqueue(new Uint8Array([i]));
+   if(i<3)await new Promise(resolve=>setTimeout(resolve,70));
+  }
+  controller.close();
+ }});
+ const result=await fetchStartupAsset('primary',{mirror,delay:100,scope:scope(async url=>{calls.push(url);return new Response(url==='primary'?body:bytes)})});
+ assert.deepEqual(result,bytes);assert.deepEqual(calls,['primary']);
+});

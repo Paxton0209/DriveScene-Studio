@@ -16,3 +16,9 @@ test('Export closes a successful file and aborts incomplete writes',async()=>{
  await writeExportFile(handle,blob);assert.deepEqual(events,['write','close']);
  await assert.rejects(writeExportFile({async createWritable(){return {async write(){throw Error('Disk full');},async abort(){events.push('abort');}};}},blob),/Disk full/);assert.equal(events.at(-1),'abort');
 });
+
+test('Browsers without a usable native picker can save the prepared file through a download',async()=>{
+ for(const host of [{},{showSaveFilePicker(){throw new DOMException('Activation unavailable','SecurityError');}}]){
+  assert.deepEqual(await chooseExportDestination({format:'kit',name:'road'},host),{name:'road.zip',download:true});
+ }
+});

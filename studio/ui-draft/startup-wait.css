@@ -1,0 +1,36 @@
+/* A slow startup can show activity without claiming a completion percentage. */
+#startup-wait{
+ --startup-wait-delay:4s; /* ds-allow: fallback threshold for an unusually slow startup, separate from motion durations. */
+ position:fixed;
+ inset:env(safe-area-inset-top,0) 0 auto;
+ z-index:var(--ds-z-menu);
+ height:var(--ds-space-1);
+ overflow:hidden;
+ display:none;
+ visibility:hidden;
+ pointer-events:none;
+}
+:root:is([data-startup=loading],[data-startup=controls],[data-startup=warm]) #startup-wait{
+ display:block;
+ /* Keep the visibility delay when the global reduced-motion rule disables animations. */
+ animation:startup-wait-show var(--startup-wait-delay) step-end forwards!important;
+}
+#startup-wait::before{
+ content:"";
+ display:block;
+ width:25%;
+ height:100%;
+ background:var(--ds-color-accent);
+}
+@keyframes startup-wait-show{
+ to{visibility:visible}
+}
+@media(prefers-reduced-motion:no-preference){
+ #startup-wait::before{
+  animation:startup-wait-sweep var(--ds-motion-pulse) linear var(--startup-wait-delay) infinite;
+ }
+ @keyframes startup-wait-sweep{
+  from{transform:translateX(-100%)}
+  to{transform:translateX(400%)}
+ }
+}

@@ -10,7 +10,7 @@ test('Initial layout is synchronous; later resize frames preserve the same recta
   const block = source.slice(source.indexOf('function sizeBoard('), source.indexOf('\nasync function holdFrame('));
   for (const [viewport, bounds] of [[1280, {width: 792, height: 676}], [800, {width: 744, height: 420}], [390, {width: 390, height: 300}]]) {
     const style = {}, pending = [], resizes = [];
-    const nodes = {stage: {getBoundingClientRect: () => bounds}, artboard: {style}};
+    const nodes = {stage: {getBoundingClientRect: () => bounds}, artboard: {style}, feedback: {hidden:true}};
     const h = new Function('layoutStartupPoster', '$', 'innerWidth', 'requestAnimationFrame', 'cancelAnimationFrame', 'bridge', `
       let ready=false,resizeFrame=0,sceneUpdating=false;const moveNav=()=>{};
       ${block}
@@ -47,10 +47,10 @@ test('Startup publication follows traffic, saved finish and immediate final rast
 test('All scenes share a visible transport while readiness disables playback', () => {
   const block = source.slice(source.indexOf('let transportRenderKey='), source.indexOf("\nwindow.addEventListener('message'"));
   for (const active of ['road', 'parking', 'outdoor']) {
-    const attrs={},transport = {dataset:{},setAttribute(k,v) {attrs[k]=v}},document={body:{dataset:{}}};
-    const render=new Function('$', 'project','document', `let status={playing:false},exporting=false,previewBusy=false,demoUpdating=false,sceneUpdating=false,vehicleUpdating=false,themeTransition=null;const syncJunctionPathLock=()=>{};${block};return renderTransport;`)(() => transport, {active},document);
-    render();assert.equal(transport.hidden,false);assert.equal(transport.disabled,true);assert.equal(transport.textContent,active==='road'?'Driving assist':'Park assist');
-    assert.equal(attrs.role,'switch');assert.equal(attrs['aria-checked'],'false');
+    const attrs={},transport = {dataset:{},setAttribute(k,v) {attrs[k]=v},removeAttribute(k){delete attrs[k]}},document={body:{dataset:{}}};
+    const render=new Function('$', 'project','document', `let status={playing:false},sceneFailed=false,exporting=false,previewBusy=false,demoUpdating=false,sceneUpdating=false,vehicleUpdating=false,themeTransition=null;const syncJunctionPathLock=()=>{};${block};return renderTransport;`)(() => transport, {active},document);
+    render();assert.equal(transport.hidden,false);assert.equal(transport.disabled,true);assert.equal(transport.textContent,'Loading scene…');
+    assert.equal(attrs.role,undefined);assert.equal(attrs['aria-checked'],undefined);
     document.body.dataset.ready='true';render();assert.equal(transport.hidden,false);assert.equal(transport.textContent,active==='road'?'Driving assist':'Park assist');
   }
 });
@@ -126,13 +126,15 @@ test('Embedded startup passes the selected query without borrowing the parent UR
 // A scene restored while pending must not reuse another scene's loading state.
 test('Transport loading cache follows the active scene before readiness',()=>{
  const block=source.slice(source.indexOf('let transportRenderKey='),source.indexOf("\nwindow.addEventListener('message'"));
- const transport={dataset:{},setAttribute(){}},project={active:'road'},document={body:{dataset:{}}};
- const render=new Function('$','project','document',`let status={playing:false},exporting=false,previewBusy=false,demoUpdating=false,sceneUpdating=false,vehicleUpdating=false,themeTransition=null;const syncJunctionPathLock=()=>{};${block};return renderTransport;`)(()=>transport,project,document);
+ const transport={dataset:{},setAttribute(){},removeAttribute(){}},project={active:'road'},document={body:{dataset:{}}};
+ const render=new Function('$','project','document',`let status={playing:false},sceneFailed=false,exporting=false,previewBusy=false,demoUpdating=false,sceneUpdating=false,vehicleUpdating=false,themeTransition=null;const syncJunctionPathLock=()=>{};${block};return renderTransport;`)(()=>transport,project,document);
  for(const active of ['road','parking','outdoor','road']){project.active=active;render();assert.equal(transport.hidden,false);}
 });
 
- test('Entry initializes Road before the first frame while retaining saved parking camera choices', () => {
-  const block=source.slice(source.indexOf('const project=createEntryProject(saved);'),source.indexOf('const icons=await'));
+const entrySetup='const project=createEntryProject(saved);'+source.slice(source.indexOf('for(const board of Object.values(project.boards))'),source.indexOf('const icons=await'));
+
+test('Entry initializes Road before the first frame while retaining saved parking camera choices', () => {
+  const block=entrySetup;
   for(const camera of ['default','raised','bev']){
     const saved={active:'parking',boards:{parking:{params:{camera,path:true}},outdoor:{params:{camera,path:true}}}};
     const project=new Function('createEntryProject','saved','reducedMotion',`${block};return project;`)(createEntryProject,saved,()=>true);
@@ -145,7 +147,7 @@ test('Transport loading cache follows the active scene before readiness',()=>{
 });
 
 test('Driving autoplay starts on entry independently from Assist',()=>{
- const block=source.slice(source.indexOf('const project=createEntryProject(saved);'),source.indexOf('const icons=await'));
+ const block=entrySetup;
  for(const reduced of [false,true])for(const playback of [undefined,false,true]){
   const saved={shared:{playback,layers:{path:true}}},project=new Function('createEntryProject','saved','reducedMotion',`${block};return project;`)(createEntryProject,saved,()=>reduced);
   assert.equal(project.shared.playing,true);assert.equal(project.boards.road.params.path,false);
