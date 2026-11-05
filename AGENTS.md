@@ -2,7 +2,7 @@
 
 ## 设计系统
 
-本仓库的界面按 Paxton 设计系统实现。设计系统是独立仓库 `Paxton0209/paxton-design-system`（所有产品共用的上游），以 Git 子模块挂在本仓库的 `design-system/`，锁定到 v1.4.0 加浏览器检查修复候选 `286ef81`（设计系统 PR 待作者批准，未发布新标签）。克隆后先执行 `git submodule update --init`；下文路径都相对本仓库根目录，本地和云端的 AI 读到的是同一份。
+本仓库的界面按 Paxton 设计系统实现。设计系统是独立仓库 `Paxton0209/paxton-design-system`（所有产品共用的上游），以 Git 子模块挂在本仓库的 `design-system/`，锁定到 v1.4.1。克隆后先执行 `git submodule update --init`；下文路径都相对本仓库根目录，本地和云端的 AI 读到的是同一份。
 
 改动任何界面前，先过一遍 `design-system/HANDOFF.md`（执行清单），再按顺序读：
 
@@ -18,7 +18,7 @@
 0. **关键页不改。** 作品集首页和 DriveScene 工作台是作者确认过的关键页。设计系统更新不是改它们的理由；关键页的任何改动必须有作者逐项确认，否则停下。
 
 1. **只用变量。** 颜色、圆角、字号、字重、间距、阴影、时长只写 `var(--ds-…)`。tokens 已复制到本仓库的 `studio/ui-draft/design-system/tokens.css`，不手改；升级设计系统版本时从 `design-system/tokens/tokens.css` 重新复制，CI 会核对两者一致。关键页保留既有数值与实现。确需写数值时加 `/* ds-allow: 原因 */`。
-2. **组件先复制。** 需要的组件先从 `design-system/components/` 复制，保持类名和状态写法。设计系统里没有的组件不要自己造，停下来提给 Claude。
+2. **组件先复制。** 需要的组件先从 `design-system/components/` 复制，保持类名和状态写法。设计系统里没有的组件不要自己造，向作者或当前指定的监察者报告缺口，确认后再执行。
 3. **不改 `design-system/` 子模块**里的任何文件，也不随手升级子模块版本。规范需要修改时，写进交付报告的「问题」一节，或到 `paxton-design-system` 仓库单独提 PR，由作者批准。
 4. **不加**规范和作者都没要求的元素、说明文字、装饰、第二个强调色。
 5. **动效**用 SPEC 第 8 节的变量；本产品已确认的动效不改。
@@ -49,7 +49,7 @@ node design-system/checks/keypage.mjs --spec studio/ui-draft/keypage.json --out 
 - 产品名：DriveScene Studio
 - 产品 guideline：studio/ui-draft/design guideline.MD（只写本产品的布局和差异）
 - tokens 位置：studio/ui-draft/design-system/tokens.css
-- 设计系统版本：v1.4.0 + CI 修复候选 `286ef81`（未发布新标签；子模块 `design-system/`；升级见 `design-system/GOVERNANCE.md`）
+- 设计系统版本：v1.4.1（子模块 `design-system/`；升级见 `design-system/GOVERNANCE.md`）
 - 本地预览：npm start；工作台 http://127.0.0.1:8000/studio/ui-draft/
 - 构建与测试：npm run build --prefix studio/ui-draft；npm test --prefix studio/ui-draft
 - 已确认、不得改动的部分：整个工作台界面以关键页 v2（本次发版提交，基准数值见 `studio/ui-draft/keypage.json`）为准；现有动效全部冻结。Junction 修复 c1c05ee 必须保留。3D 场景渲染不在设计系统范围；studio/engine 与运行时边界保持原状。
