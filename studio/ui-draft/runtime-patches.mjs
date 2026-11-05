@@ -406,6 +406,9 @@ export function isolatedRuntimePlugin(){return {name:'isolated-ui-draft',setup(b
  }
  if(name==='traffic-vehicle.js')source=replace(source,'return {group,ready,update,',"return {draftCapture:()=>({last,elapsed,slots:slots.map(slot=>({...slot}))}),draftRestore(snapshot){last=snapshot.last;elapsed=snapshot.elapsed;slots.forEach((slot,index)=>Object.assign(slot,snapshot.slots[index]));},group,ready,update,");
  if(name==='world.js'){
+  // Junction's bridge already samples ego and camera once per display frame.
+  // The legacy 25ms camera throttle otherwise drops those sampled frames.
+  source=replace(source,'if(this.continuousDrive&&moving&&submittedAt-', 'if(this.continuousDrive&&moving&&!this.draftJunctionPlaying?.()&&submittedAt-');
   source="import {previewPixelLimit} from '../ui-draft/pixel-resolution.js';\n"+source;
   source=replace(source,'return new World(canvas,car,{...options,renderer});',"globalThis.__draftPreviewLimit=previewPixelLimit(renderer);const width=Math.min(options.width||1920,globalThis.__draftPreviewLimit);return new World(canvas,car,{...options,width,height:width*9/16,renderer});");
   source="import {parkingViewPose,applyParkingView} from '../ui-draft/parking-camera.js';\n"+source;
