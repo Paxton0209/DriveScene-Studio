@@ -198,13 +198,19 @@ window.addEventListener('message',event=>{if(event.source!==frame.contentWindow|
 new MutationObserver(()=>moveNav(true)).observe($('scene-nav'),{childList:true});
 new ResizeObserver(()=>moveNav(true)).observe($('scene-nav'));
 new ResizeObserver(sizeBoard).observe($('stage'));new ResizeObserver(sizeSegments).observe($('scene-properties'));window.addEventListener('resize',sizeBoard);window.visualViewport?.addEventListener('resize',sizeBoard);
-// Decode the initial scene before exposing it alongside the controls.
-await window.__draftStartupPosterReady;
-// The decoded first frame and controls enter without an extra frame delay.
-renderNav();renderInspector();const startup=beginStartup();$('artboard').setAttribute('aria-busy','true');$('theme').disabled=true;renderTransport();$('debug-links').hidden=!new URLSearchParams(location.search).has('debug');
+const compactStartup=matchMedia('(max-width:639px), (max-width:959px) and (max-height:500px)').matches;
+// A compact entry can prepare its real scene while the fallback poster decodes.
+if(!compactStartup)await window.__draftStartupPosterReady;
+renderNav();renderInspector();const startup=beginStartup({compact:compactStartup});$('artboard').setAttribute('aria-busy','true');$('theme').disabled=true;renderTransport();$('debug-links').hidden=!new URLSearchParams(location.search).has('debug');
 layoutBoard();
 window.__draftStartupProject=structuredClone(project);
-const controlsReady=decodeStartupControls(document);controlsReady.catch(()=>{});
+const controlsReady=(async()=>{
+ // Give the inline shell modules one frame to mount the compact pickers.
+ if(compactStartup)await new Promise(requestAnimationFrame);
+ await decodeStartupControls(document,{compact:compactStartup});
+ if(document.documentElement.dataset.startup)document.documentElement.dataset.startupControlsReady='';
+})();
+controlsReady.catch(()=>{});
 const state=params(),initialLayout=({parking:{default:'10',raised:'16',bev:'14'},outdoor:{default:'17',raised:'18',bev:'19'}}[project.active]?.[state.camera])||state.layout,query=new URLSearchParams({review:'ui-draft',quality:'sr50',scene:initialLayout,mode:document.documentElement.dataset.theme||'light',lanes:state.lanes,view:state.camera,model:state.model,buildings:Number(state.buildings),trees:Number(state.trees),waterfront:Number(state.waterfront),roadworks:'0',vehicle:'1',weather:state.weather,path:Number(state.path),traffic:Number(state.traffic),seed:board().seed});query.set('paused','1');frame.dataset.search='?'+query;frame.srcdoc=engineDocument;
 try{await waitForEngine({host:window,frame,ready:()=>api()?.get().ready&&api().draft?.get({audit:false}).ready&&api().draft.get({audit:false}).startup?.ready===true,timeout:120000});await controlsReady}catch(error){startup.abort();feedback('Scene could not load. Reload to retry.');const retry=document.createElement('button');retry.textContent='Reload';retry.className='raised';retry.onclick=()=>location.reload();$('feedback').append(retry);throw error;}ready=true;await bridge().param('traffic',state.traffic);syncFinish();layoutBoard();bridge().completeStartup();if(['road','elevated','ramp','junction'].includes(project.active))bridge().setPlaying(project.shared.playing);status=bridge().get({audit:false});renderVehicles();renderAssist();renderTransport();
 window.draftController={project,selectScene,applyParam,bridge,get status(){return status},exportCurrent};

@@ -62,13 +62,20 @@ export async function prepareStartupChoices({world,models,cache,prepareVehicle,c
  return audit;
 }
 
-export async function decodeStartupControls(root){
- const images=[...root.querySelectorAll('#vehicle-strip img')];
- // CSS backgrounds have no decode gate. Prepare both Assist states explicitly.
+export async function decodeStartupControls(root,{compact=false}={}){
+ const images=[...root.querySelectorAll(compact
+  ? '#vehicle-strip [aria-checked="true"] img, .shell-vehicle-card img'
+  : '#vehicle-strip img')];
+ // CSS backgrounds and masks need their own decode gate. On phones only
+ // the initially visible Assist state and scene chevron block the first paint.
  const Image=root.defaultView?.Image;
- if(Image)for(const state of ['off','on']){const image=new Image();image.src=new URL('./assist-wheel-'+state+'.svg',root.baseURI).href;images.push(image);}
- await Promise.all(images.map(async image=>{
+ const icons=compact?['assist-wheel-off.svg','chevron-down.svg']:['assist-wheel-off.svg','assist-wheel-on.svg'];
+ if(Image)for(const path of icons){const image=new Image();image.src=new URL('./'+path,root.baseURI).href;images.push(image);}
+ const decoding=images.map(async image=>{
   await image.decode();if(!image.naturalWidth)throw Error('Control image could not load');
- }));
+ });
+ // A missing decoration must not keep the compact controls and scene hidden.
+ if(compact)await Promise.allSettled(decoding);
+ else await Promise.all(decoding);
  await root.fonts?.ready;
 }

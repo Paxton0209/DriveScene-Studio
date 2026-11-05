@@ -1,12 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {beginStartup,pendingFade,readyFade} from '../startup-motion.js';
-function setup(reduce=false,warm=false,started=150){
+function setup(reduce=false,warm=false,started=150,compact=false){
  const marks=[],motions=[],writes=[],node=()=>({dataset:{},values:{},style:{setProperty(key,value){this.owner.values[key]=value}}});
  const nodes=Array.from({length:27},()=>{const n=node();n.style.owner=n;return n});
  const surface={animate(frames,options){const motion={frames,options,currentTime:0,played:0,paused:0,cancelled:0,effect:{setKeyframes(value){motion.frames=value},updateTiming(value){Object.assign(motion.options,value)}},pause(){motion.paused++},play(){motion.played++},cancel(){motion.cancelled++}};motions.push(motion);return motion}},inspector={inert:false},root={dataset:{startup:warm?'warm':'controls'}};
  const doc={documentElement:root,getElementById:id=>id==='startup-surface'?surface:inspector,querySelectorAll:selector=>selector.startsWith('#scene-nav')?nodes.slice(0,9):nodes.slice(9),defaultView:{matchMedia:()=>({matches:reduce}),__draftStartupSessionKey:'session-test',sessionStorage:{setItem:(key,value)=>writes.push([key,value])}}};
- const lifecycle=beginStartup({doc,clock:{now:()=>started,mark:name=>marks.push(name)}});
+ const lifecycle=beginStartup({doc,clock:{now:()=>started,mark:name=>marks.push(name)},compact});
  return {lifecycle,surface,inspector,root,nodes,marks,motions,writes,motion:motions[0]};
 }
 test('Sidebars and the scene fade start together while readiness is pending',()=>{
@@ -45,6 +45,18 @@ test('Slow loading advances from the start and extends completion without holdin
 test('Reduced motion and returning documents wait for readiness without a repeated fade',()=>{
  const reduced=setup(true);assert.equal(reduced.motions.length,0);reduced.lifecycle.reveal();assert.equal(reduced.root.dataset.startup,undefined);
  const warm=setup(false,true);assert.equal(warm.motions.length,0);assert.equal(warm.root.dataset.startup,'warm');assert.equal(warm.inspector.inert,true);assert.deepEqual(warm.writes,[]);warm.lifecycle.reveal();assert.equal(warm.root.dataset.startup,undefined);assert.equal(warm.inspector.inert,false);assert.deepEqual(warm.writes,[['session-test','ready']]);
+});
+test('Compact entry waits for a prepared scene without scheduling stagger or fade',async()=>{
+ const s=setup(false,false,150,true);
+ assert.equal(s.inspector.inert,true);
+ assert.equal(s.motions.length,0);
+ assert.ok(s.nodes.every(node=>!node.dataset.startupControl));
+ assert.deepEqual(s.writes,[]);
+ s.root.dataset.startupControlsReady='';
+ s.lifecycle.reveal();await s.lifecycle.finished;
+ assert.equal(s.inspector.inert,false);
+ assert.equal(s.root.dataset.startupControlsReady,undefined);
+ assert.deepEqual(s.writes,[['session-test','ready']]);
 });
 test('Failure clears pending or active animation without marking a pending session ready',()=>{
  const failed=setup();failed.lifecycle.abort();failed.lifecycle.reveal();assert.deepEqual(failed.writes,[]);assert.equal(failed.motions.length,1);assert.equal(failed.motion.cancelled,1);assert.equal(failed.inspector.inert,false);
