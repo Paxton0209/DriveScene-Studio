@@ -56,7 +56,7 @@ jobs:
       - name: Summary
         if: always()
         run: |
-          [ -f work-keypage.txt ] && { echo '### keypage'; echo '```'; cat work-keypage.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          if [ -f work-keypage.txt ]; then { echo '### keypage'; echo '```'; cat work-keypage.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"; fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -89,7 +89,7 @@ jobs:
       - name: Summary
         if: always()
         run: |
-          [ -f work/ui-audit/audit.md ] && { echo '### audit'; head -c 60000 work/ui-audit/audit.md; } >> "$GITHUB_STEP_SUMMARY"
+          if [ -f work/ui-audit/audit.md ]; then { echo '### audit'; head -c 60000 work/ui-audit/audit.md; } >> "$GITHUB_STEP_SUMMARY"; fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
