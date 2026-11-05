@@ -1,0 +1,9 @@
+# 设计规则、关键页基准和检查流程的改动必须由作者批准
+# （需要在 main 的分支规则里打开 Require review from Code Owners）。
+/AGENTS.md                              @Paxton0209
+/.gitmodules                            @Paxton0209
+/design-system                          @Paxton0209
+/.github/                               @Paxton0209
+/studio/ui-draft/keypage.json           @Paxton0209
+/studio/ui-draft/design-system/         @Paxton0209
+/studio/ui-draft/design\ guideline.MD   @Paxton0209

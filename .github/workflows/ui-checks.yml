@@ -1,0 +1,98 @@
+name: UI checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check-ui:
+    name: check-ui (changed files)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: tokens.css matches the pinned design system
+        run: |
+          diff -u design-system/tokens/tokens.css studio/ui-draft/design-system/tokens.css \
+            || { echo "::error::studio/ui-draft/design-system/tokens.css 与锁定版本的设计系统不一致：从 design-system/tokens/tokens.css 重新复制，不手改"; exit 1; }
+      - name: check-ui on changed files only
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then BASE="origin/${{ github.base_ref }}";
+          elif [ -n "${{ github.event.before }}" ] && [ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]; then BASE="${{ github.event.before }}";
+          else BASE="HEAD~1"; fi
+          node design-system/checks/check-changed.mjs --base "$BASE"
+
+  keypage:
+    name: keypage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright
+        run: |
+          npm ci --prefix design-system/checks
+          npx --prefix design-system/checks playwright install --with-deps chromium
+      - name: Serve repository
+        run: |
+          python3 -m http.server 8000 --bind 127.0.0.1 >/tmp/http.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:8000/studio/ui-draft/ >/dev/null && break; sleep 1; done
+      - name: Key page gaps (desktop / phone × light / dark, ±1px)
+        shell: bash
+        run: node design-system/checks/keypage.mjs --spec studio/ui-draft/keypage.json --out work/keypage | tee work-keypage.txt
+      - name: Summary
+        if: always()
+        run: |
+          [ -f work-keypage.txt ] && { echo '### keypage'; echo '```'; cat work-keypage.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: keypage
+          path: work/keypage
+          retention-days: 30
+
+  audit:
+    # 只出报告、不拦合并：关键页不追溯迁移，审计在既有界面上会有历史问题。
+    name: Render audit (report only)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright
+        run: |
+          npm ci --prefix design-system/checks
+          npx --prefix design-system/checks playwright install --with-deps chromium
+      - name: Serve repository
+        run: |
+          python3 -m http.server 8000 --bind 127.0.0.1 >/tmp/http.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:8000/studio/ui-draft/ >/dev/null && break; sleep 1; done
+      - name: Audit workbench
+        continue-on-error: true
+        run: node design-system/checks/audit.mjs --url http://127.0.0.1:8000/studio/ui-draft/ --out work/ui-audit
+      - name: Summary
+        if: always()
+        run: |
+          [ -f work/ui-audit/audit.md ] && { echo '### audit'; head -c 60000 work/ui-audit/audit.md; } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ui-audit
+          path: work/ui-audit
+          retention-days: 30
