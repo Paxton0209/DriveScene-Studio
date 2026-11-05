@@ -13,6 +13,7 @@ jobs:
   check-ui:
     name: check-ui (changed files)
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
@@ -35,6 +36,7 @@ jobs:
   keypage:
     name: keypage
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
         with:
@@ -51,23 +53,29 @@ jobs:
           python3 -m http.server 8000 --bind 127.0.0.1 >/tmp/http.log 2>&1 &
           for i in $(seq 1 30); do curl -sf http://127.0.0.1:8000/studio/ui-draft/ >/dev/null && break; sleep 1; done
       - name: Key page gaps (desktop / phone × light / dark, ±1px)
+        timeout-minutes: 18
         shell: bash
-        run: node design-system/checks/keypage.mjs --spec studio/ui-draft/keypage.json --out work/keypage | tee work-keypage.txt
+        run: |
+          mkdir -p work/keypage
+          node design-system/checks/keypage.mjs --spec studio/ui-draft/keypage.json --out work/keypage 2>&1 | tee work/keypage/keypage.log
       - name: Summary
         if: always()
         run: |
-          if [ -f work-keypage.txt ]; then { echo '### keypage'; echo '```'; cat work-keypage.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"; fi
+          if [ -f work/keypage/keypage.log ]; then { echo '### keypage'; echo '```'; cat work/keypage/keypage.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"; fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: keypage
-          path: work/keypage
+          path: |
+            work/keypage
+            /tmp/http.log
           retention-days: 30
 
   audit:
     # 只出报告、不拦合并：关键页不追溯迁移，审计在既有界面上会有历史问题。
     name: Render audit (report only)
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
         with:
@@ -84,8 +92,21 @@ jobs:
           python3 -m http.server 8000 --bind 127.0.0.1 >/tmp/http.log 2>&1 &
           for i in $(seq 1 30); do curl -sf http://127.0.0.1:8000/studio/ui-draft/ >/dev/null && break; sleep 1; done
       - name: Audit workbench
+        # 审计发现的问题只出报告；审计没跑完由下一步报错。
         continue-on-error: true
-        run: node design-system/checks/audit.mjs --url http://127.0.0.1:8000/studio/ui-draft/ --out work/ui-audit
+        timeout-minutes: 15
+        shell: bash
+        run: |
+          mkdir -p work/ui-audit
+          node design-system/checks/audit.mjs --url http://127.0.0.1:8000/studio/ui-draft/ --out work/ui-audit 2>&1 | tee work/ui-audit/audit.log
+      - name: Audit report was generated
+        if: always()
+        run: |
+          if [ ! -s work/ui-audit/audit.md ]; then
+            echo "::error::work/ui-audit/audit.md 未生成，审计没有跑完；日志尾部如下（完整日志见 ui-audit 附件）"
+            tail -n 40 work/ui-audit/audit.log 2>/dev/null || echo "(无日志)"
+            exit 1
+          fi
       - name: Summary
         if: always()
         run: |
@@ -94,5 +115,7 @@ jobs:
         if: always()
         with:
           name: ui-audit
-          path: work/ui-audit
+          path: |
+            work/ui-audit
+            /tmp/http.log
           retention-days: 30
