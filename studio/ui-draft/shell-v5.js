@@ -11,7 +11,7 @@ stackedInspector.addEventListener('change',placeExport);placeExport();
 // A compact scene menu uses the same surface and touch targets as vehicles.
 // Proxy the original scene buttons so loading locks and saved state stay shared.
 const nav=byId('scene-nav'),library=byId('library');
-const mobileQuery=matchMedia('(max-width:639px), (max-width:959px) and (max-height:500px)');
+const mobileQuery=matchMedia('(max-width:639px), (max-width:959px) and (max-height:500px), (max-width:959px) and (orientation:portrait)');
 if(nav&&library){
  const picker=document.createElement('button');
  picker.type='button';picker.id='mobile-scene';

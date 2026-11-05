@@ -211,7 +211,7 @@ body[data-ready=true] #canvas-playback #scene-transport:disabled{opacity:1}
 /* Phone shell: the canvas stays visible while the settings below it scroll.
  * Desktop keeps its existing geometry and control dimensions. */
 #mobile-scene{display:none}
-@media(max-width:639px), (max-width:959px) and (max-height:500px){ /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+@media(max-width:639px), (max-width:959px) and (max-height:500px), (max-width:959px) and (orientation:portrait){ /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
  html{overscroll-behavior:none;-webkit-text-size-adjust:100%}
  :root #app{height:100dvh;padding-top:env(safe-area-inset-top,0px)}
  :root .toolbar{height:48px;flex-basis:48px;margin-bottom:12px;padding-inline:16px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
@@ -245,14 +245,13 @@ body[data-ready=true] #canvas-playback #scene-transport:disabled{opacity:1}
  :root #mobile-scene:focus-visible{outline:2px solid var(--c-t1);outline-offset:2px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
  :root .shell-scene-menu [role=menuitemradio]:focus-visible{outline:2px solid var(--c-t1);outline-offset:-2px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
  :root .shell-scene-menu [role=menuitemradio]:active{background:var(--c-fill-sel)}
- /* Scroll content reaches the panel edge so the backdrop samples the same
-    moving surface. Keep the resting inset inside the scroll viewport. */
+ /* A shallow veil cues scrolling without blurring the controls beneath it. */
  :root #inspector{position:relative;grid-column:1;grid-row:3;display:flex;min-height:0;padding:0;border:0;box-shadow:var(--sh-panel)}
- :root #inspector::before,:root #inspector::after{content:'';position:absolute;inset-inline:0;height:var(--ds-space-11);z-index:2;pointer-events:none;background:linear-gradient(to var(--scroll-edge-direction),var(--ds-color-face),color-mix(in srgb,var(--ds-color-face) 60%,transparent) 50%,transparent);-webkit-backdrop-filter:blur(var(--ds-space-3));backdrop-filter:blur(var(--ds-space-3));-webkit-mask-image:linear-gradient(to var(--scroll-edge-direction),var(--ds-color-on-accent) var(--ds-space-4),transparent);mask-image:linear-gradient(to var(--scroll-edge-direction),var(--ds-color-on-accent) var(--ds-space-4),transparent);opacity:0;transition:opacity var(--ds-motion-fast) linear} /* ds-allow: Author requested the scrolling background to blur and fade continuously at the panel edges; gradient stops are mask/veil coverage, not decorative colors. */
+ :root #inspector::before,:root #inspector::after{content:'';position:absolute;inset-inline:0;height:var(--ds-space-4);z-index:2;pointer-events:none;background:linear-gradient(to var(--scroll-edge-direction),var(--ds-color-face),transparent);opacity:0;transition:opacity var(--ds-motion-fast) linear} /* ds-allow: Preserve the existing scroll affordance with a narrow fade instead of blurring controls. */
  :root #inspector::before{--scroll-edge-direction:bottom;top:0;border-radius:var(--ds-radius-panel) var(--ds-radius-panel) 0 0}
  :root #inspector::after{--scroll-edge-direction:top;bottom:0;border-radius:0 0 var(--ds-radius-panel) var(--ds-radius-panel)}
  :root #inspector[data-fade-top]::before,:root #inspector[data-fade-bottom]::after{opacity:1}
- :root #inspector-scroll{display:flex;flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding-block:var(--ds-space-6);scroll-padding-block:var(--ds-space-11);overscroll-behavior:contain;scrollbar-width:none}
+ :root #inspector-scroll{display:flex;flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding-block:var(--ds-space-6);scroll-padding-block:var(--ds-space-6);overscroll-behavior:contain;scrollbar-width:none}
  :root #inspector-scroll::-webkit-scrollbar{display:none;width:0;height:0}
  :root #inspector-scroll>section,:root #inspector-scroll>#scene-settings,:root #inspector-scroll>#shared-settings{flex:none;padding-inline:16px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
  /* The workspace owns the safe area; scroll padding supplies the final 16px. */
@@ -266,8 +265,8 @@ body[data-ready=true] #canvas-playback #scene-transport:disabled{opacity:1}
  /* Keep a 44px touch target around the more compact segmented visuals. */
  :root #inspector .segment button::after,:root #inspector .shared-weather-options button::after{content:'';position:absolute;inset:-4px 0} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
  :root #inspector .segment-indicator{height:36px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
- :root #inspector .format-trigger,:root #inspector .export-size{height:40px;font-size:13px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
- :root #inspector select{height:40px;font-size:16px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+ :root #inspector .format-trigger,:root #inspector .export-size{height:var(--ds-size-touch);font-size:13px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+ :root #inspector select{height:var(--ds-size-touch);font-size:16px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
  :root #layers .layer-row{height:44px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
  :root #export-preview summary,:root #export{height:44px;font-size:13px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
  :root .format-options button{height:44px;font-size:13px;touch-action:manipulation} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
@@ -377,7 +376,7 @@ body[data-ready=true] #canvas-playback #scene-transport[data-finished=true]:disa
 
 :root #inspector #export:not(:disabled) #export-label{color:inherit}
 :root #inspector #export:disabled{background:var(--c-fill);color:var(--c-t3);box-shadow:none;opacity:1}
-@media(max-width:639px), (max-width:959px) and (max-height:500px){ /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+@media(max-width:639px), (max-width:959px) and (max-height:500px), (max-width:959px) and (orientation:portrait){ /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
  /* Scene and vehicle pickers use the existing smaller size. */
  :root #mobile-scene,:root .shell-vehicle-card .name{font-size:12px;line-height:16px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
  /* Canvas → Play 12, Play → panel about 20; titles hug their rows. */
@@ -394,6 +393,8 @@ body[data-ready=true] #canvas-playback #scene-transport[data-finished=true]:disa
 :root[data-theme=dark] #inspector :is(.format-trigger,select){box-shadow:var(--sh-raised)}
 :root #library .nav-title,:root #inspector h2,:root .shell-scene-menu .shell-menu-heading{color:var(--c-t2)}
 :root .project-name{font-size:14px;line-height:20px;font-weight:500} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+/* Keep labels readable while the locked actions use the existing disabled state. */
+:root #inspector [inert] :is(button,summary,select):not(:disabled){opacity:var(--ds-motion-disabled-opacity)}
 /* D-05 explicitly changes disabled opacity; it is the sole D-21 opacity exception. */
 :root button:disabled,:root select:disabled,:root .shell-vehicle-card:disabled,:root #inspector #export:disabled{opacity:.45}
 :root:is([data-startup=controls],[data-startup=revealing]) [data-startup-control]:disabled{--startup-opacity:.45}
@@ -425,7 +426,7 @@ body[data-ready=true] #canvas-playback #scene-transport[data-finished=true]:disa
 
 /* Panel spacing model, desktop (SPEC 6.1): every row is 32 with a 28 control, rows 4 apart, so the visual gap
    between controls is always 8. Dropdown triggers use the same 28 as segments instead of an extra margin. */
-@media(min-width:640px){ /* ds-allow: Existing tablet/desktop breakpoint. */
+@media(min-width:960px), (min-width:640px) and (min-height:501px) and (orientation:landscape){ /* ds-allow: Keep dense desktop field sizes out of the stacked touch layout. */
  :root #inspector .format-trigger,:root #inspector .export-size{height:var(--ds-size-control);min-height:var(--ds-size-control)}
  :root #export-section .property+.property{margin-top:0}
 }
@@ -440,7 +441,7 @@ body[data-ready=true] #canvas-playback #scene-transport[data-finished=true]:disa
 
 
 /* Author follow-up: phone spacing and text, using the existing type/space scale. */
-@media(max-width:639px){ /* ds-allow: Existing phone breakpoint, authorized mobile spacing and typography refinement. */
+@media(max-width:639px), (max-width:959px) and (orientation:portrait){ /* ds-allow: Apply the existing stacked fields to narrow portrait layouts on both sides of 640px. */
  /* Panel spacing model, phone stacked (SPEC 6.1): title→label 8, label→control 6, field→field 16, list rows 4, group 28. */
  :root #inspector .properties{gap:var(--ds-space-6)}
  :root #layers{gap:var(--ds-space-2)}
