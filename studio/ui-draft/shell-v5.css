@@ -245,17 +245,19 @@ body[data-ready=true] #canvas-playback #scene-transport:disabled{opacity:1}
  :root #mobile-scene:focus-visible{outline:2px solid var(--c-t1);outline-offset:2px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
  :root .shell-scene-menu [role=menuitemradio]:focus-visible{outline:2px solid var(--c-t1);outline-offset:-2px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
  :root .shell-scene-menu [role=menuitemradio]:active{background:var(--c-fill-sel)}
+ /* Give the settings a definite grid track and let the scroller own its clip.
+  * The card itself does not need a second overflow layer on mobile. */
+ :root #inspector{position:relative;grid-column:1;grid-row:3;display:grid;grid-template:minmax(0,1fr) / minmax(0,1fr);min-height:0;padding:0;border:0;overflow:visible;box-shadow:var(--sh-panel)}
  /* A shallow veil cues scrolling without blurring the controls beneath it. */
- :root #inspector{position:relative;grid-column:1;grid-row:3;display:flex;min-height:0;padding:0;border:0;box-shadow:var(--sh-panel)}
  :root #inspector::before,:root #inspector::after{content:'';position:absolute;inset-inline:0;height:var(--ds-space-4);z-index:2;pointer-events:none;background:linear-gradient(to var(--scroll-edge-direction),var(--ds-color-face),transparent);opacity:0;transition:opacity var(--ds-motion-fast) linear} /* ds-allow: Preserve the existing scroll affordance with a narrow fade instead of blurring controls. */
  :root #inspector::before{--scroll-edge-direction:bottom;top:0;border-radius:var(--ds-radius-panel) var(--ds-radius-panel) 0 0}
  :root #inspector::after{--scroll-edge-direction:top;bottom:0;border-radius:0 0 var(--ds-radius-panel) var(--ds-radius-panel)}
  :root #inspector[data-fade-top]::before,:root #inspector[data-fade-bottom]::after{opacity:1}
- :root #inspector-scroll{display:flex;flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding-block:var(--ds-space-6);scroll-padding-block:var(--ds-space-6);overscroll-behavior:contain;scrollbar-width:none}
+ :root #inspector-scroll{display:block;height:auto;min-height:0;overflow-y:auto;overflow-x:hidden;border-radius:inherit;padding-block:var(--ds-space-6);scroll-padding-block:var(--ds-space-6);overscroll-behavior:contain;scrollbar-width:none}
  :root #inspector-scroll::-webkit-scrollbar{display:none;width:0;height:0}
- :root #inspector-scroll>section,:root #inspector-scroll>#scene-settings,:root #inspector-scroll>#shared-settings{flex:none;padding-inline:16px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+ :root #inspector-scroll>section,:root #inspector-scroll>#scene-settings,:root #inspector-scroll>#shared-settings{padding-inline:16px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
  /* The workspace owns the safe area; scroll padding supplies the final 16px. */
- :root #inspector-scroll #export-section{flex:none;position:relative;margin-top:var(--shell-group-gap);padding:0 16px;padding-bottom:0!important;border:0;width:auto;align-self:stretch} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+ :root #inspector-scroll #export-section{position:relative;margin-top:var(--shell-group-gap);padding:0 16px;padding-bottom:0!important;border:0;width:auto} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
  :root #inspector-scroll #export-section::before{display:none}
  :root #inspector .properties,:root #layers{gap:8px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
  :root #inspector .property,:root #shared-weather{height:44px;grid-template-columns:72px minmax(0,1fr)} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
