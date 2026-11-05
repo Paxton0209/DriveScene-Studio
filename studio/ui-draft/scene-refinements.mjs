@@ -34,6 +34,14 @@ export function refineWorld(source){
  // while postponing the blend into a narrower distant band.
  source=replace(source,'${lightQuality.aerialStart.toFixed(1)})/${lightQuality.aerialSpan.toFixed(1)}','220.)/335.');
  source=replace(source,'    if(darkAerialPerspective>.5)t=clamp((vFogDepth-65.)/235.,0.,1.);','');
+ // Delay the light Road blend only on asphalt, preserving the full horizon fade.
+ source=replace(source,"shader.uniforms.darkAerialPerspective=this.darkAerialPerspective;shader.fragmentShader='uniform float darkAerialPerspective;\\n'+shader.fragmentShader;",`shader.uniforms.darkAerialPerspective=this.darkAerialPerspective;shader.fragmentShader='uniform float darkAerialPerspective;\\n'+shader.fragmentShader;
+    if(material===this.mat.road){
+     shader.uniforms.draftRoadFogDelay=this.draftRoadFogDelay??={value:0};
+     shader.fragmentShader='uniform float draftRoadFogDelay;\\n'+shader.fragmentShader;
+    }`);
+ source=replace(source,'    float aerial=t*t*t*(t*(t*6.-15.)+10.);',`    \${material===this.mat.road?'t-=draftRoadFogDelay*t*(1.-t);':''}
+    float aerial=t*t*t*(t*(t*6.-15.)+10.);`);
  source=replace(source,'gl_FragColor.rgb=mix(gl_FragColor.rgb,fogColor,fogFactor);','gl_FragColor.rgb=mix(gl_FragColor.rgb,linearToOutputTexel(vec4(fogColor,1.)).rgb,fogFactor);');
  source=replace(source,'float horizonDistance=length(vGroundWorld.xz-cameraPosition.xz);float horizonAerial=smoothstep(70.,280.,horizonDistance)*darkAerialPerspective;outgoingLight=mix(outgoingLight,sharedHorizon,horizonAerial);','');
  // Restore the published v0.18 neutral night sky exactly. The shared

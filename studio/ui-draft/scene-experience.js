@@ -26,6 +26,7 @@ export function weatherFrame(world,weather,material,palette){
  u.top.value.copy(original.uniforms.top.value);u.bottom.value.copy(original.uniforms.bottom.value);u.range.value=original.uniforms.range.value;u.weatherTop.value.copy(u.top.value).multiplyScalar(w.default);u.cloudLight.value.set(0);u.cloudShade.value.set(0);u.cloudOpacity.value=0;
  for(const key of ['overcast','rain','snow']){const light=palette[key].light,night=palette[key].dark;u.weatherTop.value.add(light.top.clone().lerp(night.top,themeTone).multiplyScalar(w[key]));u.cloudLight.value.add(light.light.clone().lerp(night.light,themeTone).multiplyScalar(w[key]));u.cloudShade.value.add(light.shade.clone().lerp(night.shade,themeTone).multiplyScalar(w[key]));u.cloudOpacity.value+=THREE.MathUtils.lerp(light.opacity,night.opacity,themeTone)*w[key];}
  const rain=w.rain,cloud=w.overcast;
+ (world.draftRoadFogDelay??={value:0}).value=['02','09'].includes(world.state.id)?0.55*(1-themeTone)*w.default:0;
  (world.draftReflectionWet??={value:0}).value=rain;
  // Ocean color follows the same continuous cloud cover as sky and lighting.
  (world.draftCoastCloud??={value:0}).value=clamp(rain+cloud*.72+w.snow*.88,0,1);
