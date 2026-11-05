@@ -188,6 +188,9 @@ for(const name of ['draft.css','inspector.css','guizang-trial.css','shell-v5.css
 // Inline the compact startup policy in both public documents.
 const compactStartupCss=await readFile(new URL('./compact-startup.css',import.meta.url),'utf8');
 shippedHtml=shippedHtml.replace(/<style data-compact-startup-css>[\s\S]*?<\/style>\n/g,'').replace('</head>',()=>`<style data-compact-startup-css>\n${compactStartupCss}</style>\n</head>`);
+// Keep the slow-load indicator within the critical HTML size budget.
+const {code:startupWaitCss}=await transform(await readFile(new URL('./startup-wait.css',import.meta.url),'utf8'),{loader:'css',minify:true});
+shippedHtml=shippedHtml.replace(/<style data-startup-wait-css>[\s\S]*?<\/style>\n/g,'').replace('</head>',()=>`<style data-startup-wait-css>${startupWaitCss}</style>\n</head>`);
 for(const name of ['guizang-layout.js','shell-v5.js']){
  const source=(await readFile(new URL('./'+name,import.meta.url),'utf8')).replace("await fetch('./icons.json').then(response=>response.json())",await readFile(iconFile,'utf8')).replace(/<\/script/gi,'<\\/script');
  const tag=`<script type="module" data-shell-module="${name}">${source}</script>`;

@@ -43,7 +43,11 @@
  :root #inspector{touch-action:manipulation}
 }
 </style>
-</head><body><div id="app">
+<style data-startup-wait-css>#startup-wait{--startup-wait-delay:4s;position:fixed;inset:env(safe-area-inset-top,0) 0 auto;z-index:var(--ds-z-menu);height:var(--ds-space-1);overflow:hidden;display:none;visibility:hidden;pointer-events:none}:root:is([data-startup=loading],[data-startup=controls],[data-startup=warm]) #startup-wait{display:block;animation:startup-wait-show var(--startup-wait-delay) step-end forwards!important}#startup-wait:before{content:"";display:block;width:25%;height:100%;background:var(--ds-color-accent)}@keyframes startup-wait-show{to{visibility:visible}}@media (prefers-reduced-motion:no-preference){#startup-wait:before{animation:startup-wait-sweep var(--ds-motion-pulse) linear var(--startup-wait-delay) infinite}@keyframes startup-wait-sweep{0%{transform:translate(-100%)}to{transform:translate(400%)}}}
+</style>
+</head><body>
+<div id="startup-wait" role="progressbar" aria-label="Loading scene"></div>
+<div id="app">
 <header class="toolbar"><span class="project-name">DriveScene Studio</span><button id="theme" class="icon-button" aria-label="Switch to dark theme" data-tip="Appearance"></button></header>
 <div class="workspace">
 <aside id="library" aria-label="Scene and vehicle library"><h2 id="scenes-heading" class="library-heading">Scenes</h2><nav id="scene-nav" aria-labelledby="scenes-heading"></nav><section id="vehicle-panel" aria-labelledby="vehicles-heading"><h2 id="vehicles-heading" class="library-heading">Vehicles</h2><span id="vehicle-name" hidden></span><div id="vehicle-strip" class="segment vehicle-strip" role="radiogroup" aria-label="Vehicle for all scenes"></div></section></aside>
