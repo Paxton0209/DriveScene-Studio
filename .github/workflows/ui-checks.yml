@@ -92,6 +92,8 @@ jobs:
           python3 -m http.server 8000 --bind 127.0.0.1 >/tmp/http.log 2>&1 &
           for i in $(seq 1 30); do curl -sf http://127.0.0.1:8000/studio/ui-draft/ >/dev/null && break; sleep 1; done
       - name: Audit workbench
+        env:
+          DS_BROWSER_ARGS: --use-angle=swiftshader --enable-unsafe-swiftshader --ignore-gpu-blocklist
         # 审计发现的问题只出报告；审计没跑完由下一步报错。
         continue-on-error: true
         timeout-minutes: 15
