@@ -13,10 +13,11 @@ test('Readiness unlocks the vehicle card without replacing its decoded content',
  current.disabled=true;render();assert.equal(card.disabled,true);assert.equal(writes,1);
 });
 
-test('Shipped Assist controls preload both icon states before the runtime starts',async()=>{
+test('Shipped controls preload the Assist icons and compact scene chevron',async()=>{
  for(const entry of ['index.html','skill.html']){
   const html=await readFile(new URL('../'+entry,import.meta.url),'utf8');
   for(const state of ['off','on'])assert.ok(html.includes(`<link data-startup-icon rel="preload" href="./assist-wheel-${state}.svg" as="image">`));
+  assert.match(html,/<link data-startup-icon rel="preload" href="\.\/chevron-down\.svg" as="image" media="\(max-width:639px\), \(max-width:959px\) and \(max-height:500px\)">/);
   assert.match(html,/<button id="scene-transport"[^>]*role="switch"[^>]*aria-checked="false"[^>]*disabled[^>]*>Driving assist<\/button>/);
  }
 });
@@ -30,4 +31,22 @@ test('Readiness waits for both CSS Assist images to decode',async()=>{
  assert.deepEqual(images.map(im=>im.src),['https://example.com/studio/ui-draft/assist-wheel-off.svg','https://example.com/studio/ui-draft/assist-wheel-on.svg']);
  pending[0]();await Promise.resolve();assert.equal(done,false);
  pending[1]();await ready;assert.equal(done,true);
+});
+
+test('Compact readiness waits for visible icons and tolerates a failed decoration',async()=>{
+ const pending=new Map();let decoded=false;
+ class Image {
+  naturalWidth=80;
+  decode(){return new Promise((resolve,reject)=>pending.set(new URL(this.src).pathname.split('/').at(-1),{resolve,reject}));}
+ }
+ const thumbnail=new Image();thumbnail.src='https://example.com/selected.webp';
+ const root={defaultView:{Image},baseURI:'https://example.com/studio/ui-draft/',querySelectorAll(selector){
+  assert.match(selector,/aria-checked="true"/);
+  return [thumbnail];
+ }};
+ const ready=decodeStartupControls(root,{compact:true}).then(()=>decoded=true);
+ assert.deepEqual([...pending.keys()],['selected.webp','assist-wheel-off.svg','chevron-down.svg']);
+ pending.get('selected.webp').resolve();pending.get('chevron-down.svg').reject(Error('Image failed'));
+ await Promise.resolve();assert.equal(decoded,false);
+ pending.get('assist-wheel-off.svg').resolve();await ready;assert.equal(decoded,true);
 });

@@ -180,21 +180,35 @@ for(const name of ['draft.css','inspector.css','guizang-trial.css','shell-v5.css
  const sourceCss=(await readFile(new URL('./'+name,import.meta.url),'utf8')).replace('@import url("./design-system/tokens.css");',await readFile(new URL('./design-system/tokens.css',import.meta.url),'utf8'));
  const {code:css}=await transform(sourceCss,{loader:'css',minifyWhitespace:true});
  const attr=['draft.css','inspector.css'].includes(name)?'data-startup-css':'data-shell-css';
- const tag=`<style ${attr}="${name}">${css}</style>`;
+ // Source CSS is still checked line by line. Inlining collapses existing
+ // and new rules to one line, so compare rules in the owning files.
+ const tag=`<style ${attr}="${name}">/* ds-allow: Generated CSS is checked in the owning stylesheet. */${css}</style>`;
  const existing=new RegExp('<style '+attr+'="'+name.replaceAll('.','\\.')+'">[\\s\\S]*?<\\/style>');
  const external=new RegExp('<link[^>]*href="\\./'+name.replaceAll('.','\\.')+'[^\"]*"[^>]*>');
  shippedHtml=existing.test(shippedHtml)?shippedHtml.replace(existing,()=>tag):shippedHtml.replace(external,()=>tag);
 }
+// Inline the compact startup policy in both public documents.
+const compactStartupCss=await readFile(new URL('./compact-startup.css',import.meta.url),'utf8');
+shippedHtml=shippedHtml.replace(/<style data-compact-startup-css>[\s\S]*?<\/style>\n/g,'').replace('</head>',()=>`<style data-compact-startup-css>\n${compactStartupCss}</style>\n</head>`);
+// Keep the slow-load indicator within the critical HTML size budget.
+const {code:startupWaitCss}=await transform(await readFile(new URL('./startup-wait.css',import.meta.url),'utf8'),{loader:'css',minify:true});
+shippedHtml=shippedHtml.replace(/<style data-startup-wait-css>[\s\S]*?<\/style>\n/g,'').replace('</head>',()=>`<style data-startup-wait-css>${startupWaitCss}</style>\n</head>`);
 for(const name of ['guizang-layout.js','shell-v5.js']){
  const source=(await readFile(new URL('./'+name,import.meta.url),'utf8')).replace("await fetch('./icons.json').then(response=>response.json())",await readFile(iconFile,'utf8')).replace(/<\/script/gi,'<\\/script');
- const tag=`<script type="module" data-shell-module="${name}">${source}</script>`;
+ const {code}=await transform(source,{loader:"js",format:"esm",target:["chrome110","safari17"],minify:true});
+ const tag=`<script type="module" data-shell-module="${name}">${code.replace(/<\/script/gi,'<\\/script')}</script>`;
  const existing=new RegExp('<script type="module" data-shell-module="'+name.replaceAll('.','\\.')+'">[\\s\\S]*?<\\/script>');
  const external=new RegExp('<script type="module" src="\\./'+name.replaceAll('.','\\.')+'[^\"]*"><\\/script>');
  shippedHtml=existing.test(shippedHtml)?shippedHtml.replace(existing,()=>tag):shippedHtml.replace(external,()=>tag);
 }
 shippedHtml=shippedHtml.replace(/<link data-startup-font[^>]*>/g,'').replace('<head>','<head><link data-startup-font rel="preload" href="./guizang-trial/InterLatin.woff2" as="font" type="font/woff2" crossorigin>');
-// Fetch both Assist states before any control becomes visible.
-shippedHtml=shippedHtml.replace(/<link data-startup-icon[^>]*>/g,'').replace('<head>','<head>'+['off','on'].map(state=>`<link data-startup-icon rel="preload" href="./assist-wheel-${state}.svg" as="image">`).join(''));
+// Discover the Assist states and compact scene chevron during HTML parsing.
+const startupIcons=['off','on'].map(state=>`<link data-startup-icon rel="preload" href="./assist-wheel-${state}.svg" as="image">`).join('');
+const compactChevron='<link data-startup-icon rel="preload" href="./chevron-down.svg" as="image" media="(max-width:639px), (max-width:959px) and (max-height:500px)">';
+shippedHtml=shippedHtml.replace(/<link data-startup-icon[^>]*>/g,'').replace('<head>','<head>'+startupIcons+compactChevron);
+// Feedback stays in the viewport even when the settings surface is scrolled.
+const feedbackMarkup='<div id="feedback-stack" class="ds-toast-stack"><div id="feedback" class="ds-toast" hidden><span id="feedback-message"></span><span id="feedback-action"></span></div></div><span id="feedback-live" class="feedback-live" role="status" aria-live="polite" aria-atomic="true"></span>';
+shippedHtml=shippedHtml.replace(/<p id="feedback"[^>]*><\/p>/,'').replace(/<div id="feedback-stack"[\s\S]*?<\/span>\s*(?=<div id="tooltip")/,'').replace('<div id="tooltip"',()=>feedbackMarkup+'<div id="tooltip"');
 // The parser's first button has the same label and icon geometry as readiness.
 shippedHtml=shippedHtml.replace(/<button id="scene-transport"[^>]*>[^<]*<\/button>/,'<button id="scene-transport" class="raised" role="switch" aria-checked="false" aria-label="Driving assist" disabled hidden>Driving assist</button>');
 await writeFile(trialFile,shippedHtml);

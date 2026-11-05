@@ -1,0 +1,6 @@
+/* Publish the compact controls as one group while the scene initializes. */
+@media (max-width:959px) { /* ds-allow: match the existing compact workbench breakpoint. */
+ :root[data-startup]:not([data-startup-controls-ready]) :is(.toolbar,#library,#canvas-playback,#inspector){visibility:hidden}
+ :root:is([data-startup=controls],[data-startup=revealing]) :is(.toolbar>*,[data-startup-control]){animation:none}
+ :root #inspector :is(button,summary){touch-action:manipulation}
+}

@@ -149,6 +149,14 @@ html,body,#app{background:var(--c-bg)}
 :root #export-preview summary{display:flex;align-items:center;gap:4px;height:32px;font-size:13px;line-height:16px;color:var(--c-t2)} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 :root #export{width:100%;height:32px;margin:0;border-radius:var(--r-ctl);font-size:13px;font-weight:500} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 
+/* Toast geometry follows the design system component; align it to the preview without covering controls. */
+.ds-toast-stack{position:fixed;top:calc(var(--feedback-y,100%) - var(--ds-space-5));left:var(--feedback-x,50%);transform:translate(-50%,-100%);width:max-content;max-width:calc(100% - var(--ds-space-10));z-index:var(--ds-z-toast)}
+.ds-toast{display:flex;align-items:center;gap:var(--ds-space-4);min-height:var(--ds-size-touch);padding:var(--ds-space-2) var(--ds-space-5);border-radius:var(--ds-radius-panel);background:var(--ds-color-raised);color:var(--ds-color-text-1);font:var(--ds-text-ui);box-shadow:var(--ds-shadow-menu)}
+.ds-toast[hidden],#feedback-action:empty{display:none}
+#feedback-action{flex:none}
+#feedback-action :is(button,a){display:inline-flex;align-items:center;min-height:var(--ds-size-touch);padding-inline:var(--ds-space-3);font:var(--ds-text-ui-strong);color:inherit;text-decoration:underline;text-underline-offset:var(--ds-space-2)}
+.feedback-live{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)} /* ds-allow: standard visually hidden live region retains announcements. */
+
 /* Menus */
 :root .format-options{padding:4px;border-radius:var(--r-panel);box-shadow:var(--sh-menu);background:var(--c-raised)} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 :root .format-options button{height:32px;border-radius:var(--r-ctl);font-size:13px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
@@ -159,12 +167,14 @@ html,body,#app{background:var(--c-bg)}
 /* Below 960 the existing stacked layout stays; only the surfaces follow v5. */
 @media(max-width:959px){ /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
  :root .workspace{grid-template-columns:208px minmax(0,1fr)} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+ :root #inspector-scroll>#export-section{grid-column:1/-1;flex:none}
  :root #library .scene-row{padding-left:20px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 }
 @media(prefers-reduced-motion:reduce){.shell-vehicle-menu{animation:none}}
 
 /* Scene preparation locks input without a disabled-opacity pulse. */
 body[data-ready=true] #canvas-playback #scene-transport:disabled{opacity:1}
+:root #canvas-playback #scene-transport:not([role=switch]):disabled{opacity:1;color:var(--ds-color-text-2)}
 
 :root #inspector .segment svg,:root #inspector .shared-weather-options svg{width:16px;height:16px;stroke-width:1.5} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 
@@ -262,7 +272,7 @@ body[data-ready=true] #canvas-playback #scene-transport:disabled{opacity:1}
  :root #export-preview summary,:root #export{height:44px;font-size:13px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
  :root .format-options button{height:44px;font-size:13px;touch-action:manipulation} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
  :root .format-options button[aria-selected=true]::after{top:17px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
- :root #feedback,:root #export-preview-description{font:var(--ds-text-ui-caption);line-height:1.45}
+ :root #export-preview-description{font:var(--ds-text-ui-caption);line-height:1.45}
  :root #export{width:100%;margin:8px 0 0} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
  :root #inspector button,:root #inspector select,:root #library button,:root #library select,:root #canvas-playback button{touch-action:manipulation;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
  :root #parking-status{padding:10px;gap:6px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
@@ -283,7 +293,6 @@ body[data-ready=true] #canvas-playback #scene-transport:disabled{opacity:1}
 :root #artboard #engine,:root #artboard #frame-cover{border-radius:0}
 /* One inset stroke follows the host clip; inner raster surfaces stay rectangular. */
 :root #artboard::after{content:'';position:absolute;inset:0;z-index:10;box-sizing:border-box;border:1px solid var(--c-line);border-radius:inherit;pointer-events:none}
-:root #inspector-scroll>#feedback{flex:none;margin:8px 16px 0} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 
 /* Steering-wheel demo states. */
 :root #canvas-playback #scene-transport[role=switch]{position:relative;inset:auto;background:var(--c-raised);box-shadow:var(--sh-raised)}

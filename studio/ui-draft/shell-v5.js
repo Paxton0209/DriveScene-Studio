@@ -3,10 +3,10 @@
 // still goes through the original controls (vehicle strip, export section).
 const byId=id=>document.getElementById(id);
 const inspector=byId('inspector'),scroll=byId('inspector-scroll'),exportSection=byId('export-section');
-// Export stays visible on short windows: pin it below the scrolling inspector.
-if(inspector&&exportSection&&exportSection.parentElement===scroll)inspector.append(exportSection);
-// Shared status belongs to the scrolling settings, outside the pinned export block.
-const feedback=byId('feedback');if(scroll&&feedback)scroll.append(feedback);
+// Wide screens have room to pin Export. Stacked layouts share one scroll area.
+const stackedInspector=matchMedia('(max-width:959px)');
+const placeExport=()=>{const parent=stackedInspector.matches?scroll:inspector;if(parent&&exportSection&&exportSection.parentElement!==parent)parent.append(exportSection);};
+stackedInspector.addEventListener('change',placeExport);placeExport();
 
 // A compact scene menu uses the same surface and touch targets as vehicles.
 // Proxy the original scene buttons so loading locks and saved state stay shared.
@@ -70,10 +70,6 @@ if(nav&&library){
  addEventListener('resize',()=>close());
  new MutationObserver(syncPicker).observe(nav,{subtree:true,childList:true,attributes:true,attributeFilter:['aria-current','disabled','inert']});
  const compactLayout=()=>{
-  if(inspector&&scroll&&exportSection){
-   // One scroll surface keeps every parameter and export reachable on a phone.
-   (mobileQuery.matches?scroll:inspector).append(exportSection);
-  }
   requestAnimationFrame(()=>dispatchEvent(new Event('resize')));
  };
  mobileQuery.addEventListener('change',compactLayout);

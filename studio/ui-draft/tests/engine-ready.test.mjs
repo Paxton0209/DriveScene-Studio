@@ -51,3 +51,13 @@ test('Driving handoff waits for a changed rendered frame, without restarting or 
  doc.hidden=false;pending.shift()();await Promise.resolve();assert.equal(done,false);
  for(let i=0;i<2;i++){distance++;renderedFrames++;pending.shift()();}await ready;assert.equal(done,true);
 });
+
+test('A renderer without advancing frames rejects instead of locking the workbench indefinitely',async()=>{
+ const {waitForStartupMotion}=await import('../engine-ready.js');
+ const pending=[],state={scene:'road',playing:true,distance:0};
+ const host={document:{hidden:false},requestAnimationFrame:fn=>pending.push(fn)};
+ const waiting=waitForStartupMotion({host,bridge:{get:()=>state,themeStatus:()=>({renderedFrames:1})},timeout:100});
+ pending.shift()(0);pending.shift()(101);
+ await assert.rejects(waiting,/stopped before it was ready/);
+ assert.equal(pending.length,0);
+});

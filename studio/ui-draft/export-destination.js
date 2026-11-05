@@ -6,8 +6,12 @@ export function exportFileSpec(format,videoExtension='mp4'){
 // transient user activation. Cancelling never starts the export.
 export async function chooseExportDestination({format,name,videoExtension='mp4'},host=window){
  const spec=exportFileSpec(format,videoExtension);
- if(typeof host.showSaveFilePicker!=='function')throw Error('Choose a save location in a browser that supports Save As (Chrome or Edge).');
- return host.showSaveFilePicker({id:'drivescene-export',suggestedName:`${name}.${spec.extension}`,types:[{description:spec.description,accept:{[spec.mime]:[`.${spec.extension}`]}}]});
+ const filename=`${name}.${spec.extension}`;
+ if(typeof host.showSaveFilePicker==='function'){
+  try{return await host.showSaveFilePicker({id:'drivescene-export',suggestedName:filename,types:[{description:spec.description,accept:{[spec.mime]:[`.${spec.extension}`]}}]});}
+  catch(error){if(!['SecurityError','NotAllowedError'].includes(error.name))throw error;}
+ }
+ return {name:filename,download:true};
 }
 export async function writeExportFile(handle,blob){
  const stream=await handle.createWritable();
