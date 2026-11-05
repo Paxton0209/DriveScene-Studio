@@ -20,18 +20,22 @@ function pendingFrames(end,total){
  for(let time=0;time<end;time+=STEP)frames.push({opacity:pendingFade(time).opacity,offset:time/total});
  frames.push({opacity:pendingFade(end).opacity,offset:end/total});return frames;
 }
-export function beginStartup({doc=document,clock=performance}={}){
+export function beginStartup({doc=document,clock=performance,compact=false}={}){
  const root=doc.documentElement,surface=doc.getElementById('startup-surface'),inspector=doc.getElementById('inspector-scroll');
- const entries=[...doc.querySelectorAll('#scene-nav > .nav-title, #scene-nav > .scene-row')];
- entries.forEach((node,index)=>{node.dataset.startupControl='left';node.style.setProperty('--startup-delay',Math.min(index*40.5,324)+'ms')});
- const controls=[...doc.querySelectorAll('#inspector-scroll :is(.vehicle-heading, #vehicle-strip, section > h2, .property, .layer-row, #export-preview, #export)')];
- controls.forEach((node,index)=>{node.dataset.startupControl='right';node.style.setProperty('--startup-delay',Math.min(index*27,486)+'ms')});
+ if(!compact){
+  const entries=[...doc.querySelectorAll('#scene-nav > .nav-title, #scene-nav > .scene-row')];
+  entries.forEach((node,index)=>{node.dataset.startupControl='left';node.style.setProperty('--startup-delay',Math.min(index*40.5,324)+'ms')});
+  const controls=[...doc.querySelectorAll('#inspector-scroll :is(.vehicle-heading, #vehicle-strip, section > h2, .property, .layer-row, #export-preview, #export)')];
+  controls.forEach((node,index)=>{node.dataset.startupControl='right';node.style.setProperty('--startup-delay',Math.min(index*27,486)+'ms')});
+ }
  const warm=root.dataset.startup==='warm',reduce=doc.defaultView.matchMedia('(prefers-reduced-motion: reduce)').matches;
+ const instant=compact||warm||reduce;
  let done=false,revealed=false,motion=null,resolveFinished;
  const finished=new Promise(resolve=>{resolveFinished=resolve});
  function finish(){
   if(done)return;done=true;
   delete root.dataset.startup;
+  delete root.dataset.startupControlsReady;
   if(motion){motion.onfinish=null;motion.cancel()}
   inspector.inert=false;doc.getElementById('scene-nav').inert=false;
   if(revealed){try{doc.defaultView.sessionStorage?.setItem(doc.defaultView.__draftStartupSessionKey,'ready')}catch{}}
@@ -39,7 +43,7 @@ export function beginStartup({doc=document,clock=performance}={}){
  }
  inspector.inert=true;doc.getElementById('scene-nav').inert=true;root.dataset.startup=warm?'warm':'controls';
  if(!warm)clock.mark('draft-startup-controls');
- if(!reduce&&!warm){
+ if(!instant){
   // Allocate the fade once, against navigation's two-second budget. Its rate
   // stays fixed after the first frame; readiness never speeds it up.
   const started=typeof clock.now==='function'?clock.now():0;
@@ -53,7 +57,7 @@ export function beginStartup({doc=document,clock=performance}={}){
   reveal(){
    if(done||revealed)return;revealed=true;
    clock.mark('draft-startup-reveal');
-   if(reduce||warm){finish();return}
+   if(instant){finish();return}
    // Retain the compositor animation and its clock. Rebuild the remaining
    // timeline without an opacity reset, zero-speed hold or velocity jump.
    const elapsed=Number(motion.currentTime)||0,tail=readyFade(elapsed),total=elapsed+tail.duration;
