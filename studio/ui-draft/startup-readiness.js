@@ -66,10 +66,10 @@ export async function decodeStartupControls(root,{compact=false}={}){
  const images=[...root.querySelectorAll(compact
   ? '#vehicle-strip [aria-checked="true"] img, .shell-vehicle-card img'
   : '#vehicle-strip img')];
- // CSS backgrounds and masks need their own decode gate. On phones only
- // the initially visible Assist state and scene chevron block the first paint.
+ // CSS backgrounds and masks need their own decode gate. The compact
+ // scene picker also has a chevron.
  const Image=root.defaultView?.Image;
- const icons=compact?['assist-wheel-off.svg','chevron-down.svg']:['assist-wheel-off.svg','assist-wheel-on.svg'];
+ const icons=['assist-wheel-off.svg',...(compact?['chevron-down.svg']:[])];
  if(Image)for(const path of icons){const image=new Image();image.src=new URL('./'+path,root.baseURI).href;images.push(image);}
  const decoding=images.map(async image=>{
   await image.decode();if(!image.naturalWidth)throw Error('Control image could not load');

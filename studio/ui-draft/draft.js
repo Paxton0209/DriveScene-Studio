@@ -29,7 +29,7 @@ const project=createEntryProject(saved);
 const recoveryKey=storageKey+'-recover';
 try{const scene=sessionStorage.getItem(recoveryKey);sessionStorage.removeItem(recoveryKey);if(sceneTypes.some(type=>type.id===scene))project.active=scene;}catch{}
 for(const board of Object.values(project.boards))board.params.path=false;project.shared.playing=true;project.shared.playback=project.shared.playing;if(project.shared.layers)project.shared.layers.path=false;const icons=await fetch('./icons.json').then(response=>response.json());
-let ready=false,status={playing:false},duration=10,videoExtension='mp4',videoAvailable=true,videoReady=false,scrollTimer=0,resizeFrame=0,exporting=false,previewBusy=false,demoUpdating=false,sceneUpdating=false,vehicleUpdating=false,tooltipTimer=0,tooltipLast=0,tooltipAnchor=null,sceneRequest=0;
+let ready=false,status={playing:false},duration=10,videoExtension='mp4',videoAvailable=true,videoReady=false,scrollTimer=0,resizeFrame=0,exporting=false,previewBusy=false,demoUpdating=null,sceneUpdating=false,vehicleUpdating=false,tooltipTimer=0,tooltipLast=0,tooltipAnchor=null,sceneRequest=0;
 const api=()=>frame.contentWindow.layoutEngine,bridge=()=>api().draft,board=()=>project.boards[project.active],params=()=>board().params;
 const canvasTransport=document.createElement('button');canvasTransport.id='canvas-transport';canvasTransport.type='button';canvasTransport.className='icon-button';canvasTransport.hidden=true;canvasTransport.disabled=true;document.querySelector('.artboard-clip').append(canvasTransport);
 const vehicles=[['model-3','Tesla Model 3'],['x6','BMW X6'],['ix','BMW iX'],['xc90','Volvo XC90']],thumb=id=>vehicleThumbnails[id];
@@ -89,7 +89,7 @@ async function holdFrame(retain=false){if(retain&&!$('frame-cover').hidden)retur
 async function releaseFrame(){if(reducedMotion()){$('frame-cover').hidden=true;return}const fade=$('frame-cover').animate([{opacity:1},{opacity:0}],{duration:200,easing:'ease-out'});await fade.finished.catch(()=>{});$('frame-cover').hidden=true}
 let sceneSelection=Promise.resolve(),pendingScene=null,sceneReveal=null;
 function acknowledgeScene(type){document.querySelectorAll('[data-scene]').forEach(button=>{if(button.dataset.scene===type)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');});moveNav(false);}
-function selectScene(type){if(!ready){pendingScene=type;acknowledgeScene(type);return Promise.resolve();}if(exporting||previewBusy||vehicleUpdating||type===project.active&&!sceneUpdating)return Promise.resolve();const request=++sceneRequest;sceneUpdating=true;acknowledgeScene(type);sceneReveal?.abort();sceneSelection=sceneSelection.catch(()=>{}).then(async()=>{while(themeTransition)await themeTransition.finished.catch(()=>{});return request===sceneRequest?performScene(type,request):undefined;});return sceneSelection;}
+function selectScene(type){if(!ready){pendingScene=type;acknowledgeScene(type);return Promise.resolve();}if(exporting||previewBusy||demoUpdating||vehicleUpdating||type===project.active&&!sceneUpdating)return Promise.resolve();const request=++sceneRequest;sceneUpdating=true;acknowledgeScene(type);sceneReveal?.abort();sceneSelection=sceneSelection.catch(()=>{}).then(async()=>{while(themeTransition)await themeTransition.finished.catch(()=>{});return request===sceneRequest?performScene(type,request):undefined;});return sceneSelection;}
 async function performScene(type,request){
  sceneUpdating=true;bridge().suspendIndicator();$('theme').disabled=true;lockInspector(true);canvasTransport.disabled=true;renderTransport();
  await holdFrame(true);await controlPaint('scene');if(sceneFailed||request!==sceneRequest)return;
@@ -116,13 +116,13 @@ async function performScene(type,request){
   }
  }
 }
-async function applyParam(key,value,save=true,options={}){const previousTraffic=params().traffic;if(!ready||exporting||previewBusy||sceneUpdating||vehicleUpdating)return false;if(themeTransition)return false;if(key==='camera'&&save&&status.parking?.cameraLocked)return;if(key==='lanes')value=Number(value);if(key==='weather')value=setProjectWeather(project,value);if(save)setProjectOption(project,key,value);const model=key==='model',previousModel=project.shared.model;if(model){vehicleUpdating=true;lockControls(true);value=setProjectVehicle(project,value);}const layout=key==='layout';if(layout){sceneUpdating=true;lockControls(true);await holdFrame();}const intentRequest=sceneRequest;params()[key]=value;const engineValue=key==='camera'&&['parking','outdoor'].includes(project.active)?({parking:{default:'10',raised:'16',bev:'14'},outdoor:{default:'10',raised:'16',bev:'14'}}[project.active][value]||value):value;
+async function applyParam(key,value,save=true,options={}){const previousTraffic=params().traffic;if(!ready||exporting||previewBusy||demoUpdating||sceneUpdating||vehicleUpdating)return false;if(themeTransition)return false;if(key==='camera'&&save&&status.parking?.cameraLocked)return;if(key==='lanes')value=Number(value);if(key==='weather')value=setProjectWeather(project,value);if(save)setProjectOption(project,key,value);const model=key==='model',previousModel=project.shared.model;if(model){vehicleUpdating=true;lockControls(true);value=setProjectVehicle(project,value);}const layout=key==='layout';if(layout){sceneUpdating=true;lockControls(true);await holdFrame();}const intentRequest=sceneRequest;params()[key]=value;const engineValue=key==='camera'&&['parking','outdoor'].includes(project.active)?({parking:{default:'10',raised:'16',bev:'14'},outdoor:{default:'10',raised:'16',bev:'14'}}[project.active][value]||value):value;
  const preparingTraffic=key==='traffic'&&value&&['parking','outdoor'].includes(project.active);
  try{if(model||preparingTraffic)await holdFrame();if(!await controlPaint(key)||intentRequest!==sceneRequest)return false;await bridge().param(key,engineValue,options);if(save)persist();if(layout)await releaseFrame();}catch(error){if(model)setProjectVehicle(project,previousModel);if(key==='traffic')setProjectOption(project,key,previousTraffic);feedback(error.message);return false;}finally{if(preparingTraffic&&intentRequest===sceneRequest)$('frame-cover').hidden=true;if(model){$('frame-cover').hidden=true;vehicleUpdating=false;lockControls(false);renderVehicles();$('vehicle-name').textContent=vehicles.find(vehicle=>vehicle[0]===params().model)[1];}if(layout){sceneUpdating=false;lockControls(false);$('frame-cover').hidden=true;}}
  renderLabel();if(key==='traffic'&&value)warmParkingAssets();if($('export-preview').open)void refreshExportPreview();return true;
 }
 
-function toggleLayer(key){if(!ready||exporting||previewBusy||sceneUpdating||vehicleUpdating||themeTransition)return;const button=$('layers').querySelector(`[data-layer="${key}"]`);if(!button||button.disabled)return;if(key==='traffic'){void commitTrafficToggle({button,value:!params()[key],apply:value=>applyParam(key,value),feedback});return;}params()[key]=!params()[key];button.setAttribute('aria-pressed',String(params()[key]));applyParam(key,params()[key],true,{sound:key==='path'})}
+function toggleLayer(key){if(!ready||exporting||previewBusy||demoUpdating||sceneUpdating||vehicleUpdating||themeTransition)return;const button=$('layers').querySelector(`[data-layer="${key}"]`);if(!button||button.disabled)return;if(key==='traffic'){void commitTrafficToggle({button,value:!params()[key],apply:value=>applyParam(key,value),feedback});return;}params()[key]=!params()[key];button.setAttribute('aria-pressed',String(params()[key]));applyParam(key,params()[key],true,{sound:key==='path'})}
 function lockInspector(busy,{cancel=false}={}){
  const fields=[...$('inspector-scroll').children].filter(section=>section!==$('export-section'));
  fields.push(...[...$('export-section').children].filter(child=>child.id!=='export'));
@@ -137,7 +137,7 @@ function lockControls(busy,{cancel=false}={}){
 async function exportCurrent(){
  if(sceneFailed)return;
  if(exporting){bridge().cancelExport();$('export-label').textContent='Cancelling…';return;}
- if(!ready||previewBusy||sceneUpdating||vehicleUpdating||themeTransition)return;const format=syncExportControls();if(format==='video'&&!videoReady)return;exporting=true;feedback('');lockControls(true,{cancel:true});$('export-label').textContent='Cancel';
+ if(!ready||previewBusy||demoUpdating||sceneUpdating||vehicleUpdating||themeTransition)return;const format=syncExportControls();if(format==='video'&&!videoReady)return;exporting=true;feedback('');lockControls(true,{cancel:true});$('export-label').textContent='Cancel';
  try{if(format==='video')await probeVideo();const handle=await chooseExportDestination({format,name:`${board().type}-${params().weather}`,videoExtension});await holdFrame();const result=await bridge().export({format,...selectedExportSize(format),duration,onProgress:percent=>{$('export-label').textContent=`Cancel · ${percent}%`;$('export').style.setProperty('--progress',percent/100)}});if(sceneFailed)return;if(handle.download)offerDownload(result.blob,handle.name);else{await writeExportFile(handle,result.blob);feedback('');}document.body.dataset.lastExport=JSON.stringify({...result.audit,...(handle.download?{downloadName:handle.name}:{savedAs:handle.name})});window.dispatchEvent(new CustomEvent('ui-draft-export',{detail:result}));} /* ds-allow: Pre-existing metadata and export copy is outside the author-requested theme synchronization; retain frozen wording in this local follow-up. */
  catch(error){feedback(error.name==='AbortError'?'Export cancelled':error.message)}
  finally{exporting=false;lockControls(false);$('export-label').textContent='Export';$('export').style.setProperty('--progress',0);await releaseFrame()}
@@ -147,7 +147,7 @@ function tooltipShow(target){tooltipAnchor=target;const [text,key]=target.datase
 document.addEventListener('pointerover',event=>{if(!matchMedia('(hover:hover) and (pointer:fine)').matches)return;const target=event.target.closest('[data-tip]');if(!target||target===tooltipAnchor)return;const instant=performance.now()-tooltipLast<600;tooltipHide();tooltipTimer=setTimeout(()=>tooltipShow(target),instant?0:600)});
 document.addEventListener('pointerout',event=>{if(event.target.closest('[data-tip]')&&!event.target.closest('[data-tip]').contains(event.relatedTarget))tooltipHide()});document.addEventListener('pointerdown',tooltipHide);
 $('scene-nav').addEventListener('click',event=>{const button=event.target.closest('[data-scene]');if(button)void selectScene(button.dataset.scene)});
-$('scene-properties').addEventListener('click',event=>{const button=event.target.closest('[data-value]');if(!button||button.disabled||sceneUpdating||vehicleUpdating||previewBusy||exporting||themeTransition)return;const container=button.closest('.segment');if(button.getAttribute('aria-checked')==='true'){if(container.dataset.param==='camera'&&['parking','outdoor'].includes(project.active))applyParam('camera',button.dataset.value);return;}container.querySelectorAll('[role=radio]').forEach(option=>{option.setAttribute('aria-checked',String(option===button));option.tabIndex=option===button?0:-1});morphSegment(container,button);applyParam(container.dataset.param,button.dataset.value);renderLabel()});
+$('scene-properties').addEventListener('click',event=>{const button=event.target.closest('[data-value]');if(!button||button.disabled||demoUpdating||sceneUpdating||vehicleUpdating||previewBusy||exporting||themeTransition)return;const container=button.closest('.segment');if(button.getAttribute('aria-checked')==='true'){if(container.dataset.param==='camera'&&['parking','outdoor'].includes(project.active))applyParam('camera',button.dataset.value);return;}container.querySelectorAll('[role=radio]').forEach(option=>{option.setAttribute('aria-checked',String(option===button));option.tabIndex=option===button?0:-1});morphSegment(container,button);applyParam(container.dataset.param,button.dataset.value);renderLabel()});
 $('scene-properties').addEventListener('keydown',event=>{const container=event.target.closest('[role=radiogroup]');if(!container||!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;event.preventDefault();const choices=[...container.querySelectorAll('button')],index=choices.indexOf(event.target),next=event.key==='Home'?0:event.key==='End'?choices.length-1:(index+(event.key==='ArrowRight'?1:-1)+choices.length)%choices.length;choices[next].focus();choices[next].click()});
 $('layers').addEventListener('click',event=>{const button=event.target.closest('[data-layer]');if(button)toggleLayer(button.dataset.layer)});
 
@@ -160,13 +160,13 @@ function renderAssist(force=false){
  $('assist').hidden=true;syncCameraLock();
 }
 function renderVehicles(){const strip=$('vehicle-strip');if(!strip.querySelector('button'))strip.innerHTML=vehicles.map(([id,name])=>`<button role="radio" data-vehicle="${id}" aria-label="${name}" data-tip="${name}"><img src="${thumb(id)}" decoding="sync" alt=""></button>`).join('');strip.querySelectorAll('button').forEach(button=>{button.disabled=!ready||vehicleUpdating;button.setAttribute('aria-checked',String(button.dataset.vehicle===params().model));button.tabIndex=button.dataset.vehicle===params().model?0:-1});}
-function selectVehicle(id){if(!ready||exporting||previewBusy||sceneUpdating||vehicleUpdating||themeTransition||id===params().model)return;applyParam('model',id);const name=$('vehicle-name');name.textContent=vehicles.find(vehicle=>vehicle[0]===id)[1];if(!reducedMotion())name.animate([{opacity:0},{opacity:1}],{duration:120,easing:'ease-out'});renderVehicles();morphSegment($('vehicle-strip'),$('vehicle-strip').querySelector('[aria-checked=true]'))}
+function selectVehicle(id){if(!ready||exporting||previewBusy||demoUpdating||sceneUpdating||vehicleUpdating||themeTransition||id===params().model)return;applyParam('model',id);const name=$('vehicle-name');name.textContent=vehicles.find(vehicle=>vehicle[0]===id)[1];if(!reducedMotion())name.animate([{opacity:0},{opacity:1}],{duration:120,easing:'ease-out'});renderVehicles();morphSegment($('vehicle-strip'),$('vehicle-strip').querySelector('[aria-checked=true]'))}
 $('vehicle-strip').addEventListener('click',event=>{const button=event.target.closest('[data-vehicle]');if(button)selectVehicle(button.dataset.vehicle)});
 $('vehicle-strip').addEventListener('keydown',event=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;event.preventDefault();const index=vehicles.findIndex(vehicle=>vehicle[0]===params().model),next=event.key==='Home'?0:event.key==='End'?3:(index+(event.key==='ArrowRight'?1:-1)+4)%4;selectVehicle(vehicles[next][0]);$('vehicle-strip').querySelector('[aria-checked=true]').focus()});
 
 let themeTransition=null,requestedTheme=document.documentElement.dataset.theme||'light';
 async function setTheme(theme){
- if(exporting||previewBusy||sceneUpdating||vehicleUpdating)return;
+ if(exporting||previewBusy||demoUpdating||sceneUpdating||vehicleUpdating)return;
  requestedTheme=theme;
  if(themeTransition)return;
  const commit=async(value,animate=false)=>{syncFinish(value,{render:false});if(ready)await bridge().theme(value,{animate});document.documentElement.dataset.theme=value;try{localStorage.setItem(themeKey,value)}catch{}renderTheme()};
@@ -221,8 +221,13 @@ function renderTransport(){
  renderParkingStatus();renderPlayback();const transport=$('scene-transport');
  if(!document.body.dataset.ready||sceneUpdating){const key=sceneFailed?'failed':'loading:'+project.active;if(transportRenderKey===key)return;transportRenderKey=key;transport.hidden=false;transport.disabled=true;const label=sceneFailed?'Scene unavailable':'Loading scene…';
   transport.textContent=label;transport.removeAttribute('role');transport.setAttribute('aria-label',label);transport.removeAttribute('aria-checked');return;}
- const complete=!!(status.junction?.complete||status.parking?.complete),running=!!status.playing,assisted=!!status.features?.path,key=JSON.stringify([project.active,running,assisted,complete,!!status.parking?.elapsed]);if(key===transportRenderKey)return;transportRenderKey=key;
- transport.hidden=false;const finished=complete;transport.dataset.finished=String(finished);transport.disabled=finished||exporting||previewBusy||demoUpdating||sceneUpdating||vehicleUpdating||!!themeTransition;const assistName=['parking','outdoor'].includes(project.active)?'Park assist':'Driving assist';transport.textContent=assistName;transport.setAttribute('role','switch');transport.setAttribute('aria-label',assistName);transport.setAttribute('aria-checked',String(assisted));
+ const complete=!!(status.junction?.complete||status.parking?.complete),assisted=!!status.features?.path,key=JSON.stringify([project.active,assisted,complete]);if(key===transportRenderKey)return;transportRenderKey=key;
+ if(transport.hidden!==false)transport.hidden=false;transport.dataset.finished=String(complete);
+ const disabled=complete||exporting||previewBusy||demoUpdating==='replay'||vehicleUpdating||!!themeTransition;
+ if(transport.disabled!==disabled)transport.disabled=disabled;
+ const assistName=['parking','outdoor'].includes(project.active)?'Park assist':'Driving assist';
+ if(transport.textContent!==assistName){transport.textContent=assistName;transport.setAttribute('aria-label',assistName);}
+ transport.setAttribute('role','switch');transport.setAttribute('aria-checked',String(assisted));
  transport.dataset.tip=(assisted?'Turn off ':'Turn on ')+assistName.toLowerCase();
 }
 window.addEventListener('message',event=>{if(event.source!==frame.contentWindow||event.origin!==location.origin)return;if(event.data?.type!=='ui-draft-status'||sceneFailed)return;const priorView=status.parking?.view;status=event.data.value;document.body.dataset.runtime=JSON.stringify(status);if(sceneUpdating||vehicleUpdating||status.scene!==project.active)return;if(status.features&&params().path!==!!status.features.path){params().path=!!status.features.path;persist();}if(status.parking?.view!==priorView)renderLabel();renderAssist();renderTransport();});
@@ -299,22 +304,36 @@ async function replayTransition(replaying,action){
 }
 $('scene-transport').addEventListener('click',async()=>{
  if(!ready||exporting||previewBusy||demoUpdating||sceneUpdating||vehicleUpdating||themeTransition||status.junction?.complete||status.parking?.complete)return;
- $('export-preview').open=false;demoUpdating=true;lockControls(true);$('scene-transport').setAttribute('aria-busy','true');
- try{await controlPaint('demo');const current=bridge().get({audit:false});await replayTransition(!!current.parking?.complete&&!current.features.path,async()=>{await setAssistDemo(bridge(),!current.features.path)});params().path=bridge().get({audit:false}).features.path;persist();status=bridge().get({audit:false});renderTransport();}
- catch(error){feedback('Unable to start parking. Please try again.')}finally{demoUpdating=false;$('scene-transport').removeAttribute('aria-busy');lockControls(false);}
+ const transport=$('scene-transport');
+ $('export-preview').open=false;
+ // Reserve the operation without changing the visual state of other controls.
+ demoUpdating='assist';transport.setAttribute('aria-busy','true');
+ try{
+  await controlPaint('demo');
+  if(sceneFailed)return;
+  const current=bridge().get({audit:false});
+  await replayTransition(!!current.parking?.complete&&!current.features.path,async()=>{await setAssistDemo(bridge(),!current.features.path)});
+  if(sceneFailed)return;
+  status=bridge().get({audit:false});
+  params().path=status.features.path;persist();renderTransport();
+ }catch(error){feedback('Unable to start parking. Please try again.');}
+ finally{
+  demoUpdating=null;transport.removeAttribute('aria-busy');
+  if($('export-preview').open)void refreshExportPreview();
+ }
 });
 canvasTransport.addEventListener('click',async()=>{
  if(!ready||exporting||previewBusy||demoUpdating||sceneUpdating||vehicleUpdating||themeTransition)return;
  const current=bridge().get({audit:false}),replaying=!!(current.parking?.replayReady||current.junction?.complete);if(!replaying)return;
- demoUpdating=true;lockControls(true);
+ demoUpdating='replay';lockControls(true);
  try{await replayTransition(replaying,async()=>{if(['parking','outdoor'].includes(project.active))await bridge().parkingPlay();else if(project.active==='junction')bridge().junctionPlay();else bridge().toggle();});}
- catch(error){feedback('Unable to play this scene. Please try again.');}finally{demoUpdating=false;lockControls(false);}
+ catch(error){feedback('Unable to play this scene. Please try again.');}finally{demoUpdating=null;lockControls(false);}
  status=bridge().get({audit:false});if(['road','elevated','ramp'].includes(project.active)){project.shared.playing=status.requestedPlaying;project.shared.playback=status.requestedPlaying;persist();}renderTransport();
 });
 let previewURL=null,previewRevision=0;
 function clearExportPreview(){previewRevision++;if(previewURL)URL.revokeObjectURL(previewURL);previewURL=null;$('export-preview-image').removeAttribute('src');}
 async function refreshExportPreview(){
- if(!$('export-preview').open||!ready||exporting||previewBusy||sceneUpdating||vehicleUpdating||themeTransition)return;
+ if(!$('export-preview').open||!ready||exporting||previewBusy||demoUpdating==='assist'||sceneUpdating||vehicleUpdating||themeTransition)return;
  previewBusy=true;lockControls(true);
  const revision=++previewRevision,format=$('format').value;
  $('export-preview-description').textContent='Preparing preview…';

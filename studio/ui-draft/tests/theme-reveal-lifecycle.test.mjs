@@ -17,7 +17,7 @@ function harness({playing=false,scene='road',reduce=false,unavailable=false,fail
  const bridge=()=>({get(){return {playing}},beginTheme(){held=true;events.push('hold')},async theme(theme,{animate=false}={}){assert.equal(held,false);events.push([theme,animate]);if(failCommit)throw Error('Theme unavailable')},endTheme(){held=false;events.push('release')}});
  const protectThemeFrame=async()=>{if(captureReady)await captureReady;const raster={updates:0,releases:0,async update(){this.updates++},release(){this.releases++}};rasters.push(raster);return raster};
  const controller=new Function('document','frame','bridge','localStorage','$','syncFinish','renderTheme','reducedMotion','innerWidth','innerHeight','project','setTimeout','protectThemeFrame',`
- let ready=true,exporting=false,previewBusy=false,sceneUpdating=false,vehicleUpdating=false;const themeKey='test';
+ let ready=true,exporting=false,previewBusy=false,demoUpdating=null,sceneUpdating=false,vehicleUpdating=false;const themeKey='test';
  ${block}
  return {setTheme,get busy(){return !!themeTransition}};
  `)(document,{contentDocument:{documentElement:root},closest(){return {getBoundingClientRect:()=>({left:280,top:220})}}},bridge,{setItem(){}},()=>({getBoundingClientRect:()=>({left:1220,top:8,width:28,height:28})}),()=>{},()=>{},()=>reduce,1266,1000,{active:scene},(resolve,ms)=>timers.push({resolve,ms}),protectThemeFrame);

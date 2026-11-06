@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 
 test('Export cannot capture a partially restored scene or change themes during encoding',async()=>{
  const source=await readFile(new URL('../draft.js',import.meta.url),'utf8');
- assert.match(source,/if\(!ready\|\|previewBusy\|\|sceneUpdating\|\|vehicleUpdating\|\|themeTransition\)return/);
+ assert.match(source,/if\(!ready\|\|previewBusy\|\|demoUpdating\|\|sceneUpdating\|\|vehicleUpdating\|\|themeTransition\)return/);
  assert.match(source,/if\(exporting\)\{bridge\(\)\.cancelExport/);
  assert.match(source,/finally\{exporting=false;lockControls\(false\)/);
  assert.match(source,/\$\('theme'\)\.disabled=busy/);
