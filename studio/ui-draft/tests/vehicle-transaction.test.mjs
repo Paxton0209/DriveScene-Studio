@@ -13,7 +13,7 @@ function harness(){
  const bridge=()=>({param:async(key,value)=>{calls.push([key,value]);await pending;}});
  const create=new Function('project','setProjectVehicle','setProjectWeather','setProjectOption','$','bridge','lockControls','persist','feedback','renderVehicles',`
  const controlPaint=async()=>true,holdFrame=async()=>{$('frame-cover').hidden=false;};
- let ready=true,exporting=false,previewBusy=false,sceneUpdating=false,vehicleUpdating=false,status={},themeTransition=null,requestedTheme='light',sceneRequest=0,sceneSelection=Promise.resolve();
+ let ready=true,exporting=false,previewBusy=false,demoUpdating=null,sceneUpdating=false,vehicleUpdating=false,status={},themeTransition=null,requestedTheme='light',sceneRequest=0,sceneSelection=Promise.resolve();
  const params=()=>project.boards[project.active].params,vehicles=[['model-3','Tesla Model 3'],['x6','BMW X6'],['ix','BMW iX'],['xc90','Volvo XC90']];
  const warmParkingAssets=()=>{},renderLabel=()=>{},refreshExportPreview=()=>{},performScene=()=>{throw Error('Scene must not overlap vehicle replacement');};
  ${apply}\n${scene}\n${theme}

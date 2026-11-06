@@ -24,6 +24,15 @@ test('Continuous parking camera and elapsed updates do not rewrite unchanged con
  h.controller.render({...state,parking:{...state.parking,phase:'reverse'}});
  assert.equal(h.writes,writes,'maneuver phases do not create a second control or status label');
 });
+test('Driving Assist switches state without rewriting the button label or disabled state',()=>{
+ const h=statusHarness();h.controller.scene('road');h.controller.render({playing:true,features:{path:false}});
+ const transport=h.$('scene-transport');
+ for(const key of ['textContent','disabled','hidden'])Object.defineProperty(transport,key,{writable:false});
+ h.controller.render({playing:true,features:{path:true}});
+ assert.equal(transport.attributes['aria-checked'],'true');
+ h.controller.render({playing:true,features:{path:false}});
+ assert.equal(transport.attributes['aria-checked'],'false');
+});
 test('Pause, camera lock, completion and inspector replacement still update controls',()=>{
  const h=statusHarness(),parking={target:{x:1,z:2},elapsed:2,phase:'reverse',view:'bev',cameraLocked:true};
  h.controller.render({playing:true,parking});h.controller.render({playing:false,parking:{...parking,cameraLocked:false}});
@@ -55,7 +64,7 @@ function previewHarness(){
  const exports=[],created=[],revoked=[],locks=[];
  const sourceBlock=source.slice(source.indexOf('let previewURL='),source.indexOf("\n$('export-preview').addEventListener('toggle'"));
  const controller=new Function('$','bridge','URL','lockControls',`
- let ready=true,exporting=false,previewBusy=false,sceneUpdating=false,vehicleUpdating=false,themeTransition=null,duration=10;
+ let ready=true,exporting=false,previewBusy=false,demoUpdating=null,sceneUpdating=false,vehicleUpdating=false,themeTransition=null,duration=10;
  const selectedExportSize=()=>({width:3840,height:2160}),sizeLabel=()=> '3840 × 2160';
  ${sourceBlock}
  return {refreshExportPreview,clearExportPreview,get busy(){return previewBusy}};

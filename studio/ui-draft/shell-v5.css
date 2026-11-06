@@ -304,12 +304,11 @@ body[data-ready=true] #canvas-playback #scene-transport:disabled{opacity:1}
 /* One inset stroke follows the host clip; inner raster surfaces stay rectangular. */
 :root #artboard::after{content:'';position:absolute;inset:0;z-index:10;box-sizing:border-box;border:1px solid var(--c-line);border-radius:inherit;pointer-events:none}
 
-/* Steering-wheel demo states. */
-:root #canvas-playback #scene-transport[role=switch]{position:relative;inset:auto;background:var(--c-raised);box-shadow:var(--sh-raised)}
-:root #scene-transport[role=switch]::before{width:20px;height:20px;border-radius:50%;background-color:color-mix(in srgb,var(--assist-disc-off) 80%,transparent);background-image:url("./assist-wheel-off.svg");background-position:center;background-size:contain;background-repeat:no-repeat;mask:none;clip-path:none;transition:background-color .16s} /* ds-allow: Author-supplied Sketch vectors normalized to the 20px visible disc (author-confirmed 2026-11-04); preserve off-disc 80% opacity and existing 160ms color timing. */
+/* Keep the switch surface and wheel fixed while the disc changes color. */
+:root #canvas-playback #scene-transport[role=switch]{position:relative;inset:auto;background:var(--c-raised);box-shadow:var(--sh-raised);scale:none;opacity:1}
+:root #scene-transport[role=switch]::before{width:20px;height:20px;border-radius:50%;background-color:color-mix(in srgb,var(--assist-disc-off) 80%,transparent);background-image:url("./assist-wheel-off.svg");background-position:center;background-size:contain;background-repeat:no-repeat;mask:none;clip-path:none;transition:background-color var(--ds-motion-base)} /* ds-allow: Author-supplied Sketch wheel normalized to the 20px visible disc (author-confirmed 2026-11-04); preserve off-disc 80% opacity. */
 
-:root #canvas-playback #scene-transport[role=switch][aria-checked=true]{background:var(--c-raised);color:var(--c-t1);box-shadow:var(--sh-raised)}
-:root #scene-transport[role=switch][aria-checked=true]::before{background-color:var(--ds-color-accent-fill);background-image:url("./assist-wheel-on.svg")}
+:root #scene-transport[role=switch][aria-checked=true]::before{background-color:var(--ds-color-accent-fill)}
 @media(prefers-reduced-motion:reduce){:root #scene-transport[role=switch]::before{transition:none}}
 
 /* Playback changes time independently from assistance in driving scenes. */
@@ -321,8 +320,6 @@ body[data-ready=true] #canvas-playback #scene-transport:disabled{opacity:1}
 :root #artboard{border-radius:var(--r-panel)} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 :root #artboard .artboard-clip{border-radius:var(--r-panel);clip-path:none} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 :root #artboard::after{border-radius:var(--r-panel)} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
-
-:root #scene-transport[role=switch][aria-checked=true]::before{background-color:var(--ds-color-accent-fill);background-image:url("./assist-wheel-on.svg")}
 
 /* Align the parking status and playback control to the same canvas inset. */
 :root #parking-status{padding-left:12px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
@@ -338,7 +335,7 @@ body[data-ready=true] #canvas-playback #scene-transport:disabled{opacity:1}
 :root #canvas-playback #scene-transport[data-finished=true]{opacity:.45}
 :root #scene-transport[data-finished=true]::before{background-color:var(--c-t3)}
 body[data-ready=true] #canvas-playback #scene-transport[data-finished=true]:disabled{opacity:.45}
-:root #scene-transport[role=switch][data-finished=true]::before{background-color:color-mix(in srgb,var(--assist-disc-off) 80%,transparent);background-image:url("./assist-wheel-off.svg")}
+:root #scene-transport[role=switch][data-finished=true]::before{background-color:color-mix(in srgb,var(--assist-disc-off) 80%,transparent)}
 
 /* Visual system v5 · 2026-11-04
  * Semantic light / cool-neutral dark scale, three materials: ground (canvas), face (flat + 1px
