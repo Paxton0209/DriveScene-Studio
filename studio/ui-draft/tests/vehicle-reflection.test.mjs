@@ -15,14 +15,29 @@ test('Prepared draws discard their vehicle capture and restore scene state even 
   assert.equal(mesh.visible,false);assert.equal(mesh.frustumCulled,true);assert.equal(world.preparedRoots.has(root),true);assert.deepEqual(disposed,[]);assert.equal(world.draftPreparedMaterials.get(root).length,1);assert.deepEqual(world.preparedMaterials,[]);
  }
 });
-test('Vehicle prefilter reconstructs current capture before absorption and only absorbs the first blur pass',async()=>{
+test('Vehicle prefilter uses the sampled theme and only absorbs the first blur pass',async()=>{
  const source=await worldSource(),start=source.indexOf('const carTarget=this.renderer.getRenderTarget();'),end=source.indexOf('this.carReflectionMatrix.value.copy',start);
- assert.ok(start>0&&end>start);const run=new Function('mode','isParking',source.slice(start,end));
- for(const [mode,parking] of [['light',false],['dark',true]]){
+ assert.ok(start>0&&end>start);const run=new Function(source.slice(start,end));
+ for(const tone of [0,.25,.75,1]){
   const calls=[],u=Object.fromEntries(['absorbSource','reflectionTone','groundY','source'].map(key=>[key,{value:null}]));u.direction={value:{set(x,y){calls.push(['direction',x,y])}}};
   const inverse={copy(){calls.push(['inverse']);return this},multiply(){return this},invert(){return this}};
-  const world={width:1920,height:1080,state:{id:parking?'10':'01'},carMirror:{position:{y:.015},camera:{projectionMatrix:{},matrixWorldInverse:{}},getRenderTarget:()=>({texture:'capture'})},carReflectionInverse:{value:inverse},carBlurMaterial:{uniforms:u},carBlurTargets:[{texture:'horizontal'},{texture:'vertical'}],renderer:{getRenderTarget:()=> 'live',setRenderTarget(t){calls.push(['target',t])}},carBlurQuad:{render(){calls.push(['draw',u.source.value,u.absorbSource.value,u.reflectionTone.value,u.groundY.value])}}};
-  run.call(world,mode,parking);assert.equal(calls[0][0],'inverse');assert.equal(calls.filter(x=>x[0]==='inverse').length,1);assert.deepEqual(calls.filter(x=>x[0]==='draw'),[['draw','capture',1,mode==='dark'?1:0,.015],['draw','horizontal',0,mode==='dark'?1:0,.015]]);assert.deepEqual(calls.at(-1),['target','live']);
+  const world={environmentTone:{value:tone},carMirror:{position:{y:.015},camera:{projectionMatrix:{},matrixWorldInverse:{}},getRenderTarget:()=>({texture:'capture'})},carReflectionInverse:{value:inverse},carBlurMaterial:{uniforms:u},carBlurTargets:[{texture:'horizontal'},{texture:'vertical'}],renderer:{getRenderTarget:()=> 'live',setRenderTarget(t){calls.push(['target',t])}},carBlurQuad:{render(){calls.push(['draw',u.source.value,u.absorbSource.value,u.reflectionTone.value,u.groundY.value])}}};
+  run.call(world);assert.equal(calls[0][0],'inverse');assert.equal(calls.filter(x=>x[0]==='inverse').length,1);assert.deepEqual(calls.filter(x=>x[0]==='draw'),[['draw','capture',1,tone,.015],['draw','horizontal',0,tone,.015]]);assert.deepEqual(calls.at(-1),['target','live']);
+ }
+});
+test('A paused scene refreshes the vehicle capture until the theme settles',async()=>{
+ const source=await worldSource(),start=source.indexOf('const carReflectionKey='),end=source.indexOf('if(groundChanged||waterChanged)',start);
+ assert.ok(start>0&&end>start);
+ const capture=new Function('baseKey','reflectedCar','trafficReflectionStamp','rootChanged','groundKey','waterChanged',source.slice(start,end)+'return {carReflectionKey,carChanged,groundChanged}');
+ const world={environmentTone:{value:1},carMirror:{},groundReflectionKey:'ground'};
+ for(const tone of [1,.75,.25,0]){
+  world.environmentTone.value=tone;
+  const sample=()=>capture.call(world,'light','ego','none',false,'ground',false);
+  const frame=sample();
+  assert.equal(frame.carChanged,true);
+  assert.equal(frame.groundChanged,true);
+  world.carReflectionKey=frame.carReflectionKey;
+  assert.equal(sample().groundChanged,false);
  }
 });
 test('Hiding ego keeps every remaining traffic reflection in the weaker role and caps footprint count',async()=>{
