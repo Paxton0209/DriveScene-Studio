@@ -2,7 +2,7 @@
 
 ## 设计系统
 
-本仓库的界面按 Paxton 设计系统实现。设计系统是独立仓库 `Paxton0209/paxton-design-system`（所有产品共用的上游），以 Git 子模块挂在本仓库的 `design-system/`，锁定到 v1.4.2。克隆后先执行 `git submodule update --init`；下文路径都相对本仓库根目录，本地和云端的 AI 读到的是同一份。
+本仓库的界面按 Paxton 设计系统实现。设计系统是独立仓库 `Paxton0209/paxton-design-system`（所有产品共用的上游），以 Git 子模块挂在本仓库的 `design-system/`，锁定到 v1.5.0。克隆后先执行 `git submodule update --init`；下文路径都相对本仓库根目录，本地和云端的 AI 读到的是同一份。
 
 改动任何界面前，先过一遍 `design-system/HANDOFF.md`（执行清单），再按顺序读：
 
@@ -49,7 +49,7 @@ node design-system/checks/keypage.mjs --spec studio/ui-draft/keypage.json --out 
 - 产品名：DriveScene Studio
 - 产品 guideline：studio/ui-draft/design guideline.MD（只写本产品的布局和差异）
 - tokens 位置：studio/ui-draft/design-system/tokens.css
-- 设计系统版本：v1.4.2（子模块 `design-system/`；升级见 `design-system/GOVERNANCE.md`）
+- 设计系统版本：v1.5.0（子模块 `design-system/`；升级见 `design-system/GOVERNANCE.md`）
 - 本地预览：npm start；工作台 http://127.0.0.1:8000/studio/ui-draft/
 - 构建与测试：npm run build --prefix studio/ui-draft；npm test --prefix studio/ui-draft
 - 已确认、不得改动的部分：整个工作台界面以关键页 v2（本次发版提交，基准数值见 `studio/ui-draft/keypage.json`）为准；现有动效全部冻结。Junction 修复 c1c05ee 必须保留。3D 场景渲染不在设计系统范围；studio/engine 与运行时边界保持原状。
