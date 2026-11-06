@@ -25,7 +25,6 @@
  --c-raised:var(--ds-color-raised);
  --c-line:var(--ds-color-line);
  --c-fill:var(--ds-color-track);
- --c-fill-sel:var(--ds-color-selected);
  --c-toggle-on:var(--ds-color-accent);
  --c-segment-sel:var(--ds-color-selected);
  --c-t1:var(--ds-color-text-1);
@@ -92,7 +91,7 @@ html,body,#app{background:var(--c-bg)}
 :root #library .scene-row{height:32px;min-height:32px;margin:0;padding:0 8px 0 20px;gap:0;border-radius:var(--r-ctl);color:var(--c-t2);font-size:13px;line-height:16px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 :root #library .scene-row>svg{display:none}
 :root #library .scene-row[aria-current=page]{color:var(--c-t1)}
-:root #library .scene-indicator,:root #library .scene-indicator.is-moving{border-radius:var(--r-ctl);background:var(--c-fill-sel);box-shadow:none} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
+:root #library .scene-indicator,:root #library .scene-indicator.is-moving{border-radius:var(--r-ctl);background:var(--ds-color-selected-row);box-shadow:var(--sh-thumb)} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 
 /* Vehicle: strip kept as the state source; the card is the only visible entry */
 :root #vehicle-panel{flex:none;margin:0;padding:12px 8px 0;position:relative} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
@@ -110,13 +109,11 @@ html,body,#app{background:var(--c-bg)}
 .shell-vehicle-menu [role=menuitemradio]+[role=menuitemradio]{margin-top:4px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 .shell-vehicle-menu [role=menuitemradio] img{flex:none;width:48px;height:32px;object-fit:contain} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 .shell-vehicle-menu [role=menuitemradio]>span{flex:1;min-width:0;white-space:nowrap}
-.shell-vehicle-menu [aria-checked=true]{background:var(--c-fill-sel)}
+:root .shell-vehicle-menu [aria-checked=true]{background:var(--ds-color-selected-row)}
 .shell-vehicle-menu [aria-checked=true] span{font-weight:500}
 @keyframes shell-menu-in{from{opacity:0;transform:scale(.98) translateY(2px)}to{opacity:1;transform:none}} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 @media(hover:hover) and (pointer:fine){
  .shell-vehicle-card:hover:not(:disabled){opacity:.7}
- :root #vehicle-panel .shell-vehicle-menu [role=menuitemradio]:hover:not(:disabled){background:var(--c-fill);opacity:.7}
- :root #vehicle-panel .shell-vehicle-menu [aria-checked=true]:hover:not(:disabled){background:var(--c-fill-sel)}
 }
 .shell-vehicle-card:focus-visible,.shell-vehicle-menu [role=menuitemradio]:focus-visible{outline:2px solid var(--c-t1);outline-offset:2px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 
@@ -247,7 +244,7 @@ body[data-ready=true] #canvas-playback #scene-transport:disabled{opacity:1}
  :root .shell-scene-menu [role=menuitemradio]+[role=menuitemradio]{margin-top:0}
  :root #mobile-scene:focus-visible{outline:2px solid var(--c-t1);outline-offset:2px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
  :root .shell-scene-menu [role=menuitemradio]:focus-visible{outline:2px solid var(--c-t1);outline-offset:-2px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
- :root .shell-scene-menu [role=menuitemradio]:active{background:var(--c-fill-sel)}
+ :root .shell-scene-menu [role=menuitemradio]:active:not([aria-checked=true]){background:var(--pressed)}
  /* Give the settings a definite grid track and let the scroller own its clip.
   * The card itself does not need a second overflow layer on mobile. */
  :root #inspector{position:relative;grid-column:1;grid-row:3;display:grid;grid-template:minmax(0,1fr) / minmax(0,1fr);min-height:0;padding:0;border:0;overflow:visible;box-shadow:var(--sh-panel)}
@@ -360,10 +357,8 @@ body[data-ready=true] #canvas-playback #scene-transport[data-finished=true]:disa
 /* Author follow-up: pseudo-elements must follow the same continuous corner as their surface. */
 :root :is(#library,#inspector,#artboard,#parking-status)::before,
 :root :is(#library,#inspector,#artboard,#parking-status)::after{corner-shape:inherit}
-/* Selected row, segment thumb and menu choice share one raised tile. */
-:root #library .scene-indicator,:root #library .scene-indicator.is-moving,
-:root #inspector .segment-indicator,
-:root .shell-vehicle-menu [aria-checked=true]{background:var(--c-fill-sel);box-shadow:var(--sh-thumb)}
+/* Only the thumb on a segmented track has the selected edge. */
+:root #inspector .segment-indicator{box-shadow:var(--sh-thumb)}
 /* Titles sit close to their group; groups breathe apart. */
 :root #library .nav-title,:root #inspector h2{margin-bottom:4px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 :root #library .nav-title:not(:first-of-type){margin-top:24px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
@@ -419,7 +414,7 @@ body[data-ready=true] #canvas-playback #scene-transport[data-finished=true]:disa
 :root #export::before{background:color-mix(in srgb,var(--ds-color-on-accent) 18%,transparent)}
 :root #artboard #canvas-transport{background:var(--ds-color-raised);color:var(--ds-color-text-1)}
 :root #tooltip{background:var(--ds-color-ink);color:var(--ds-color-face);font:var(--ds-text-ui-caption);box-shadow:none}
-:root .format-options button[aria-selected=true]{background:var(--ds-color-selected);color:var(--ds-color-text-1);font-weight:500}
+:root .format-options button[aria-selected=true]{background:var(--ds-color-selected-row);color:var(--ds-color-text-1);font-weight:500}
 :root .format-options button[aria-selected=true]::after{content:none}
 :root .shell-vehicle-card .caption{color:var(--ds-color-text-2)}
 

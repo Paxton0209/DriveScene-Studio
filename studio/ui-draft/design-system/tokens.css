@@ -7,6 +7,7 @@
   --ds-color-raised:#FFFFFF;
   --ds-color-track:#ECECEC;
   --ds-color-selected:#FFFFFF;
+  --ds-color-selected-row:#E6E6E6;
   --ds-color-placeholder:#E4E4E4;
   --ds-color-mass:#D2D2D2;
   --ds-color-line:rgba(0,0,0,.055);
@@ -107,6 +108,7 @@
   --ds-color-raised:#1C1C1E;
   --ds-color-track:#1C1C1E;
   --ds-color-selected:#333336;
+  --ds-color-selected-row:#333336;
   --ds-color-placeholder:#202022;
   --ds-color-mass:#3A3A3C;
   --ds-color-line:rgba(255,255,255,.08);
@@ -136,6 +138,7 @@
     --ds-color-raised:#1C1C1E;
     --ds-color-track:#1C1C1E;
     --ds-color-selected:#333336;
+    --ds-color-selected-row:#333336;
     --ds-color-placeholder:#202022;
     --ds-color-mass:#3A3A3C;
     --ds-color-line:rgba(255,255,255,.08);

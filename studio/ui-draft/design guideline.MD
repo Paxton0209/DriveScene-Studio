@@ -395,7 +395,9 @@ A 入口为 skill.html?refine=shell-hierarchy-3&icons=desaturate，B 将 icons �
 | 面（左右栏、手机设置面板） | `--c-panel` + `--sh-panel` | #FAFAFA + 1px rgba(0,0,0,.055) | #141414 + 1px rgba(255,255,255,.08) |
 | 浮起（车型卡、Driving assist、菜单） | `--c-raised` + `--sh-raised` | #FFFFFF + 1px rgba(0,0,0,.07) + 0 12px 28px −14px rgba(0,0,0,.20) | #1C1C1C + 1px rgba(255,255,255,.09)，无投影 |
 | 轨道 / 输入底 | `--c-fill` | #ECECEC | #1C1C1C |
-| 选中块 | `--c-fill-sel` + `--sh-thumb` | #FFFFFF + 1px rgba(0,0,0,.07) | #262626 + 1px rgba(255,255,255,.08) |
+| 轨道选中块 | `--c-segment-sel` + `--sh-thumb` | #FFFFFF + 1px rgba(0,0,0,.07) | #333336，边为透明 |
+| 面上选中行 | `--ds-color-selected-row` + `--sh-thumb` | #E6E6E6 + 1px 选中块边 | #333336，边为透明 |
+| 浮层菜单选中项 | `--ds-color-selected-row` | #E6E6E6，无边 | #333336，无边 |
 | 文字 1 / 2 / 3 | `--c-t1/t2/t3` | #1D1D1F / #6E6E6E / #8C8C8C | #EDEDED / #A0A0A0 / #7A7A7A |
 | 开关关闭 | layer-row::after | #A8A8A8 | #3A3A3A + 1px rgba(255,255,255,.08) |
 | 唯一强调色 | `--c-toggle-on` | #1683E8（开关开启、Driving assist 开启图标） | #3498F5 |
