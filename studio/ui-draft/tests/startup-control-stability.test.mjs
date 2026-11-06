@@ -2,15 +2,24 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
-test('Readiness unlocks the vehicle card without replacing its decoded content',async()=>{
+test('Vehicle card preserves its decoded thumbnail through readiness and model preparation',async()=>{
  const source=await readFile(new URL('../shell-v5.js',import.meta.url),'utf8');
- const body=source.slice(source.indexOf(' const render=()=>{')+' const render=()=>{'.length,source.indexOf('\n };',source.indexOf(' const render=()=>{')));
- let writes=0,markup='';const card={dataset:{},setAttribute(){},set innerHTML(value){writes++;markup=value}};
- const current={disabled:true,getAttribute:()=> 'BMW X6'};
- const render=new Function('selected','thumb','mobileQuery','card','mobileChevron','chevron',`return ()=>{${body}}`)(()=>current,()=> 'x6.webp',{matches:false},card,'down','up');
- render();assert.equal(card.disabled,true);assert.equal(writes,1);assert.match(markup,/x6.webp/);
+ const start=source.indexOf(' const render=()=>{');
+ const body=source.slice(start+' const render=()=>{'.length,source.indexOf('\n };',start));
+ let writes=0,image='',busy=false,name='Tesla Model 3',src='model3.webp';
+ const current={disabled:true,getAttribute:()=>name};
+ const card={disabled:false,setAttribute(){}};
+ const cardName={textContent:''};
+ const cardImage={getAttribute:()=>image,set src(value){writes++;image=value;}};
+ const cardChevron={getAttribute:()=> '1.4',setAttribute(){}};
+ const library={getAttribute:()=>String(busy)};
+ const render=new Function('selected','thumb','mobileQuery','card','cardImage','cardName','cardChevron','library',`return ()=>{${body}}`)(()=>current,()=>src,{matches:false},card,cardImage,cardName,cardChevron,library);
+ render();assert.equal(card.disabled,true);assert.equal(writes,1);assert.equal(image,'model3.webp');
  current.disabled=false;render();assert.equal(card.disabled,false);assert.equal(writes,1);
- current.disabled=true;render();assert.equal(card.disabled,true);assert.equal(writes,1);
+ busy=true;current.disabled=true;name='BMW X6';src='x6.webp';
+ render();assert.equal(card.disabled,true);assert.equal(writes,1);assert.equal(cardName.textContent,'Tesla Model 3');
+ busy=false;current.disabled=false;
+ render();assert.equal(card.disabled,false);assert.equal(writes,2);assert.equal(image,'x6.webp');assert.equal(cardName.textContent,'BMW X6');
 });
 
 test('Shipped controls preload the shared Assist icon and compact scene chevron',async()=>{

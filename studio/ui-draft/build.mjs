@@ -92,7 +92,9 @@ parent=parent.replace(/<script(?: id="saved-frame-profile"| src="saved-preview\/
 const frameProfile=await readFile(new URL('./saved-preview/frame-profile.js',import.meta.url),'utf8');
 parent=parent.replace('</body>',`<script id="saved-frame-profile">${frameProfile}</script></body>`);
 
-parent=parent.replace('</head>',`<script id="startup-poster">(${showStartupPoster.toString()})(${previews.trim()},window)</script></head>`).replace('<script type="module"',`<script id="startup-layout">(${layoutStartupPoster.toString()})()</script><script type="module"`);
+// Strip formatting from the inline poster script to preserve the HTML byte budget.
+const {code:posterScript}=await transform(`(${showStartupPoster.toString()})(${previews},window)`,{loader:'js',minifyWhitespace:true});
+parent=parent.replace('</head>',()=>`<script id="startup-poster">${posterScript.replace(/<\/script/gi,'<\\/script')}</script></head>`).replace('<script type="module"',`<script id="startup-layout">(${layoutStartupPoster.toString()})()</script><script type="module"`);
 // First paint must not wait for a separate CSS response. Keep the complete
 // existing cascade inline and regenerate it on every build.
 parent=parent.replace(/<style data-startup-css="[^"]+">[\s\S]*?<\/style>/g,'');

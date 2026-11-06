@@ -15,6 +15,7 @@ const mobileQuery=matchMedia('(max-width:639px), (max-width:959px) and (max-heig
 if(nav&&library){
  const picker=document.createElement('button');
  picker.type='button';picker.id='mobile-scene';
+ const label=document.createTextNode('');picker.append(label);
  picker.setAttribute('aria-haspopup','menu');picker.setAttribute('aria-expanded','false');picker.setAttribute('aria-controls','mobile-scene-menu');
  library.prepend(picker);
  let menu=null;
@@ -28,8 +29,10 @@ if(nav&&library){
   const sources=[...nav.querySelectorAll('[data-scene]')];
   if(!sources.length)return;
   const current=sources.find(source=>source.getAttribute('aria-current')==='page')||sources[0];
-  picker.textContent=current.textContent.trim();picker.setAttribute('aria-label','Scene: '+picker.textContent);
-  picker.disabled=nav.inert||sources.every(source=>source.disabled);
+  const name=current.textContent.trim();
+  if(label.data!==name){label.data=name;picker.setAttribute('aria-label','Scene: '+name);}
+  const disabled=nav.inert||sources.every(source=>source.disabled);
+  if(picker.disabled!==disabled)picker.disabled=disabled;
   if(picker.disabled)close();
  };
  const open=edge=>{
@@ -103,22 +106,26 @@ if(panel&&strip){
  const selected=()=>options().find(b=>b.getAttribute('aria-checked')==='true')||options()[0];
  const thumb=button=>button?.querySelector('img')?.getAttribute('src')||'';
  const chevron='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 6.5 3-3 3 3M5 9.5l3 3 3-3"/></svg>';
- const mobileChevron='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 6.5 3 3 3-3"/></svg>';
  const card=document.createElement('button');
  card.type='button';card.className='shell-vehicle-card';
  card.setAttribute('aria-haspopup','menu');card.setAttribute('aria-expanded','false');
+ card.innerHTML=`<span class="thumb"><img alt=""></span><span class="text"><span class="caption">Vehicle</span><span class="name"></span></span>${chevron}`;
+ const cardImage=card.querySelector('img'),cardName=card.querySelector('.name'),cardChevron=card.querySelector('svg');
  panel.append(card);
  let menu=null;
  const render=()=>{
   const current=selected();if(!current)return;
-  const name=current.getAttribute('aria-label')||'';
-  // Readiness changes interaction only; keep the decoded thumbnail mounted.
-  card.disabled=current.disabled;
-  const key=name+'|'+thumb(current)+'|'+mobileQuery.matches;
-  if(card.dataset.key===key)return;
-  card.dataset.key=key;
-  card.setAttribute('aria-label','Vehicle: '+name);
-  card.innerHTML=`<span class="thumb"><img src="${thumb(current)}" alt=""></span><span class="text"><span class="caption">Vehicle</span><span class="name">${name}</span></span>${mobileQuery.matches?mobileChevron:chevron}`;
+  if(card.disabled!==current.disabled)card.disabled=current.disabled;
+  const stroke=mobileQuery.matches?'1.5':'1.4';
+  if(cardChevron.getAttribute('stroke-width')!==stroke)cardChevron.setAttribute('stroke-width',stroke);
+  // Keep displaying the last committed vehicle until the replacement is ready.
+  if(library?.getAttribute('aria-busy')==='true')return;
+  const name=current.getAttribute('aria-label')||'',src=thumb(current);
+  if(cardName.textContent!==name){
+   cardName.textContent=name;
+   card.setAttribute('aria-label','Vehicle: '+name);
+  }
+  if(cardImage.getAttribute('src')!==src)cardImage.src=src;
  };
  const close=(returnFocus=false)=>{
   if(!menu)return;card.setAttribute('aria-expanded','false');

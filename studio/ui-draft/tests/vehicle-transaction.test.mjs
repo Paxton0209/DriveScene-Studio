@@ -9,7 +9,7 @@ const theme=source.slice(source.indexOf('async function setTheme('),source.index
 function harness(){
  const project=createProject(),calls=[],locks=[],saved=[],errors=[],elements=new Map();let resolve,reject;
  const pending=new Promise((a,b)=>{resolve=a;reject=b;});
- const $=id=>{if(!elements.has(id))elements.set(id,{open:false,textContent:'',disabled:false});return elements.get(id);};
+ const $=id=>{if(!elements.has(id))elements.set(id,{open:false,textContent:'',disabled:false,setAttribute(name,value){this[name]=value;},removeAttribute(name){delete this[name];}});return elements.get(id);};
  const bridge=()=>({param:async(key,value)=>{calls.push([key,value]);await pending;}});
  const create=new Function('project','setProjectVehicle','setProjectWeather','setProjectOption','$','bridge','lockControls','persist','feedback','renderVehicles',`
  const controlPaint=async()=>true,holdFrame=async()=>{$('frame-cover').hidden=false;};
@@ -23,17 +23,17 @@ function harness(){
 }
 test('A pending model replacement excludes model, weather, scene and theme changes, then unlocks and persists one coherent choice',async()=>{
  const h=harness(),first=h.controller.applyParam('model','x6');
- assert.equal(h.elements.get('frame-cover').hidden,false);assert.equal(h.controller.busy,true);assert.deepEqual(h.locks,[true]);
+ assert.equal(h.elements.get('frame-cover').hidden,false);assert.equal(h.controller.busy,true);assert.deepEqual(h.locks,[true]);assert.equal(h.elements.get('library')['aria-busy'],'true');
  await h.controller.applyParam('model','ix');await h.controller.applyParam('weather','snow');await h.controller.selectScene('parking');await h.controller.setTheme('dark');
  assert.deepEqual(h.calls,[['model','x6']]);assert.equal(h.project.active,'road');assert.equal(h.project.shared.weather,'default');assert.equal(h.saved.length,0);
- h.resolve();await first;assert.equal(h.controller.busy,false);assert.deepEqual(h.locks,[true,false]);assert.equal(h.saved.length,1);
+ h.resolve();await first;assert.equal(h.controller.busy,false);assert.deepEqual(h.locks,[true,false]);assert.equal(h.elements.get('library')['aria-busy'],undefined);assert.equal(h.saved.length,1);
  for(const board of Object.values(h.saved[0].boards))assert.equal(board.params.model,'x6');
  assert.equal(h.elements.get('frame-cover').hidden,true);assert.equal(h.elements.get('vehicle-name').textContent,'BMW X6');
  await h.controller.applyParam('model','ix');assert.equal(h.project.shared.model,'ix');assert.equal(h.saved.length,2);
 });
 test('Failed replacement restores the previous global model and unlocks controls without persisting the failed choice',async()=>{
  const h=harness(),first=h.controller.applyParam('model','xc90');h.reject(Error('Could not switch vehicle'));await first;
- assert.equal(h.controller.busy,false);assert.deepEqual(h.locks,[true,false]);assert.equal(h.saved.length,0);assert.deepEqual(h.errors,['Could not switch vehicle']);
+ assert.equal(h.controller.busy,false);assert.deepEqual(h.locks,[true,false]);assert.equal(h.elements.get('library')['aria-busy'],undefined);assert.equal(h.saved.length,0);assert.deepEqual(h.errors,['Could not switch vehicle']);
  for(const board of Object.values(h.project.boards))assert.equal(board.params.model,'model-3');
  assert.equal(h.elements.get('frame-cover').hidden,true);assert.equal(h.elements.get('vehicle-name').textContent,'Tesla Model 3');
 });
