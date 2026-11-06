@@ -39,7 +39,7 @@ document.getElementById('run').addEventListener('click',async()=>{
   doc.getElementById('format').value='video';doc.getElementById('format').dispatchEvent(new Event('change',{bubbles:true}));
   const exporting=controller.exportCurrent();await wait(100);
   check('Encoding locks theme and scene UI',doc.getElementById('theme').disabled&&doc.getElementById('scene-nav').inert);
-  doc.getElementById('theme').click();doc.querySelector('[data-scene="parking"]').click();bridge.cancelExport();await exporting;
+  doc.getElementById('theme').click();doc.querySelector('[data-scene="parking"]').click();doc.getElementById('export').click();await exporting;
   check('Cancel restores UI and selected scene',!doc.getElementById('theme').disabled&&!doc.getElementById('scene-nav').inert&&controller.project.active===selected&&doc.documentElement.dataset.theme===theme,{feedback:doc.getElementById('feedback').textContent});
   doc.getElementById('format').value='png';doc.getElementById('format').dispatchEvent(new Event('change',{bubbles:true}));
   const oldTime=bridge.get({audit:false}).loopTime;bridge.setPlaying(true);await wait(500);check('Playback resumes after export cancellation',bridge.get({audit:false}).loopTime>oldTime);

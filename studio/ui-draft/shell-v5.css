@@ -155,6 +155,7 @@ html,body,#app{background:var(--c-bg)}
 .feedback-live{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)} /* ds-allow: standard visually hidden live region retains announcements. */
 
 /* Menus */
+:root:has(button[aria-haspopup][aria-expanded=true]) #menu-cover{position:absolute;inset:0;z-index:13}
 :root .format-options{padding:4px;border-radius:var(--r-panel);box-shadow:var(--sh-menu);background:var(--c-raised)} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 :root .format-options button{height:32px;border-radius:var(--r-ctl);font-size:13px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 

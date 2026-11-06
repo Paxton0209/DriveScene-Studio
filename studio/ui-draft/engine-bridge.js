@@ -25,7 +25,7 @@ export function makeRandom(seed){
 }
 
 export function installDraftBridge({world,features,drive,traffic,api,current,updateURL}){
- let playing=['road','elevated','ramp'].includes(current())&&!matchMedia('(prefers-reduced-motion: reduce)').matches,frame=0,last=0,accumulator=0,exporting=false,cancelled=false,idlePaused=false,lastInput=performance.now(),loopTime=0,junctionPoses=null,origin=null,originRoot=null,themeHeld=false,audioHeld=false,scenePreparing=false;
+ let playing=['road','elevated','ramp'].includes(current())&&!matchMedia('(prefers-reduced-motion: reduce)').matches,frame=0,last=0,accumulator=0,exporting=false,idlePaused=false,lastInput=performance.now(),loopTime=0,junctionPoses=null,origin=null,originRoot=null,themeHeld=false,audioHeld=false,scenePreparing=false;
  // Only the most recently operated preview may own the indicator cue.
  let indicatorOwnsAudio=false;
  const indicatorChannel=typeof BroadcastChannel==='function'?new BroadcastChannel('drivescene-indicator-audio'):null;
@@ -114,23 +114,36 @@ export function installDraftBridge({world,features,drive,traffic,api,current,upd
  function capture(){const objects=[];world.scene.traverse(object=>objects.push({object,position:object.position.clone(),rotation:object.rotation.clone(),scale:object.scale.clone(),visible:object.visible,growthBaseY:object.userData.growthBaseY,growthHeight:object.userData.growthHeight}));return {objects,parking:parking.capture(),wheelDistance:world.draftWheelDistance,drive:drive.draftCapture(),traffic:traffic?.draftCapture(),time:world.draftTime,loopTime,speed:world.draftSpeed,sceneryRandom:world.draftSceneryRandom.state(),trafficRandom:world.draftTrafficRandom.state(),width:world.width,height:world.height,pose:world.captureCamera()}}
  function restore(saved){for(const item of saved.objects){const {object}=item;object.position.copy(item.position);object.rotation.copy(item.rotation);object.scale.copy(item.scale);object.visible=item.visible;for(const key of ['growthBaseY','growthHeight'])if(item[key]===undefined)delete object.userData[key];else object.userData[key]=item[key]}
   if(saved.parking)parking.restore(saved.parking);world.draftWheelDistance=saved.wheelDistance;drive.draftRestore(saved.drive);if(saved.traffic)traffic.draftRestore(saved.traffic);world.draftTime=saved.time;loopTime=saved.loopTime;world.draftSpeed=saved.speed;world.draftSceneryRandom.restore(saved.sceneryRandom);world.draftTrafficRandom.restore(saved.trafficRandom);world.applyCamera(saved.pose);world.setResolution(saved.width,saved.height);world.renderer.shadowMap.needsUpdate=true;world.shadowKey='';world.groundReflectionKey='';world.carReflectionKey='';}
- async function exportScene({format='png',width=3840,duration=10,onProgress=()=>{},cameraPose=null}={}){
+ async function exportScene({format='png',width=3840,duration=10,onProgress=()=>{},cameraPose=null,signal}={}){
   const size=exportSize(format,width);
   if(exporting)throw Error('An export is already running');
-  while(features.animating()||world.activationSweep?.active()){if(!playing)break;await new Promise(resolve=>requestAnimationFrame(resolve))}
-  settle();exporting=true;cancelled=false;const saved=capture(),wasPlaying=playing;drive.pause();world.suspended=false;cancelAnimationFrame(frame);frame=0;
+  while(features.animating()||world.activationSweep?.active()){
+   signal?.throwIfAborted();
+   if(!playing)break;
+   await new Promise(resolve=>requestAnimationFrame(resolve));
+  }
+  signal?.throwIfAborted();
+  settle();exporting=true;const saved=capture(),wasPlaying=playing;drive.pause();world.suspended=false;cancelAnimationFrame(frame);frame=0;
   let result;
   try{
    world.setResolution(size.width,size.height);if(cameraPose)world.applyCamera(cameraPose);world.renderFrame();
    if(format==='png')result={blob:await stillPng(world,size),extension:'png'};
    else if(format==='camera')result={blob:new Blob([JSON.stringify(cameraMetadata(world,{sceneName:current(),sourceUrl:location.href}),null,2)],{type:'application/json'}),extension:'json'};
    else if(format==='depth'){const depth=renderDepth(world);result={blob:await depthPng(depth,size.width,size.height),extension:'png'}}
-   else if(format==='kit'){const metadata=cameraMetadata(world,{sceneName:current(),sourceUrl:location.href}),image=await stillPng(world,size),depth=renderDepth(world);result={blob:await zipFiles([['scene.png',image],['perspective.svg',perspectiveSvg(world)],['camera.json',JSON.stringify(metadata,null,2)],['depth.png',await depthPng(depth,size.width,size.height)]]),extension:'zip'}}
+   else if(format==='kit'){
+    const metadata=cameraMetadata(world,{sceneName:current(),sourceUrl:location.href}),image=await stillPng(world,size);
+    signal?.throwIfAborted();
+    const depth=renderDepth(world),depthImage=await depthPng(depth,size.width,size.height);
+    signal?.throwIfAborted();
+    result={blob:await zipFiles([['scene.png',image],['perspective.svg',perspectiveSvg(world)],['camera.json',JSON.stringify(metadata,null,2)],['depth.png',depthImage]]),extension:'zip'};
+   }
    else{
     const {encodeVideo}=await import('./video.js');
+    signal?.throwIfAborted();
     drive.setPlaying(true);if(isParking(world.state?.id)&&features.get().path)parking.start();
-    result=await encodeVideo(world.renderer.domElement,{duration,render(index){if(cancelled)throw new DOMException('Export cancelled','AbortError');if(index>0)step(1/30);onProgress(Math.round((index+1)/(duration*30)*100))}});
+    result=await encodeVideo(world.renderer.domElement,{duration,signal,render(index){if(index>0)step(1/30);onProgress(Math.round((index+1)/(duration*30)*100))}});
    }
+   signal?.throwIfAborted();
    result.audit={format,...size,duration:format==='video'?duration:0,frames:format==='video'?duration*30:1,startDistance:saved.drive.distance,exportEndDistance:drive.audit().distance,extension:result.extension,wasPlaying};
    return result;
   }finally{restore(saved);exporting=false;playing=wasPlaying;lastInput=performance.now();sync();renderOnce();schedule()}
@@ -168,7 +181,7 @@ export function installDraftBridge({world,features,drive,traffic,api,current,upd
  junctionPlay(){if(playing){setPlaying(false);return}if(junctionPoses&&loopTime*1000>=junctionPoses.motion.duration)bridge.replay();setPlaying(true)},
  renderReplayFrame(){renderOnce();publish()},
  completeStartup(){sync();renderOnce();world.draftInitialFrameReady=true;document.getElementById('preview').setAttribute('aria-busy','false');schedule();publish()},
- export:exportScene,async videoFormat(){return (await import('./video.js')).videoType()},cancelExport(){cancelled=true},resize(width){if(exporting)return;const raster=previewPixels(width,devicePixelRatio,window.parent.visualViewport?.scale??1,globalThis.__draftPreviewLimit);if(world.width===raster.width&&world.height===raster.height)return;world.setResolution(raster.width,raster.height);renderOnce();publish()},
+ export:exportScene,async videoFormat(){return (await import('./video.js')).videoType()},resize(width){if(exporting)return;const raster=previewPixels(width,devicePixelRatio,window.parent.visualViewport?.scale??1,globalThis.__draftPreviewLimit);if(world.width===raster.width&&world.height===raster.height)return;world.setResolution(raster.width,raster.height);renderOnce();publish()},
  capture,restore,canvas:world.renderer.domElement,restart(){if(!origin)return false;const held=world.suspended;world.suspended=false;restore(origin);world.renderFrame();world.suspended=held;publish();return true},advance(seconds){const held=world.suspended;world.suspended=false;step(seconds);world.suspended=held;publish()},
  async snapshot(){return canvasPng(world.renderer.domElement)},
  input(){claimIndicatorAudio();lastInput=performance.now();if(idlePaused)setPlaying(true)}

@@ -28,7 +28,7 @@ test('Packed Parking normals preserve every GPU Float32 bit in the approved sour
 test('Runtime excludes the encoder and resolves the complete encoder only through a lazy module',async()=>{
  const runtime=await readFile(new URL('../runtime.bundle.js',import.meta.url),'utf8');
  const video=await readFile(new URL('../video.bundle.js',import.meta.url),'utf8');
- assert.match(runtime,/import\("\.\/video\.bundle\.js\?v=interaction-20261027"\)/);
+ assert.match(runtime,/import\("\.\/video\.bundle\.js\?v=20261106"\)/);
  assert.ok(Buffer.byteLength(runtime)<1250000);
  assert.ok(gzipSync(runtime).byteLength<500000);
  assert.match(runtime,/new URL\("\.\/parking-normals\.bundle\.js\?v=[a-f0-9]+",import.meta.url\)/);
@@ -55,7 +55,8 @@ test('Control work waits through a paint opportunity, supersedes same-key clicks
 test('Parking and PNG startup never initiate a video capability probe',async()=>{
  const source=await readFile(new URL('../draft.js',import.meta.url),'utf8');
  assert.doesNotMatch(source,/\nbridge\(\)\.videoFormat\(\)/);
- assert.match(source,/if\(format==='video'\)await probeVideo\(\)/);
+ assert.match(source,/if\(syncExportControls\(\)==='video'\)void probeVideo\(\)/);
+ assert.match(source,/if\(format==='video'&&!videoReady\)return/);
 });
 
 test('Selected vehicle preload is consumed once, mismatched models use their own URL, and an early failure retries',async()=>{

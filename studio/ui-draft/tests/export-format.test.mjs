@@ -56,8 +56,8 @@ test('The real export handler normalizes stale Parking video before opening Save
     const h = controls(), calls = [];
     const nodes = {'export-label': {}, export: {style: {setProperty() {}}}};
     const run = new Function('$', 'bridge', 'syncExportControls', 'chooseExportDestination', 'writeExportFile', 'document', 'window', 'CustomEvent', `
-      let exporting=false,sceneFailed=false,ready=true,previewBusy=false,demoUpdating=null,sceneUpdating=false,vehicleUpdating=false,themeTransition=null,videoExtension='mp4',duration=10;
-      const selectedExportSize=()=>({width:3840,height:2160}),feedback=()=>{},lockControls=()=>{},holdFrame=async()=>{},releaseFrame=async()=>{},board=()=>({type:'${scene}'}),params=()=>({weather:'default'});
+      let exporting=null,sceneFailed=false,ready=true,previewBusy=false,demoUpdating=null,sceneUpdating=false,vehicleUpdating=false,themeTransition=null,videoExtension='mp4',duration=10;
+      const selectedExportSize=()=>({width:3840,height:2160}),feedback=()=>{},lockControls=()=>{},controlPaint=async()=>true,holdFrame=async()=>{},releaseFrame=async()=>{},board=()=>({type:'${scene}'}),params=()=>({weather:'default'});
       ${block}
       return exportCurrent;
     `)(id => nodes[id], () => ({async export(options) {calls.push(['render', options.format]);return {blob: 'png', audit: {}}}}),
@@ -72,12 +72,40 @@ test('Video cannot open Save As or render before its lazy codec probe is ready',
   const source=await readFile(new URL('../draft.js',import.meta.url),'utf8');
   const block=source.slice(source.indexOf('async function exportCurrent('),source.indexOf('\nfunction tooltipHide('));
   const calls=[],nodes={'export-label':{},export:{style:{setProperty(){}}}};
-  const run=new Function('$','bridge','chooseExportDestination',`let exporting=false,sceneFailed=false,ready=true,previewBusy=false,demoUpdating=null,sceneUpdating=false,vehicleUpdating=false,themeTransition=null,videoReady=false,videoExtension='mp4',duration=.1;
-    const selectedExportSize=()=>({width:1920,height:1080}),syncExportControls=()=> 'video',feedback=()=>{},lockControls=()=>{},holdFrame=async()=>{},releaseFrame=async()=>{},probeVideo=async()=>{},board=()=>({type:'road'}),params=()=>({weather:'default'}),writeExportFile=async()=>{};
+  const run=new Function('$','bridge','chooseExportDestination',`let exporting=null,sceneFailed=false,ready=true,previewBusy=false,demoUpdating=null,sceneUpdating=false,vehicleUpdating=false,themeTransition=null,videoReady=false,videoExtension='mp4',duration=.1;
+    const selectedExportSize=()=>({width:1920,height:1080}),syncExportControls=()=> 'video',feedback=()=>{},lockControls=()=>{},controlPaint=async()=>true,holdFrame=async()=>{},releaseFrame=async()=>{},probeVideo=async()=>{},board=()=>({type:'road'}),params=()=>({weather:'default'}),writeExportFile=async()=>{};
     const document={body:{dataset:{}}},window={dispatchEvent(){}},CustomEvent=function(){};
     ${block}
     return {run:exportCurrent,ready(){videoReady=true}};
   `)(id=>nodes[id],()=>({async export(){calls.push('render');return {blob:'video',audit:{}}}}),async()=>{calls.push('save');return {name:'road.mp4'}});
   await run.run();assert.deepEqual(calls,[]);
   run.ready();await run.run();assert.deepEqual(calls,['save','render']);
+});
+
+test('Cancelling a still export discards the finished render and unlocks after restoration', async () => {
+  const source=await readFile(new URL('../draft.js',import.meta.url),'utf8');
+  const block=source.slice(source.indexOf('async function exportCurrent('),source.indexOf('\nfunction tooltipHide('));
+  const renderStarted=Promise.withResolvers(),render=Promise.withResolvers(),release=Promise.withResolvers();
+  const calls=[],nodes={'export-label':{},export:{style:{setProperty(){}}}};
+  const run=new Function('$','bridge','writeExportFile','calls','release',`
+    let exporting=null,sceneFailed=false,ready=true,previewBusy=false,demoUpdating=null,sceneUpdating=false,vehicleUpdating=false,themeTransition=null,videoExtension='mp4',duration=10;
+    const syncExportControls=()=> 'kit',selectedExportSize=()=>({width:3840,height:2160}),board=()=>({type:'road'}),params=()=>({weather:'default'});
+    const chooseExportDestination=async()=>({name:'road.zip'}),controlPaint=async()=>true,holdFrame=async()=>{},releaseFrame=()=>release.promise;
+    const feedback=message=>calls.push(message),lockControls=busy=>calls.push(busy);
+    ${block}
+    return exportCurrent;
+  `)(id=>nodes[id],()=>({export({signal}){renderStarted.resolve(signal);return render.promise;}}),
+    async()=>{assert.fail('A cancelled export must not write a file');},calls,release);
+
+  const pending=run(),signal=await renderStarted.promise;
+  await run();
+  assert.equal(signal.aborted,true);
+  assert.equal(nodes['export-label'].textContent,'Cancelling…');
+  render.resolve({blob:'zip',audit:{}});
+  await Promise.resolve();
+  assert.deepEqual(calls,['',true,'Export cancelled']);
+  release.resolve();
+  await pending;
+  assert.deepEqual(calls,['',true,'Export cancelled',false]);
+  assert.equal(nodes['export-label'].textContent,'Export');
 });

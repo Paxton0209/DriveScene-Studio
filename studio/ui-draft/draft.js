@@ -29,9 +29,11 @@ const project=createEntryProject(saved);
 const recoveryKey=storageKey+'-recover';
 try{const scene=sessionStorage.getItem(recoveryKey);sessionStorage.removeItem(recoveryKey);if(sceneTypes.some(type=>type.id===scene))project.active=scene;}catch{}
 for(const board of Object.values(project.boards))board.params.path=false;project.shared.playing=true;project.shared.playback=project.shared.playing;if(project.shared.layers)project.shared.layers.path=false;const icons=await fetch('./icons.json').then(response=>response.json());
-let ready=false,status={playing:false},duration=10,videoExtension='mp4',videoAvailable=true,videoReady=false,scrollTimer=0,resizeFrame=0,exporting=false,previewBusy=false,demoUpdating=null,sceneUpdating=false,vehicleUpdating=false,tooltipTimer=0,tooltipLast=0,tooltipAnchor=null,sceneRequest=0;
+let ready=false,status={playing:false},duration=10,videoExtension='mp4',videoAvailable=true,videoReady=false,scrollTimer=0,resizeFrame=0,exporting=null,previewBusy=false,demoUpdating=null,sceneUpdating=false,vehicleUpdating=false,tooltipTimer=0,tooltipLast=0,tooltipAnchor=null,sceneRequest=0;
 const api=()=>frame.contentWindow.layoutEngine,bridge=()=>api().draft,board=()=>project.boards[project.active],params=()=>board().params;
 const canvasTransport=document.createElement('button');canvasTransport.id='canvas-transport';canvasTransport.type='button';canvasTransport.className='icon-button';canvasTransport.hidden=true;canvasTransport.disabled=true;document.querySelector('.artboard-clip').append(canvasTransport);
+// Outside presses must reach the shell menus without activating the scene.
+$('menu-cover').addEventListener('pointerdown',event=>event.preventDefault());
 const vehicles=[['model-3','Tesla Model 3'],['x6','BMW X6'],['ix','BMW iX'],['xc90','Volvo XC90']],thumb=id=>vehicleThumbnails[id];
 function persist(){try{localStorage.setItem(storageKey,JSON.stringify(project))}catch{feedback('Settings could not be saved')}}
 function warmParkingAssets(){if(ready&&params().traffic)void bridge().prepareParkingAssets().catch(()=>{});}
@@ -118,7 +120,10 @@ async function performScene(type,request){
 }
 async function applyParam(key,value,save=true,options={}){const previousTraffic=params().traffic;if(!ready||exporting||previewBusy||demoUpdating||sceneUpdating||vehicleUpdating)return false;if(themeTransition)return false;if(key==='camera'&&save&&status.parking?.cameraLocked)return;if(key==='lanes')value=Number(value);if(key==='weather')value=setProjectWeather(project,value);if(save)setProjectOption(project,key,value);const model=key==='model',previousModel=project.shared.model;if(model){vehicleUpdating=true;$('library').setAttribute('aria-busy','true');lockControls(true);value=setProjectVehicle(project,value);}const layout=key==='layout';if(layout){sceneUpdating=true;lockControls(true);await holdFrame();}const intentRequest=sceneRequest;params()[key]=value;const engineValue=key==='camera'&&['parking','outdoor'].includes(project.active)?({parking:{default:'10',raised:'16',bev:'14'},outdoor:{default:'10',raised:'16',bev:'14'}}[project.active][value]||value):value;
  const preparingTraffic=key==='traffic'&&value&&['parking','outdoor'].includes(project.active);
- try{if(model||preparingTraffic)await holdFrame();if(!await controlPaint(key)||intentRequest!==sceneRequest)return false;await bridge().param(key,engineValue,options);if(save)persist();if(layout)await releaseFrame();}catch(error){if(model)setProjectVehicle(project,previousModel);if(key==='traffic')setProjectOption(project,key,previousTraffic);feedback(error.message);return false;}finally{if(preparingTraffic&&intentRequest===sceneRequest)$('frame-cover').hidden=true;if(model){$('frame-cover').hidden=true;vehicleUpdating=false;$('library').removeAttribute('aria-busy');lockControls(false);renderVehicles();$('vehicle-name').textContent=vehicles.find(vehicle=>vehicle[0]===params().model)[1];}if(layout){sceneUpdating=false;lockControls(false);$('frame-cover').hidden=true;}}
+ try{if(model||preparingTraffic)await holdFrame();if(!await controlPaint(key)||intentRequest!==sceneRequest)return false;await bridge().param(key,engineValue,options);if(save)persist();if(layout){
+  await releaseFrame();
+  if(project.active==='junction')bridge().setPlaying(true);
+ }}catch(error){if(model)setProjectVehicle(project,previousModel);if(key==='traffic')setProjectOption(project,key,previousTraffic);feedback(error.message);return false;}finally{if(preparingTraffic&&intentRequest===sceneRequest)$('frame-cover').hidden=true;if(model){$('frame-cover').hidden=true;vehicleUpdating=false;$('library').removeAttribute('aria-busy');lockControls(false);renderVehicles();$('vehicle-name').textContent=vehicles.find(vehicle=>vehicle[0]===params().model)[1];}if(layout){sceneUpdating=false;lockControls(false);$('frame-cover').hidden=true;}}
  renderLabel();if(key==='traffic'&&value)warmParkingAssets();if($('export-preview').open)void refreshExportPreview();return true;
 }
 
@@ -136,11 +141,50 @@ function lockControls(busy,{cancel=false}={}){
 }
 async function exportCurrent(){
  if(sceneFailed)return;
- if(exporting){bridge().cancelExport();$('export-label').textContent='Cancelling…';return;}
- if(!ready||previewBusy||demoUpdating||sceneUpdating||vehicleUpdating||themeTransition)return;const format=syncExportControls();if(format==='video'&&!videoReady)return;exporting=true;feedback('');lockControls(true,{cancel:true});$('export-label').textContent='Cancel';
- try{if(format==='video')await probeVideo();const handle=await chooseExportDestination({format,name:`${board().type}-${params().weather}`,videoExtension});await holdFrame();const result=await bridge().export({format,...selectedExportSize(format),duration,onProgress:percent=>{$('export-label').textContent=`Cancel · ${percent}%`;$('export').style.setProperty('--progress',percent/100)}});if(sceneFailed)return;if(handle.download)offerDownload(result.blob,handle.name);else{await writeExportFile(handle,result.blob);feedback('');}document.body.dataset.lastExport=JSON.stringify({...result.audit,...(handle.download?{downloadName:handle.name}:{savedAs:handle.name})});window.dispatchEvent(new CustomEvent('ui-draft-export',{detail:result}));} /* ds-allow: Pre-existing metadata and export copy is outside the author-requested theme synchronization; retain frozen wording in this local follow-up. */
- catch(error){feedback(error.name==='AbortError'?'Export cancelled':error.message)}
- finally{exporting=false;lockControls(false);$('export-label').textContent='Export';$('export').style.setProperty('--progress',0);await releaseFrame()}
+ const button=$('export'),label=$('export-label');
+ if(exporting){
+  if(button.disabled)return;
+  exporting.abort();
+  label.textContent='Cancelling…';
+  button.disabled=true;
+  return;
+ }
+ if(!ready||previewBusy||demoUpdating||sceneUpdating||vehicleUpdating||themeTransition)return;
+ const format=syncExportControls();
+ if(format==='video'&&!videoReady)return;
+ exporting=new AbortController();
+ const {signal}=exporting;
+ let frameHeld=false;
+ feedback('');
+ lockControls(true,{cancel:true});
+ label.textContent='Cancel';
+ try{
+  const handle=await chooseExportDestination({format,name:`${board().type}-${params().weather}`,videoExtension});
+  await controlPaint('export');
+  signal.throwIfAborted();
+  await holdFrame();
+  frameHeld=true;
+  const result=await bridge().export({format,...selectedExportSize(format),duration,signal,onProgress:percent=>{
+   label.textContent=`Cancel · ${percent}%`; /* ds-allow: Preserve existing in-progress export wording. */
+   button.style.setProperty('--progress',percent/100);
+  }});
+  signal.throwIfAborted();
+  if(sceneFailed)return;
+  button.disabled=true;
+  if(handle.download)offerDownload(result.blob,handle.name);
+  else{await writeExportFile(handle,result.blob);feedback('');}
+  document.body.dataset.lastExport=JSON.stringify({...result.audit,...(handle.download?{downloadName:handle.name}:{savedAs:handle.name})});
+  window.dispatchEvent(new CustomEvent('ui-draft-export',{detail:result}));
+ }catch(error){
+  feedback(error.name==='AbortError'?'Export cancelled':error.message);
+ }finally{
+  button.disabled=true;
+  if(frameHeld)await releaseFrame();
+  exporting=null;
+  label.textContent='Export';
+  button.style.setProperty('--progress',0);
+  lockControls(false);
+ }
 }
 function tooltipHide(){clearTimeout(tooltipTimer);if(!$('tooltip').hidden)tooltipLast=performance.now();$('tooltip').hidden=true;tooltipAnchor=null}
 function tooltipShow(target){tooltipAnchor=target;const [text,key]=target.dataset.tip.split('|');$('tooltip').replaceChildren(document.createTextNode(text));if(key){const keyboard=document.createElement('kbd');keyboard.textContent=key;$('tooltip').append(keyboard)}$('tooltip').hidden=false;const box=target.getBoundingClientRect(),tip=$('tooltip').getBoundingClientRect();Object.assign($('tooltip').style,{left:Math.round(Math.max(8,Math.min(innerWidth-tip.width-8,box.left+box.width/2-tip.width/2)))+'px',top:Math.round(Math.min(innerHeight-tip.height-8,box.bottom+8))+'px'})}
