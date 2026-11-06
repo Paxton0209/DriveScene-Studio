@@ -369,7 +369,7 @@ export function isolatedRuntimePlugin(){return {name:'isolated-ui-draft',setup(b
 
   source=replace(source,"if(custom)shader.fragmentShader=shader.fragmentShader.replace('gl_FragColor=vec4(surface,1.);',reflection+'surface=mix","if(custom)shader.fragmentShader=shader.fragmentShader.replace('gl_FragColor=vec4(surface,1.);',reflection+(satinRoad?'gl_FragColor=vec4(surface,1.);':'surface=mix");
   source=replace(source,"*valid*reflectionStrength);gl_FragColor=vec4(surface,1.);');","*valid*reflectionStrength);gl_FragColor=vec4(surface,1.);'));");
-  source=replace(source," material.customProgramCacheKey=","  if(satinRoad){const compile=material.onBeforeCompile;material.onBeforeCompile=shader=>{compile(shader);const response='gl_FragColor.rgb=compositeVehicleReflection(gl_FragColor.rgb,linearToOutputTexel(vec4(softReflection,1.)).rgb,bodyReflectionOpacity(reflectionTone)*valid*reflectionStrength,reflectionTone);';const anchor=custom?'#include <colorspace_fragment>':'#include <premultiplied_alpha_fragment>';shader.fragmentShader=shader.fragmentShader.replace(anchor,custom?anchor+'\\n'+response:response+'\\n'+anchor);};}\n material.customProgramCacheKey=");
+  source=replace(source," material.customProgramCacheKey=","  if(satinRoad){const compile=material.onBeforeCompile;material.onBeforeCompile=shader=>{compile(shader);const response='gl_FragColor.rgb=compositeVehicleReflection(gl_FragColor.rgb,linearToOutputTexel(vec4(softReflection,1.)).rgb,valid,reflectionTone,reflectionStrength);';const anchor=custom?'#include <colorspace_fragment>':'#include <premultiplied_alpha_fragment>';shader.fragmentShader=shader.fragmentShader.replace(anchor,custom?anchor+'\\n'+response:response+'\\n'+anchor);};}\n material.customProgramCacheKey=");
  }
 
 
@@ -449,12 +449,20 @@ export function isolatedRuntimePlugin(){return {name:'isolated-ui-draft',setup(b
   source=replace(source,'...(vehicle?[this.car]:[]),...(trafficVisible?', '...(vehicle?[this.car]:[]),...parkingVehicles,...(trafficVisible?');
   source=replace(source,'this.car.visible=vehicle;this.tailReflection.visible=vehicle;', 'for(const o of draftOverlays)o.visible=true;this.car.visible=vehicle;this.tailReflection.visible=vehicle;');
   source=replace(source,'const reflectedVehicles=[','(this.draftEgoReflectionCount??={value:0}).value=vehicle?1:0;const reflectedVehicles=[');
-  source="import {vehicleReflectionPrefilter,updateVehicleReflectionFootprint} from '../ui-draft/vehicle-reflection-sampling.js';\n"+source;
+  source="import {DARK_REFLECTION_STRENGTH,vehicleReflectionPrefilter,updateVehicleReflectionFootprint} from '../ui-draft/vehicle-reflection-sampling.js';\n"+source;
+  source=replace(source,'dark?.18:lightQuality.reflectionStrength','dark?DARK_REFLECTION_STRENGTH:lightQuality.reflectionStrength');
+  // Even on a paused scene the cached vehicle capture must follow the visible
+  // theme blend. The same sampled tone drives the prefilter and the receiver.
+  source=replace(source,'  const carReflectionKey=[baseKey,reflectedCar,trafficReflectionStamp].join(\'|\');\n','');
+  source=replace(source,'  const groundChanged=rootChanged||this.groundReflectionKey!==groundKey||waterChanged;',`  const carReflectionKey=[baseKey,reflectedCar,trafficReflectionStamp,this.environmentTone.value].join('|');
+  const carChanged=this.carMirror&&this.carReflectionKey!==carReflectionKey;
+  const groundChanged=rootChanged||this.groundReflectionKey!==groundKey||waterChanged||carChanged;`);
+  source=replace(source,'if(this.carMirror&&this.carReflectionKey!==carReflectionKey){','if(carChanged){');
   source=replace(source,'this.carBlurQuad=new FullScreenQuad(this.carBlurMaterial);',`this.carBlurMaterial.fragmentShader=vehicleReflectionPrefilter;Object.assign(this.carBlurMaterial.uniforms,{reflectionDepth:this.carReflectionDepth,reflectionInverse:this.carReflectionInverse,absorbSource:{value:1},reflectionTone:{value:0},groundY:{value:0}});this.carBlurQuad=new FullScreenQuad(this.carBlurMaterial);`);
   // Move the existing inverse before source-height absorption. The fullscreen
   // blur passes do not change the capture camera, so the receiver reuses it.
   source=replace(source,'this.carReflectionInverse.value.copy(this.carMirror.camera.projectionMatrix).multiply(this.carMirror.camera.matrixWorldInverse).invert();','');
-  source=replace(source,'this.carBlurMaterial.uniforms.source.value=this.carMirror.getRenderTarget().texture;',`this.carReflectionInverse.value.copy(this.carMirror.camera.projectionMatrix).multiply(this.carMirror.camera.matrixWorldInverse).invert();this.carBlurMaterial.uniforms.absorbSource.value=1;this.carBlurMaterial.uniforms.reflectionTone.value=mode==='dark'?1:0;this.carBlurMaterial.uniforms.groundY.value=this.carMirror.position.y;this.carBlurMaterial.uniforms.source.value=this.carMirror.getRenderTarget().texture;`);
+  source=replace(source,'this.carBlurMaterial.uniforms.source.value=this.carMirror.getRenderTarget().texture;',`this.carReflectionInverse.value.copy(this.carMirror.camera.projectionMatrix).multiply(this.carMirror.camera.matrixWorldInverse).invert();this.carBlurMaterial.uniforms.absorbSource.value=1;this.carBlurMaterial.uniforms.reflectionTone.value=this.environmentTone.value;this.carBlurMaterial.uniforms.groundY.value=this.carMirror.position.y;this.carBlurMaterial.uniforms.source.value=this.carMirror.getRenderTarget().texture;`);
   source=replace(source,'this.carBlurMaterial.uniforms.source.value=this.carBlurTargets[0].texture;', 'this.carBlurMaterial.uniforms.absorbSource.value=0;this.carBlurMaterial.uniforms.source.value=this.carBlurTargets[0].texture;');
   // Keep the short floor response attached through every heading, including
   // the old 30-degree orientation threshold during parking reverse.

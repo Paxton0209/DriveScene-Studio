@@ -43,13 +43,14 @@ void main(){vec4 color=vec4(0.);float total=0.;
 // The requested +30% replaces +80%, using the same 1.68 baseline.
 // Every ground receiver uses this response; traffic retains its weaker role.
 export const LIGHT_REFLECTION_GAIN=1.68*1.3;
+export const DARK_REFLECTION_STRENGTH=.18;
 export function bodyReflectionStrength(tone=0,ego=true){return ((1-tone)*(.255*LIGHT_REFLECTION_GAIN)+tone*.32)*(ego?1:.42)}
 export const vehicleReflectionSampling=`
 uniform vec2 vehicleReflectionTexel;
 // A bounded relative radiance response keeps a white reflection comparable on
 // different ground colours. At night the existing AO owns contact darkness;
 // the reflection adds only the filtered vehicle radiance.
-vec3 compositeVehicleReflection(vec3 ground,vec3 source,float coverage,float tone){
+vec3 compositeVehicleReflection(vec3 ground,vec3 source,float coverage,float tone,float strength){
  float groundLuma=max(dot(ground,vec3(.2126,.7152,.0722)),.035);
  // The accepted light Parking floor is the contrast reference. Preserve its
  // soft light/dark silhouette; transfer that relative contrast to other floors.
@@ -62,9 +63,13 @@ vec3 compositeVehicleReflection(vec3 ground,vec3 source,float coverage,float ton
  // Night radiance stays faint and cannot paint an extra dark underbody patch.
  float nightContrast=clamp(pow(groundLuma/.025,.65),.6,2.);
  vec3 darkDelta=(vec3(1.)-ground)*source*(1.5*nightContrast);
- return clamp(ground+mix(lightDelta,darkDelta,tone)*clamp(coverage,0.,1.),0.,1.);
+ // Apply each theme's gain before blending. Applying the rising daylight gain
+ // to the remaining night reflection makes a bright patch under the car.
+ float nightStrength=tone*${DARK_REFLECTION_STRENGTH};
+ float lightCoverage=clamp(coverage*(strength-nightStrength)*${.255*LIGHT_REFLECTION_GAIN},0.,1.);
+ float darkCoverage=clamp(coverage*nightStrength*.32,0.,1.);
+ return clamp(ground+lightDelta*lightCoverage+darkDelta*darkCoverage,0.,1.);
 }
-float bodyReflectionOpacity(float tone){return mix(${.255*LIGHT_REFLECTION_GAIN},.32,tone);}
 vec4 roughVehicleSample(vec2 uv,float height,float tone,float groundY){
  float radius=mix(4.,18.,smoothstep(0.,.9,height));
  // Keep the accepted 1408x792 preview roughness when raster density changes.

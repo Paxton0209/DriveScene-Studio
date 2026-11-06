@@ -14,7 +14,7 @@ export function packedNormalsModule(data){
  return `const packed=${JSON.stringify(packed)};const normals={};await Promise.all(Object.entries(packed).map(async([role,data])=>{const response=await fetch('data:application/octet-stream;base64,'+data);const buffer=await new Response(response.body.pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();normals[role]=new Float32Array(buffer);}));export default normals;`;
 }
 export function startupBundlesPlugin(){return {name:'startup-payloads',setup(builder){
- builder.onResolve({filter:/^\.\/video\.js$/},()=>({path:'./video.bundle.js?v=interaction-20261027',external:true}));
+ builder.onResolve({filter:/^\.\/video\.js$/},()=>({path:'./video.bundle.js?v=20261106',external:true}));
  builder.onResolve({filter:/parking-material-normals\.json$/},async()=>{
   const data=JSON.parse(await readFile(new URL('./saved-preview/parking-material-normals.json',import.meta.url),'utf8'));
   const hash=createHash('sha256').update(packedNormalsModule(data)).digest('hex').slice(0,12);
