@@ -54,7 +54,7 @@
  @keyframes startup-label{from{opacity:0}to{opacity:1}}
 }
 
-/* The existing transport slot describes the pending state without a spinner. */
+/* The transport slot handles the pending state. */
 :root[data-startup] .artboard-label{animation:none}
 
 /* Canvas and controls share the root reveal so its edge crosses both continuously. */

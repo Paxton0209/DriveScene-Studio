@@ -263,7 +263,7 @@ function renderPlayback(){
 }
 function renderTransport(){
  renderParkingStatus();renderPlayback();const transport=$('scene-transport');
- if(!document.body.dataset.ready||sceneUpdating){const key=sceneFailed?'failed':'loading:'+project.active;if(transportRenderKey===key)return;transportRenderKey=key;transport.hidden=false;transport.disabled=true;const label=sceneFailed?'Scene unavailable':'Loading scene…';
+ if(!document.body.dataset.ready||sceneUpdating){const key=sceneFailed?'failed':'loading:'+project.active;if(transportRenderKey===key)return;transportRenderKey=key;transport.hidden=false;transport.disabled=true;const label=sceneFailed?'Scene unavailable':'Loading';
   transport.textContent=label;transport.removeAttribute('role');transport.setAttribute('aria-label',label);transport.removeAttribute('aria-checked');return;}
  const complete=!!(status.junction?.complete||status.parking?.complete),assisted=!!status.features?.path,key=JSON.stringify([project.active,assisted,complete]);if(key===transportRenderKey)return;transportRenderKey=key;
  if(transport.hidden!==false)transport.hidden=false;transport.dataset.finished=String(complete);

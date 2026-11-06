@@ -307,7 +307,7 @@ body[data-ready=true] #canvas-playback #scene-transport:disabled{opacity:1}
 
 /* Keep the switch surface and wheel fixed while the disc changes color. */
 :root #canvas-playback #scene-transport[role=switch]{position:relative;inset:auto;background:var(--c-raised);box-shadow:var(--sh-raised);scale:none;opacity:1}
-:root #scene-transport[role=switch]::before{width:20px;height:20px;border-radius:50%;background-color:color-mix(in srgb,var(--assist-disc-off) 80%,transparent);background-image:url("./assist-wheel-off.svg");background-position:center;background-size:contain;background-repeat:no-repeat;mask:none;clip-path:none;transition:background-color var(--ds-motion-base)} /* ds-allow: Author-supplied Sketch wheel normalized to the 20px visible disc (author-confirmed 2026-11-04); preserve off-disc 80% opacity. */
+:root #scene-transport[role=switch]::before{content:"";width:20px;height:20px;flex:none;border-radius:50%;background-color:color-mix(in srgb,var(--assist-disc-off) 80%,transparent);background-image:url("./assist-wheel-off.svg");background-position:center;background-size:contain;background-repeat:no-repeat;transition:background-color var(--ds-motion-base)} /* ds-allow: Author-supplied Sketch wheel normalized to the 20px visible disc (author-confirmed 2026-11-04); preserve off-disc 80% opacity. */
 
 :root #scene-transport[role=switch][aria-checked=true]::before{background-color:var(--ds-color-accent-fill)}
 @media(prefers-reduced-motion:reduce){:root #scene-transport[role=switch]::before{transition:none}}
@@ -333,9 +333,7 @@ body[data-ready=true] #canvas-playback #scene-transport:disabled{opacity:1}
 .replay-veil{position:absolute;inset:0;z-index:10;background:var(--canvas);opacity:1;pointer-events:none}
 @media(prefers-reduced-motion:reduce){:root #artboard #canvas-transport{transition:none}}
 
-:root #canvas-playback #scene-transport[data-finished=true]{opacity:.45}
-:root #scene-transport[data-finished=true]::before{background-color:var(--c-t3)}
-body[data-ready=true] #canvas-playback #scene-transport[data-finished=true]:disabled{opacity:.45}
+body[data-ready=true] #canvas-playback #scene-transport[role=switch][data-finished=true]:disabled{opacity:.45}
 :root #scene-transport[role=switch][data-finished=true]::before{background-color:color-mix(in srgb,var(--assist-disc-off) 80%,transparent)}
 
 /* Visual system v5 · 2026-11-04
