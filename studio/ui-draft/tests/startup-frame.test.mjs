@@ -5,6 +5,7 @@ import {layoutStartupPoster} from '../startup-poster.mjs';
 import {patchApp} from '../runtime-patches.mjs';
 import {createEntryProject} from '../artboards.js';
 const source = await readFile(new URL('../draft.js', import.meta.url), 'utf8');
+const loadingSpokes = await readFile(new URL('../loading-spokes.svg', import.meta.url), 'utf8');
 
 test('Initial layout is synchronous; later resize frames preserve the same rectangle', () => {
   const block = source.slice(source.indexOf('function sizeBoard('), source.indexOf('\nasync function holdFrame('));
@@ -48,8 +49,8 @@ test('All scenes share a visible transport while readiness disables playback', (
   const block = source.slice(source.indexOf('let transportRenderKey='), source.indexOf("\nwindow.addEventListener('message'"));
   for (const active of ['road', 'parking', 'outdoor']) {
     const attrs={},transport = {dataset:{},setAttribute(k,v) {attrs[k]=v},removeAttribute(k){delete attrs[k]}},document={body:{dataset:{}}};
-    const render=new Function('$', 'project','document', `let status={playing:false},sceneFailed=false,exporting=false,previewBusy=false,demoUpdating=false,sceneUpdating=false,vehicleUpdating=false,themeTransition=null;const syncJunctionPathLock=()=>{};${block};return renderTransport;`)(() => transport, {active},document);
-    render();assert.equal(transport.hidden,false);assert.equal(transport.disabled,true);assert.equal(transport.textContent,'Loading');
+    const render=new Function('$', 'project','document','loadingSpokes', `let status={playing:false},sceneFailed=false,exporting=false,previewBusy=false,demoUpdating=false,sceneUpdating=false,vehicleUpdating=false,themeTransition=null;const syncJunctionPathLock=()=>{};${block};return renderTransport;`)(() => transport, {active},document,loadingSpokes);
+    render();assert.equal(transport.hidden,false);assert.equal(transport.disabled,true);assert.equal(transport.innerHTML,loadingSpokes+'Loading');
     assert.equal(attrs.role,undefined);assert.equal(attrs['aria-checked'],undefined);
     document.body.dataset.ready='true';render();assert.equal(transport.hidden,false);assert.equal(transport.textContent,active==='road'?'Driving assist':'Park assist');
   }
@@ -127,7 +128,7 @@ test('Embedded startup passes the selected query without borrowing the parent UR
 test('Transport loading cache follows the active scene before readiness',()=>{
  const block=source.slice(source.indexOf('let transportRenderKey='),source.indexOf("\nwindow.addEventListener('message'"));
  const transport={dataset:{},setAttribute(){},removeAttribute(){}},project={active:'road'},document={body:{dataset:{}}};
- const render=new Function('$','project','document',`let status={playing:false},sceneFailed=false,exporting=false,previewBusy=false,demoUpdating=false,sceneUpdating=false,vehicleUpdating=false,themeTransition=null;const syncJunctionPathLock=()=>{};${block};return renderTransport;`)(()=>transport,project,document);
+ const render=new Function('$','project','document','loadingSpokes',`let status={playing:false},sceneFailed=false,exporting=false,previewBusy=false,demoUpdating=false,sceneUpdating=false,vehicleUpdating=false,themeTransition=null;const syncJunctionPathLock=()=>{};${block};return renderTransport;`)(()=>transport,project,document,loadingSpokes);
  for(const active of ['road','parking','outdoor','road']){project.active=active;render();assert.equal(transport.hidden,false);}
 });
 
