@@ -62,7 +62,7 @@ export function patchApp(source){
  source=replace(source,'scheduleVehicleWarmup(800);rememberPreview();','rememberPreview();');
  // The embedded canvas may be narrow on desktop; capacity follows the host viewport.
  source=replace(source,"maxEntries:matchMedia('(max-width:760px)').matches?2:4","maxEntries:4");
- source="import {prepareStartupChoices,startupChoices} from '../ui-draft/startup-readiness.js';\n"+source;
+ source="import {prepareStartupChoices,startupChoices} from '../ui-draft/startup-readiness.js';\nimport {prefetchVehicleFiles} from '../ui-draft/vehicle-prefetch.js';\n"+source;
  source=replace(source,"if(query.has('qa')){const records=JSON.parse(preview.dataset.vehiclePerformance", "if(query.has('qa')||query.get('review')==='ui-draft'){const records=JSON.parse(preview.dataset.vehiclePerformance");
  source=replace(source,' vehicleReady=true;vehicleFullReady=full;',` await prepareAllStartupChoices();
  vehicleReady=true;vehicleFullReady=full;`);
@@ -130,6 +130,7 @@ async function installVehicle(car,full=false,animate=false,retainPrevious=false)
  // old scene render followed by one render/two RAFs for every saved parameter.
  source=replace(source,'if(vehicleReady&&!versionFeatures.animating()','if(!world.draftManaged&&vehicleReady&&!versionFeatures.animating()');
  source=replace(source,' warmVehicle,',` warmVehicle,
+ prefetchVehicles(){return prefetchVehicleFiles(vehicleCatalog.map(({id})=>id),{needsModel:id=>id!==selectedVehicle&&!vehicleCache.peek(id)&&!vehicleCache.stats().pending.includes(id)});},
  startupAudit(){return {readiness:world.draftStartupReadiness,cache:vehicleCache.stats(),appearancePreparations:world.draftAppearancePreparations||0,vehiclePerformance:JSON.parse(preview.dataset.vehiclePerformance||'[]')};},
  async prepareDraftLayout(value){
   preferences.get(selected).id=value;
@@ -275,6 +276,10 @@ export function isolatedRuntimePlugin(){return {name:'isolated-ui-draft',setup(b
   source=source.replaceAll('./ego-vehicle-ready.glb.gz?v=17.9','../ui-draft/vehicles/x6/model.glb.gz?v=x6-lossless-20261104');
   source=replace(source,"import frameHulls from './vehicle-frame-hull.js';","import {loadFramingHull} from '../ui-draft/framing-data.js';");
   source=replace(source,'export async function createVehicle({startup=false}={}){',"export async function createVehicle({startup=false}={}){\n const hullRequest=startup?Promise.resolve(null):loadFramingHull('x6');");
+  source=replace(source,"const compressed=await takePrefetched(startup?'__startupVehicleRequest':'__fullVehicleRequest',()=>fetchAsset(new URL(startup?'./ego-vehicle-startup.glb.gz?v=17.9':'../ui-draft/vehicles/x6/model.glb.gz?v=x6-lossless-20261104',import.meta.url)));",`const url=new URL(startup?'./ego-vehicle-startup.glb.gz?v=17.9':'../ui-draft/vehicles/x6/model.glb.gz?v=x6-lossless-20261104',import.meta.url);
+ let scope=globalThis,key=startup?'__startupVehicleRequest':'__fullVehicleRequest';
+ if(!startup&&!scope[key]){try{const requests=window.parent.__draftStartupAssets,request=requests?.get(url.href);if(request){requests.delete(url.href);scope={[key]:request};}}catch{}}
+ const compressed=await takePrefetched(key,()=>fetchAsset(url),scope);`);
   source=replace(source,'let frameIndex=0;','const frameHulls=await hullRequest||[];let frameIndex=0;');
  }
  // The parent owns the visible vehicle selector; do not build a second hidden picker.

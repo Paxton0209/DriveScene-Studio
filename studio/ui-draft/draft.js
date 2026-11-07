@@ -327,7 +327,8 @@ async function startWorkbench(){
   if(layoutField){layoutField.inert=false;layoutField.removeAttribute('data-loading');}
   document.body.dataset.ready='true';sceneBusy.setAttribute('aria-busy','false');lockControls(false);
   for(const id of ['assist','scene-transport','canvas-transport'])$(id).disabled=false;
-  renderTransport();if(window.requestIdleCallback)requestIdleCallback(warmParkingAssets,{timeout:800});else setTimeout(warmParkingAssets,0);
+  const preload=()=>{warmParkingAssets();void api().prefetchVehicles();};
+  renderTransport();if(window.requestIdleCallback)requestIdleCallback(preload,{timeout:800});else setTimeout(preload,0);
  }catch(error){
   if(!sceneFailed)failScene(error.message==='3D rendering is unavailable.'?error.message:'The scene could not load.');
  }
