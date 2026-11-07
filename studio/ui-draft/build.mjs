@@ -92,9 +92,10 @@ parent=parent.replace(/<script(?: id="saved-frame-profile"| src="saved-preview\/
 const frameProfile=await readFile(new URL('./saved-preview/frame-profile.js',import.meta.url),'utf8');
 parent=parent.replace('</body>',`<script id="saved-frame-profile">${frameProfile}</script></body>`);
 
-// Strip formatting from the inline poster script to preserve the HTML byte budget.
-const {code:posterScript}=await transform(`(${showStartupPoster.toString()})(${previews},window)`,{loader:'js',minifyWhitespace:true});
-parent=parent.replace('</head>',()=>`<script id="startup-poster">${posterScript.replace(/<\/script/gi,'<\\/script')}</script></head>`).replace('<script type="module"',`<script id="startup-layout">(${layoutStartupPoster.toString()})()</script><script type="module"`);
+// Compact the inline startup scripts to preserve the HTML byte budget.
+const {code:posterScript}=await transform(`(${showStartupPoster.toString()})(${previews},window)`,{loader:'js',minify:true});
+const {code:layoutScript}=await transform(`(${layoutStartupPoster.toString()})()`,{loader:'js',minify:true});
+parent=parent.replace('</head>',()=>`<script id="startup-poster">${posterScript.replace(/<\/script/gi,'<\\/script')}</script></head>`).replace('<script type="module"',`<script id="startup-layout">${layoutScript}</script><script type="module"`);
 // First paint must not wait for a separate CSS response. Keep the complete
 // existing cascade inline and regenerate it on every build.
 parent=parent.replace(/<style data-startup-css="[^"]+">[\s\S]*?<\/style>/g,'');
@@ -134,7 +135,7 @@ const runtimeVersion=createHash('sha256').update(await readFile(new URL('./runti
 engineHtml=engineHtml.replaceAll('horizon-startup-20261102',runtimeVersion);
 parent=parent.replaceAll('horizon-startup-20261102',runtimeVersion);
 await writeFile(new URL('./engine.html',import.meta.url),engineHtml);
-await build({absWorkingDir:root,entryPoints:['./draft.js'],loader:{'.html':'text'},bundle:true,minify:true,format:'esm',outfile:'draft.bundle.js',target:['chrome110','safari17'],plugins:[{name:'inline-icons',setup(b){b.onLoad({filter:/\/draft\.js$/},async({path})=>({contents:(await readFile(path,'utf8')).replace("await fetch('./icons.json').then(response=>response.json())",await readFile(iconFile,'utf8')),loader:'js',resolveDir:root}));}}]});
+await build({absWorkingDir:root,entryPoints:['./draft.js'],loader:{'.html':'text','.svg':'text'},bundle:true,minify:true,format:'esm',outfile:'draft.bundle.js',target:['chrome110','safari17'],plugins:[{name:'inline-icons',setup(b){b.onLoad({filter:/\/draft\.js$/},async({path})=>({contents:(await readFile(path,'utf8')).replace("await fetch('./icons.json').then(response=>response.json())",await readFile(iconFile,'utf8')),loader:'js',resolveDir:root}));}}]});
 console.log('UI draft runtime built; shared engine files are read-only inputs.');
 
 // Reproduce the saved preview, including its fixed material and frame profile.
@@ -165,7 +166,7 @@ window.draftSelectionMotion=morphSegment;
 `+contents.slice(end);
  return {contents,loader:'js',resolveDir:root+'../'};
  });}}]});
-const trial=await build({absWorkingDir:root,entryPoints:['./draft.js'],loader:{'.html':'text'},bundle:true,minify:true,format:'esm',write:false,target:['chrome110','safari17'],plugins:[{name:'trial-shell',setup(b){b.onLoad({filter:/\/draft\.js$/},async({path})=>({contents:(await readFile(path,'utf8')).replace("'./motion-runtime.js'","'./trial-motion-runtime.js'").replace("await fetch('./icons.json').then(response=>response.json())",await readFile(iconFile,'utf8')),loader:'js',resolveDir:root}));}}]});
+const trial=await build({absWorkingDir:root,entryPoints:['./draft.js'],loader:{'.html':'text','.svg':'text'},bundle:true,minify:true,format:'esm',write:false,target:['chrome110','safari17'],plugins:[{name:'trial-shell',setup(b){b.onLoad({filter:/\/draft\.js$/},async({path})=>({contents:(await readFile(path,'utf8')).replace("'./motion-runtime.js'","'./trial-motion-runtime.js'").replace("await fetch('./icons.json').then(response=>response.json())",await readFile(iconFile,'utf8')),loader:'js',resolveDir:root}));}}]});
 // Preserve the approved shell geometry while sharing its theme transition
 // rules with the source stylesheet on every build.
 const themeCSS=await readFile(new URL('./draft.css',import.meta.url),'utf8');
