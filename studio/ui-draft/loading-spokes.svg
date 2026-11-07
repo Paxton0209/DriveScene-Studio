@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="#000" stroke-width="1.5" stroke-linecap="round">
+  <defs><path id="spoke" d="M8 1.25v2.5"/></defs>
+  <use href="#spoke"/>
+  <use href="#spoke" transform="rotate(45 8 8)" opacity=".2"/>
+  <use href="#spoke" transform="rotate(90 8 8)" opacity=".28"/>
+  <use href="#spoke" transform="rotate(135 8 8)" opacity=".38"/>
+  <use href="#spoke" transform="rotate(180 8 8)" opacity=".48"/>
+  <use href="#spoke" transform="rotate(225 8 8)" opacity=".6"/>
+  <use href="#spoke" transform="rotate(270 8 8)" opacity=".73"/>
+  <use href="#spoke" transform="rotate(315 8 8)" opacity=".86"/>
+</svg>

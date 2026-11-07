@@ -113,9 +113,11 @@ button,select,input{font:inherit;letter-spacing:normal} /* ds-allow: D-21 retain
 .artboard-label,.preview-tools,#artboard-size{display:none}
 #canvas-playback{position:absolute;left:0;right:0;top:calc(100% + 12px);display:flex;justify-content:center;align-items:center;gap:8px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 #canvas-playback #scene-transport{display:flex;align-items:center;justify-content:center;gap:8px;height:32px;min-width:82px;padding:0 12px;background:var(--raised);border:1px solid var(--line);border-radius:var(--control-radius);box-shadow:var(--sh-raised)} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
-#scene-transport::before{content:'';width:16px;height:16px;flex:none;background:currentColor;clip-path:polygon(30% 18%,82% 50%,30% 82%)} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
-#scene-transport[aria-label^=Pause]::before{clip-path:polygon(28% 22%,40% 22%,40% 78%,28% 78%,28% 22%,60% 22%,72% 22%,72% 78%,60% 78%,60% 22%)}
-#scene-transport[aria-label^=Loading]::before{display:none}
+#scene-transport[aria-label=Loading]::before{content:"";width:var(--ds-size-icon);aspect-ratio:1;flex:none;background:currentColor;mask:url("./loading-spokes.svg") center/contain no-repeat}
+@media(prefers-reduced-motion:no-preference){
+ #scene-transport[aria-label=Loading]::before{animation:loading-spokes var(--ds-motion-pulse) steps(8) infinite}
+ @keyframes loading-spokes{to{transform:rotate(1turn)}}
+}
 #parking-flow{width:320px;height:42px;padding:4px 4px 4px 12px;gap:8px;border-radius:11px;box-shadow:none} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
 #parking-flow #parking-hint{margin:0}
 #parking-flow #assist,#junction-transport{height:32px;min-height:32px;padding:0 12px;border-radius:6px;box-shadow:none} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */

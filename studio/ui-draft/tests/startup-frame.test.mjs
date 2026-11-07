@@ -49,7 +49,7 @@ test('All scenes share a visible transport while readiness disables playback', (
   for (const active of ['road', 'parking', 'outdoor']) {
     const attrs={},transport = {dataset:{},setAttribute(k,v) {attrs[k]=v},removeAttribute(k){delete attrs[k]}},document={body:{dataset:{}}};
     const render=new Function('$', 'project','document', `let status={playing:false},sceneFailed=false,exporting=false,previewBusy=false,demoUpdating=false,sceneUpdating=false,vehicleUpdating=false,themeTransition=null;const syncJunctionPathLock=()=>{};${block};return renderTransport;`)(() => transport, {active},document);
-    render();assert.equal(transport.hidden,false);assert.equal(transport.disabled,true);assert.equal(transport.textContent,'Loading scene…');
+    render();assert.equal(transport.hidden,false);assert.equal(transport.disabled,true);assert.equal(transport.textContent,'Loading');
     assert.equal(attrs.role,undefined);assert.equal(attrs['aria-checked'],undefined);
     document.body.dataset.ready='true';render();assert.equal(transport.hidden,false);assert.equal(transport.textContent,active==='road'?'Driving assist':'Park assist');
   }
