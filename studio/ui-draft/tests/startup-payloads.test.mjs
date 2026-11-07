@@ -142,3 +142,36 @@ test('Critical HTML contains only the unchanged default preview; other exact JPE
  assert.ok(gzipSync(html).byteLength<161000);assert.equal((html.match(/data:image\/jpeg;base64,/g)||[]).length,1);assert.ok(html.includes(previews['road-light']));
  for(const [name,data]of Object.entries(previews)){const bytes=await readFile(new URL('../startup-previews/'+name+'.jpg',import.meta.url));assert.deepEqual(bytes,Buffer.from(data.split(',')[1],'base64'));if(name!=='road-light')assert.ok(html.includes('./startup-previews/'+name+'.jpg?v='));}
 });
+
+test('After startup, vehicle transfers share the request map and queue one model at a time',async()=>{
+ const {prefetchVehicleFiles}=await import('../vehicle-prefetch.js');
+ const requests=new Map(),calls=[],bytes=new Uint8Array([1,2]).buffer;
+ const baseURI='https://example.test/studio/ui-draft/';
+ const host={__draftStartupAssets:requests,document:{baseURI},navigator:{}};
+ let finishFirst;
+ const first=new Promise(resolve=>{finishFirst=resolve;});
+ const download=(url,options)=>{
+  assert.equal(options.priority,'low');calls.push(url);
+  if(url.includes('/x6/model.glb.gz'))return first;
+  if(url.includes('/ix/model.glb.gz'))return Promise.reject(Error('Background download failed'));
+  return Promise.resolve(bytes);
+ };
+ const options={host,download,needsModel:id=>id!=='model-3'};
+ const sweep=prefetchVehicleFiles(['model-3','x6','ix','xc90'],options);
+ const x6Url=new URL('./vehicles/x6/model.glb.gz?v=x6-lossless-20261104',baseURI).href;
+ assert.deepEqual(calls,[x6Url,new URL('./vehicles/x6/framing-hull.json?v=cold-20261102',baseURI).href]);
+ const selected=requests.get(x6Url);requests.delete(x6Url);
+ finishFirst(bytes);
+ assert.equal(await selected,bytes);
+ await sweep;
+ assert.equal(requests.has(x6Url),false);
+ assert.equal(requests.has(new URL('./vehicles/ix/model.glb.gz?v=restore26',baseURI).href),false);
+ assert.equal(await requests.get(new URL('./vehicles/xc90/model.glb.gz?v=restore26',baseURI).href),bytes);
+ assert.equal(new Set(calls).size,6);
+
+ for(const connection of [{saveData:true},{effectiveType:'2g'}]){
+  host.navigator.connection=connection;
+  await prefetchVehicleFiles(['x6'],options);
+ }
+ assert.equal(calls.length,6);
+});

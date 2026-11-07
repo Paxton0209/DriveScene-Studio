@@ -79,27 +79,6 @@ if(nav&&library){
  compactLayout();syncPicker();
 }
 
-if(inspector&&scroll){
- let scrollRange=0;
- const updateScrollPosition=()=>{
-  if(!scrollRange)return;
-  const progress=Math.max(0,Math.min(1,scroll.scrollTop/scrollRange));
-  inspector.style.setProperty('--scroll-progress',progress);
- };
- const updateScrollIndicator=()=>{
-  const height=scroll.clientHeight,range=scroll.scrollHeight-height;
-  scrollRange=mobileQuery.matches&&height>0&&range>1?range:0;
-  inspector.toggleAttribute('data-scroll-overflow',scrollRange>0);
-  updateScrollPosition();
- };
- scroll.addEventListener('scroll',updateScrollPosition,{passive:true});
- const resizeIndicator=new ResizeObserver(updateScrollIndicator);
- resizeIndicator.observe(scroll);
- for(const child of scroll.children)resizeIndicator.observe(child);
- mobileQuery.addEventListener('change',updateScrollIndicator);
- updateScrollIndicator();
-}
-
 const panel=byId('vehicle-panel'),strip=byId('vehicle-strip');
 if(panel&&strip){
  const options=()=>[...strip.querySelectorAll('[data-vehicle]')];

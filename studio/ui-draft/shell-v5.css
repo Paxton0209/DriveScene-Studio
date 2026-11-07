@@ -249,15 +249,6 @@ body[data-ready=true] #canvas-playback #scene-transport:disabled{opacity:1}
  /* Give the settings a definite grid track and let the scroller own its clip.
   * The card itself does not need a second overflow layer on mobile. */
  :root #inspector{position:relative;grid-column:1;grid-row:3;display:grid;grid-template:minmax(0,1fr) / minmax(0,1fr);min-height:0;padding:0;border:0;overflow:visible;box-shadow:var(--sh-panel)}
- /* Show the scroll thumb before the first swipe. */
- :root #inspector[data-scroll-overflow]::after{
-  --scroll-track:max(0px,calc(100% - 2 * var(--ds-space-4)));
-  --scroll-thumb:min(var(--ds-space-10),var(--scroll-track));
-  content:'';position:absolute;inset-inline-end:var(--ds-space-3);pointer-events:none;
-  inset-block-start:calc(var(--ds-space-4) + (var(--scroll-track) - var(--scroll-thumb)) * var(--scroll-progress));
-  width:var(--ds-space-2);height:var(--scroll-thumb);
-  border-radius:var(--ds-radius-pill);background:var(--ds-color-text-3);
- }
  :root #inspector-scroll{display:block;height:auto;min-height:0;overflow-y:auto;overflow-x:hidden;border-radius:inherit;padding-block:var(--ds-space-6);scroll-padding-block:var(--ds-space-6);overscroll-behavior:contain;scrollbar-width:none}
  :root #inspector-scroll::-webkit-scrollbar{display:none;width:0;height:0}
  :root #inspector-scroll>section,:root #inspector-scroll>#scene-settings,:root #inspector-scroll>#shared-settings{padding-inline:16px} /* ds-allow: D-21 retains the existing keypage geometry, radii and type metrics on this rule; authorized sub-12 text is separately migrated to the caption token. */
