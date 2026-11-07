@@ -175,3 +175,33 @@ test('After startup, vehicle transfers share the request map and queue one model
  }
  assert.equal(calls.length,6);
 });
+
+test('The X6 loader consumes a pending background transfer and retries a rejected transfer',async()=>{
+ const {isolatedRuntimePlugin}=await import('../runtime-patches.mjs');
+ const {takePrefetched}=await import('../../engine/asset-request.js');
+ let load;
+ isolatedRuntimePlugin().setup({onLoad(_options,handler){load=handler;}});
+ const {contents}=await load({path:new URL('../../engine/vehicle.js',import.meta.url).pathname});
+ const start=contents.indexOf("const url=new URL(startup?");
+ const end=contents.indexOf(' const bytes=',start);
+ const body=contents.slice(start,end).replace('import.meta.url','moduleUrl');
+ const run=new (async()=>{}).constructor('startup','moduleUrl','window','globalThis','fetchAsset','takePrefetched',body+'return compressed;');
+ const moduleUrl='https://example.test/studio/ui-draft/runtime.bundle.js';
+ const url=new URL('./vehicles/x6/model.glb.gz?v=x6-lossless-20261104',moduleUrl).href;
+ const requests=new Map(),window={parent:{__draftStartupAssets:requests}};
+ const bytes=new Uint8Array([1,2]).buffer,fresh=new Uint8Array([3,4]).buffer,calls=[];
+ const fetchAsset=async asset=>{calls.push(asset.href);return fresh;};
+
+ let finish;
+ requests.set(url,new Promise(resolve=>{finish=resolve;}));
+ const selected=run(false,moduleUrl,window,{},fetchAsset,takePrefetched);
+ assert.equal(requests.has(url),false);
+ finish(bytes);
+ assert.equal(await selected,bytes);
+ assert.deepEqual(calls,[]);
+
+ requests.set(url,Promise.reject(Error('Background transfer failed')));
+ assert.equal(await run(false,moduleUrl,window,{},fetchAsset,takePrefetched),fresh);
+ assert.equal(requests.has(url),false);
+ assert.deepEqual(calls,[url]);
+});
